@@ -1,0 +1,47 @@
+#mill
+out
+
+# sbt
+lib_managed
+project/project
+target
+
+# Eclipse
+.cache*
+.classpath
+.project
+.scala_dependencies
+.settings
+.target
+.worksheet
+
+# IntelliJ
+.idea
+.idea_modules
+*.iml
+
+# ENSIME
+.ensime
+.ensime_lucene
+.ensime_cache
+
+# Mac
+.DS_Store
+
+# Akka Persistence
+journal
+snapshots
+
+# Log files
+*.log
+
+#Floobits
+.floo
+
+# Local Dynamo DB
+dynamodb_lib
+*.db
+
+.bloop
+.vscode
+.metals
