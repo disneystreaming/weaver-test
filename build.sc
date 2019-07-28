@@ -18,6 +18,9 @@ object core extends WeaverCrossPlatformModule { shared =>
 
 object testkit extends WeaverCrossPlatformModule { shared =>
   override def crossPlatformModuleDeps = Seq(core)
+  override def crossPlatformIvyDeps = Agg(
+    ivy"com.eed3si9n.expecty::expecty::0.12.1-SNAPSHOT"
+  )
   object jvm extends shared.JVM {
     override def compileIvyDeps = Agg(
       ivy"org.scala-js::scalajs-stubs:${scalaJSVersion()}"

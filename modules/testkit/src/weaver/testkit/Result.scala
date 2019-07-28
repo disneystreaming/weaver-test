@@ -15,7 +15,7 @@ object Result {
   val tab2 = "  "
   val tab4 = "    "
 
-  def fromAssertion(assertion: Assertion): Result = assertion.run match {
+  def fromAssertion(assertion: Expectations): Result = assertion.run match {
     case Valid(_) => Success
     case Invalid(failed) =>
       Failures(failed.map(ex =>
@@ -69,7 +69,7 @@ object Result {
         }
 
         val header = red("- ") + name + EOL
-        header + descriptions.toList.mkString("\n")
+        header + descriptions.toList.mkString("\n\n")
       }
   }
 
