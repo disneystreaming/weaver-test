@@ -138,15 +138,18 @@ with gitVersion.GitVersionModule {
 
   def pomSettings: mill.T[mill.scalalib.publish.PomSettings] = PomSettings(
     """
-      |Melting pot of library helping with testing, aws, and other things
+      |A test-framework for sane testing
       |""".stripMargin.trim,
     "io.github.baccata",
     "http://github.com/baccata/weaver",
-    Seq(License.Common.Apache2),
+    Seq(),
     VersionControl(browsableRepository =
-                     Some("http://github.com/baccata/weaver"),
+                     Some("http://github.bamtech.co/OSS/weaver-test"),
                    tag = latestTag()),
-    Seq(Developer("baccata", "Olivier JJ Melois", "http://github.com/baccata"))
+    Seq(
+      Developer("omelois",
+                "Olivier JJ Melois",
+                "http://github.bamtech.co/omelois"))
   )
   def publishVersion: mill.T[String] = gitVersion
 }

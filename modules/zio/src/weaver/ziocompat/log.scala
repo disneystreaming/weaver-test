@@ -1,4 +1,4 @@
-package weaver.zio
+package weaver.ziocompat
 
 import weaver.SourceLocation
 
