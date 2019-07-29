@@ -57,7 +57,7 @@ object MySuite extends SimpleMutableIOSuite {
   }
 
 }
-``` 
+```
 
 #### MutableIOSuite
 
