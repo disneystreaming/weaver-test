@@ -5,7 +5,7 @@ import cats.implicits._
 import scala.concurrent.duration._
 import java.util.concurrent.TimeUnit
 
-object MutableSuiteTest extends SimpleMutableIOSuite {
+object MutableSuiteTest extends SimpleIOSuite {
 
   pureTest("23 is odd") {
     expect(23 % 2 == 1)
@@ -22,6 +22,5 @@ object MutableSuiteTest extends SimpleMutableIOSuite {
   loggedTest("logged") { log =>
     log.info("hello").as(success)
   }
-
 
 }

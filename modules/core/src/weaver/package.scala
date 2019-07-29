@@ -1,6 +1,8 @@
 package object weaver {
 
-  type Event = TestOutcome
+  type IOSuite[A]    = MutableIOSuite[A]
+  type SimpleIOSuite = SimpleMutableIOSuite
+  type Event         = TestOutcome
 
   object discard {
     def apply[T]: T => Unit = { value =>
