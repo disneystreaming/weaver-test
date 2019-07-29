@@ -35,6 +35,7 @@ trait EffectSuite[F[_]] extends Suite[F] with Expectations.Helpers { self =>
    * Expect macro
    */
   def expect = new Expect
+  def assert = new Expect
 
   override def name : String = self.getClass.getName.replace("$", "")
 

@@ -1,4 +1,4 @@
-package weaver.zio
+package weaver.ziocompat
 
 import weaver.EffectSuite
 import weaver.Expectations
@@ -18,14 +18,11 @@ trait MutableZIOSuite[R] extends EffectSuite[Task] {
   def maxParallelism: Int = 10000
 
   val ec = scala.concurrent.ExecutionContext.global
-  implicit val runtime: Runtime[Clock with Console with System with Random] =
+  implicit val runtime: Runtime[BaseEnv] =
     new DefaultRuntime {}
   implicit def effect = zio.interop.catz.taskEffectInstances
 
-  type Eff[D >: LogModule with SharedResourceModule[R], A] =
-    ZIO[D, Exception, A]
-
-  def registerTest[D >: LogModule with SharedResourceModule[R]](name: String)(
+  def registerTest[D >: LogModule with Env[R]](name: String)(
       run: ZIO[D, Throwable, Expectations]): Unit =
     synchronized {
       if (isInitialized) throw initError()
@@ -35,7 +32,7 @@ trait MutableZIOSuite[R] extends EffectSuite[Task] {
   def pureTest(name: String)(run: => Expectations): Unit =
     registerTest(name)(ZIO(run))
 
-  def test[D >: LogModule with SharedResourceModule[R]](name: String)(
+  def test[D >: LogModule with Env[R]](name: String)(
       run: ZIO[D, Throwable, Expectations]): Unit =
     registerTest(name)(run)
 
@@ -49,11 +46,14 @@ trait MutableZIOSuite[R] extends EffectSuite[Task] {
         result <- Stream
           .emits(testSeq)
           .lift[Task]
-          .parEvalMap(math.max(1, maxParallelism))(
-            _.compile.provide(new Clock with SharedResourceModule[R] {
-              val clock          = runtime.Environment.clock
-              val sharedResource = resource
-            }))
+          .parEvalMap(math.max(1, maxParallelism))(_.compile.provide(new Clock
+          with Console with System with Random with SharedResourceModule[R] {
+            val clock          = runtime.Environment.clock
+            val system         = runtime.Environment.system
+            val console        = runtime.Environment.console
+            val random         = runtime.Environment.random
+            val sharedResource = resource
+          }))
       } yield result
     }
 

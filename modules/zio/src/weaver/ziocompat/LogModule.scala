@@ -1,7 +1,7 @@
-package weaver.zio
+package weaver.ziocompat
 
 import weaver.Log
-import _root_.zio.UIO
+import zio.UIO
 
 /**
  *  Accommodating ZIO's reader parameter
