@@ -1,5 +1,4 @@
 package weaver
-package testkit
 
 import cats.Monoid
 import cats.data.Chain

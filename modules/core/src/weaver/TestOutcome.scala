@@ -1,5 +1,4 @@
 package weaver
-package testkit
 
 import cats.data.Chain
 import cats.implicits._

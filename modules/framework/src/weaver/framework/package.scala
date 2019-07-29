@@ -1,7 +1,6 @@
 package weaver
 
 import cats.effect.IO
-import weaver.testkit._
 
 package object framework {
 

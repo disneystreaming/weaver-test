@@ -1,7 +1,16 @@
 package weaver
-package testkit
 
 import scala.util.control.NonFatal
+
+abstract class WeaverException(
+    message: String,
+    cause: Option[Throwable],
+    location: SourceLocation)
+    extends RuntimeException(message, cause.orNull) {
+
+  def getLocation: SourceLocation = location
+
+}
 
 sealed abstract class WeaverTestException(
     message: String,

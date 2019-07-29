@@ -1,5 +1,13 @@
 package object weaver {
 
+  type Event = TestOutcome
+
+  object discard {
+    def apply[T]: T => Unit = { value =>
+      val _ = value
+    }
+  }
+
   def colored(color: String)(s: String): String =
     new StringBuilder()
       .append(color)

@@ -6,7 +6,6 @@ import cats.effect.{ ContextShift, IO, Timer }
 import cats.effect.concurrent.{ Ref, Semaphore }
 import cats.data.Chain
 import sbt.testing.{ Runner => BaseRunner, Task => BaseTask, _ }
-import weaver.testkit.TestOutcome
 
 final class Runner(
     val args: Array[String],

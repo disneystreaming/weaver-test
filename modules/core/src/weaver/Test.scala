@@ -1,15 +1,14 @@
-package weaver.testkit
+package weaver
 
 import cats.syntax.all._
 import cats.data.Chain
 import cats.effect.concurrent.Ref
 
 import scala.concurrent.duration.{ MILLISECONDS, _ }
-import weaver.Log
 import cats.effect.Sync
 import cats.effect.Timer
 
-class Test[F[_]](val name: String, val f: Log[F] => F[Assertion]) {
+class Test[F[_]](val name: String, val f: Log[F] => F[Expectations]) {
 
   def compile(
       implicit F: Sync[F],
@@ -28,7 +27,7 @@ class Test[F[_]](val name: String, val f: Log[F] => F[Assertion]) {
 
 object Test {
 
-  def apply[F[_]](name: String)(f: Log[F] => F[Assertion]): Test[F] =
+  def apply[F[_]](name: String)(f: Log[F] => F[Expectations]): Test[F] =
     new Test(name, f)
 
 }

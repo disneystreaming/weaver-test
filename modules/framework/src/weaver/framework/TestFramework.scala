@@ -29,11 +29,11 @@ object TestFramework {
 
   /**
    * A fingerprint that searches only for singleton objects
-   * of type [[weaver.testkit.api.EffectSuite]].
+   * of type [[weaver.api.EffectSuite]].
    */
   object ModuleFingerprint extends SubclassFingerprint {
     val isModule                           = true
     def requireNoArgConstructor(): Boolean = true
-    def superclassName(): String           = "weaver.testkit.EffectSuite"
+    def superclassName(): String           = "weaver.EffectSuite"
   }
 }
