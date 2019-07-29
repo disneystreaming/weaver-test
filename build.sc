@@ -155,7 +155,7 @@ with gitVersion.GitVersionModule {
                 "Olivier JJ Melois",
                 "http://github.bamtech.co/omelois"))
   )
-  def publishVersion: mill.T[String] = gitVersion
+  def publishVersion: mill.T[String] = "0.1.0-SNAPSHOT" //gitVersion
 }
 
 trait WeaverCommonModule extends ScalaModule {

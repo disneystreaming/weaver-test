@@ -4,10 +4,12 @@ import sbt.testing.{ Framework => BaseFramework, Runner => BaseRunner, _ }
 import weaver.discard
 
 class TestFramework extends BaseFramework {
+
   def name(): String = "weaver"
 
-  def fingerprints(): Array[Fingerprint] =
+  def fingerprints(): Array[Fingerprint] = {
     Array(TestFramework.ModuleFingerprint)
+  }
 
   def runner(
       args: Array[String],
@@ -34,6 +36,6 @@ object TestFramework {
   object ModuleFingerprint extends SubclassFingerprint {
     val isModule                           = true
     def requireNoArgConstructor(): Boolean = true
-    def superclassName(): String           = "weaver.EffectSuite"
+    def superclassName(): String           = "weaver.BaseSuiteClass"
   }
 }
