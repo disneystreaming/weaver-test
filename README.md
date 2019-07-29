@@ -108,7 +108,7 @@ import weaver.zio._
 
 object MyZIOSuite extends ZIOSuite[DynamodbModule] {
 
-  def sharedResource : Resource[IO, DynamodbModule] = Managed.make(...)
+  def sharedResource : Managed[Throwable, DynamodbModule] = Managed.make(...)
 
   // A non-effectful (pure) functions
   pureTest("hello pure"){
