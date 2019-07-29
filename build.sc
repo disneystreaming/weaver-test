@@ -18,7 +18,7 @@ object core extends WeaverCrossPlatformModule { shared =>
       ivy"org.scala-js::scalajs-stubs:${scalaJSVersion()}"
     )
   }
-  object js  extends shared.JS
+  object js extends shared.JS
 }
 
 object framework extends WeaverCrossPlatformModule { shared =>
@@ -33,22 +33,26 @@ object framework extends WeaverCrossPlatformModule { shared =>
       ivy"org.scala-sbt:test-interface:1.0"
     )
 
-    object test extends Tests {
-      override def testFrameworks = Seq(
-        "weaver.framework.TestFramework"
-      )
-    }
+    object test extends Tests
   }
 
   object js extends shared.JS {
     override def ivyDeps = Agg(
       ivy"org.scala-js::scalajs-test-interface:${scalaJSVersion()}"
     )
-    object test extends Tests {
-      override def testFrameworks = Seq(
-        "weaver.framework.TestFramework"
-      )
-    }
+    object test extends Tests
+  }
+}
+
+object zio extends WeaverCrossPlatformModule { shared =>
+  override def crossPlatformModuleDeps = Seq(core)
+  override def crossPlatformIvyDeps =
+    Agg(ivy"dev.zio::zio-interop-cats:2.0.0.0-RC1")
+  object jvm extends shared.JVM {
+    object test extends Tests
+  }
+  object js extends shared.JS {
+    object test extends Tests
   }
 }
 //##############################################################################
@@ -57,9 +61,9 @@ object framework extends WeaverCrossPlatformModule { shared =>
 
 trait WeaverCrossPlatformModule extends Module { shared =>
 
-  def artifactName                           = s"weaver-${millModuleSegments.parts.mkString("-")}"
-  def crossPlatformIvyDeps: T[Agg[Dep]] = T { Agg.empty[Dep] }
-  def crossPlatformModuleDeps: Seq[Module]   = Seq()
+  def artifactName                         = s"weaver-${millModuleSegments.parts.mkString("-")}"
+  def crossPlatformIvyDeps: T[Agg[Dep]]    = T { Agg.empty[Dep] }
+  def crossPlatformModuleDeps: Seq[Module] = Seq()
 
   trait JVM extends WeaverModule { self =>
 
@@ -80,10 +84,13 @@ trait WeaverCrossPlatformModule extends Module { shared =>
 
     override def ivyDeps = super.ivyDeps() ++ shared.crossPlatformIvyDeps()
     trait Tests extends super.Tests {
-      override def moduleDeps = super.moduleDeps ++ Seq(core.jvm)
+      override def moduleDeps = super.moduleDeps ++ Seq(framework.jvm)
       override def sources = T.sources {
         shared.millModuleBasePath.value / 'test / 'src
       }
+      override def testFrameworks = Seq(
+        "weaver.framework.TestFramework"
+      )
     }
   }
 
@@ -107,10 +114,13 @@ trait WeaverCrossPlatformModule extends Module { shared =>
 
     override def ivyDeps = super.ivyDeps() ++ shared.crossPlatformIvyDeps()
     trait Tests extends super.Tests {
-      override def moduleDeps = super.moduleDeps ++ Seq(core.js)
+      override def moduleDeps = super.moduleDeps ++ Seq(framework.js)
       override def sources = T.sources {
         shared.millModuleBasePath.value / 'test / 'src
       }
+      override def testFrameworks = Seq(
+        "weaver.framework.TestFramework"
+      )
     }
   }
 

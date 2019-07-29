@@ -6,6 +6,7 @@ import fs2.Stream
 
 import scala.scalajs.reflect.annotation.EnableReflectiveInstantiation
 import cats.effect.Resource
+import cats.effect.ContextShift
 
 trait Suite[F[_]] {
   def name: String
@@ -17,7 +18,6 @@ trait Suite[F[_]] {
 trait EffectSuite[F[_]] extends Suite[F] with Expectations.Helpers { self =>
 
   implicit def effect : Effect[F]
-  implicit def timer: Timer[F]
 
   /**
    * Raise an error that leads to the running test being tagged as "cancelled".
@@ -59,9 +59,9 @@ trait PureIOSuite extends EffectSuite[IO]{
 trait MutableIOSuite[Res] extends EffectSuite[IO] {
 
   val ec = scala.concurrent.ExecutionContext.global
-  implicit def timer = IO.timer(ec)
-  implicit def cs = IO.contextShift(ec)
-  implicit def effect = IO.ioEffect
+  implicit def timer : Timer[IO] = IO.timer(ec)
+  implicit def cs : ContextShift[IO] = IO.contextShift(ec)
+  implicit def effect : Effect[IO] = IO.ioEffect
 
   def sharedResource : Resource[IO, Res]
 
