@@ -1,10 +1,9 @@
-package weaver.testkit
+package weaver
 
 import com.eed3si9n.expecty._
 
 import cats.data.ValidatedNel
 import cats.implicits._
-import weaver.SourceLocation
 
 case class Expectation(run: ValidatedNel[String, Unit]) {
   def and(other: Expectations)(implicit loc: SourceLocation) =

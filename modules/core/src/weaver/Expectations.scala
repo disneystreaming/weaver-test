@@ -1,5 +1,4 @@
 package weaver
-package testkit
 
 import cats._
 import cats.implicits._

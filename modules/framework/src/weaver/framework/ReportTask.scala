@@ -1,7 +1,7 @@
 package weaver
 package framework
 
-import weaver.testkit.TestOutcome
+import weaver.TestOutcome
 
 import cats.effect.IO
 import cats.data.Chain

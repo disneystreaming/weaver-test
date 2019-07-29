@@ -1,11 +1,10 @@
-package weaver.testkit
+package weaver
 
 import cats.syntax.all._
 import cats.data.Chain
 import cats.effect.concurrent.Ref
 
 import scala.concurrent.duration.{ MILLISECONDS, _ }
-import weaver.Log
 import cats.effect.Sync
 import cats.effect.Timer
 

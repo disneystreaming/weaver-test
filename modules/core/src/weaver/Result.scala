@@ -1,5 +1,4 @@
 package weaver
-package testkit
 
 import cats.data.NonEmptyList
 import cats.data.Validated.{ Invalid, Valid }

@@ -10,16 +10,8 @@ import os._
 def millSourcePath: Path = pwd / 'modules
 
 object core extends WeaverCrossPlatformModule { shared =>
-
-  object js  extends shared.JS
-  object jvm extends shared.JVM
-
-}
-
-object testkit extends WeaverCrossPlatformModule { shared =>
-  override def crossPlatformModuleDeps = Seq(core)
   override def crossPlatformIvyDeps = Agg(
-    ivy"com.eed3si9n.expecty::expecty::0.12.1-SNAPSHOT"
+    ivy"com.eed3si9n.expecty::expecty::0.13.0"
   )
   object jvm extends shared.JVM {
     override def compileIvyDeps = Agg(
@@ -31,7 +23,7 @@ object testkit extends WeaverCrossPlatformModule { shared =>
 
 object framework extends WeaverCrossPlatformModule { shared =>
 
-  override def crossPlatformModuleDeps = Seq(testkit)
+  override def crossPlatformModuleDeps = Seq(core)
 
   object jvm extends shared.JVM {
     override def compileIvyDeps = Agg(
@@ -88,7 +80,7 @@ trait WeaverCrossPlatformModule extends Module { shared =>
 
     override def ivyDeps = super.ivyDeps() ++ shared.crossPlatformIvyDeps()
     trait Tests extends super.Tests {
-      override def moduleDeps = super.moduleDeps ++ Seq(testkit.jvm)
+      override def moduleDeps = super.moduleDeps ++ Seq(core.jvm)
       override def sources = T.sources {
         shared.millModuleBasePath.value / 'test / 'src
       }
@@ -115,7 +107,7 @@ trait WeaverCrossPlatformModule extends Module { shared =>
 
     override def ivyDeps = super.ivyDeps() ++ shared.crossPlatformIvyDeps()
     trait Tests extends super.Tests {
-      override def moduleDeps = super.moduleDeps ++ Seq(testkit.js)
+      override def moduleDeps = super.moduleDeps ++ Seq(core.js)
       override def sources = T.sources {
         shared.millModuleBasePath.value / 'test / 'src
       }

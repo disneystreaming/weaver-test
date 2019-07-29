@@ -1,7 +1,7 @@
 package weaver
 package framework
 
-import weaver.testkit._
+import weaver._
 
 import cats.effect.IO
 import cats.implicits._

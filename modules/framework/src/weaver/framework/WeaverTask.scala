@@ -10,7 +10,7 @@ import sbt.testing.{
   Event => BaseEvent,
   Task => BaseTask
 }
-import weaver.testkit._
+import weaver._
 
 trait WeaverTask extends BaseTask {
 

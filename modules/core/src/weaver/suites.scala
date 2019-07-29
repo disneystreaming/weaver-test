@@ -1,5 +1,4 @@
 package weaver
-package testkit
 
 import cats.~>
 import cats.effect.{ Effect, Timer, IO }

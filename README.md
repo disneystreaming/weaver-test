@@ -10,7 +10,7 @@ A test-framework built on [cats-effect](https://github.com/typelevel/cats-effect
 
 Weaver aims at providing a nice experience when writing and running tests :
 
-* tests within a suite are run in parallel for quickest feedback possible
+* tests within a suite are run in parallel for quickest results possible
 * expecations (ie assertions) are composable values. This forces
 developers to separate the scenario of the test from the checks they perform,
 which generally keeps tests cleaner / clearer.
@@ -97,7 +97,7 @@ Something worth noting is that expectations are not throwing, and that if the us
 
 ### Running suites in standalone
 
-It is possible to run suites outside of your build tool, via a good old `main` function. To do so, you can instantiate the `weaver.testkit.Runner`, create a `fs2.Stream` of the suites you want to run, and call `runner.run(stream)`.
+It is possible to run suites outside of your build tool, via a good old `main` function. To do so, you can instantiate the `weaver.Runner`, create a `fs2.Stream` of the suites you want to run, and call `runner.run(stream)`.
 
 This is useful when you consider your tests (typically `end-to-end` ones) as a program of its own and want to avoid paying the cost of compiling them every time you run them.
 

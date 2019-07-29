@@ -1,6 +1,6 @@
 package weaver.test
 
-import weaver.testkit._
+import weaver._
 import cats.implicits._
 import scala.concurrent.duration._
 import java.util.concurrent.TimeUnit
