@@ -51,9 +51,6 @@ object zio extends WeaverCrossPlatformModule { shared =>
   object jvm extends shared.JVM {
     object test extends Tests
   }
-  object js extends shared.JS {
-    object test extends Tests
-  }
 }
 //##############################################################################
 // COMMON SETTINGS
