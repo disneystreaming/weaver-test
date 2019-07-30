@@ -156,6 +156,15 @@ This is useful when you consider your tests (typically `end-to-end` ones) as a p
 
 
 
+## Contributing
+
+This project uses mill as build tool, mill now supports local mill bootstrap script so that each project can specify it's own version.
+
+The mill bootstrap script is included in the project, you can use it by running `./mill` instead of `mill`
+
+For intellij user, run `./mill mill.scalalib.GenIdea/idea` at project root.
+
+
 ## Inspiration
 
 A **HUGE** thank you to Alexandru Nedelcu, author of [Monix](https://github.com/monix/monix) and contributor to
