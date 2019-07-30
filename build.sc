@@ -7,8 +7,6 @@ import mill.scalajslib.ScalaJSModule
 import $file.gitVersion
 import os._
 
-def millSourcePath: Path = pwd / 'modules
-
 object core extends WeaverCrossPlatformModule { shared =>
   override def crossPlatformIvyDeps = Agg(
     ivy"com.eed3si9n.expecty::expecty::0.13.0"
@@ -62,9 +60,12 @@ trait WeaverCrossPlatformModule extends Module { shared =>
   def crossPlatformIvyDeps: T[Agg[Dep]]    = T { Agg.empty[Dep] }
   def crossPlatformModuleDeps: Seq[Module] = Seq()
 
-  trait JVM extends WeaverModule { self =>
+  override val millSourcePath = {
+    val relPath = super.millSourcePath.relativeTo(os.pwd)
+    os.pwd / "modules" / relPath
+  }
 
-    override def millSourcePath = shared.millSourcePath
+  trait JVM extends WeaverModule { self =>
 
     override def moduleDeps: Seq[PublishModule] =
       shared.crossPlatformModuleDeps.flatMap {
@@ -78,6 +79,9 @@ trait WeaverCrossPlatformModule extends Module { shared =>
       }
 
     override def artifactName = shared.artifactName
+    override def sources = T.sources(
+      shared.millSourcePath / 'src
+    )
 
     override def ivyDeps = super.ivyDeps() ++ shared.crossPlatformIvyDeps()
     trait Tests extends super.Tests {
