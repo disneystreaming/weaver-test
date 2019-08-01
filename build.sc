@@ -67,6 +67,8 @@ trait WeaverCrossPlatformModule extends Module { shared =>
 
   trait JVM extends WeaverModule { self =>
 
+    def millSourcePath = shared.millSourcePath
+
     override def moduleDeps: Seq[PublishModule] =
       shared.crossPlatformModuleDeps.flatMap {
         case m: WeaverCrossPlatformModule =>
@@ -79,16 +81,10 @@ trait WeaverCrossPlatformModule extends Module { shared =>
       }
 
     override def artifactName = shared.artifactName
-    override def sources = T.sources(
-      shared.millSourcePath / 'src
-    )
 
     override def ivyDeps = super.ivyDeps() ++ shared.crossPlatformIvyDeps()
     trait Tests extends super.Tests {
       override def moduleDeps = super.moduleDeps ++ Seq(framework.jvm)
-      override def sources = T.sources {
-        shared.millModuleBasePath.value / 'test / 'src
-      }
       override def testFrameworks = Seq(
         "weaver.framework.TestFramework"
       )
@@ -96,6 +92,8 @@ trait WeaverCrossPlatformModule extends Module { shared =>
   }
 
   trait JS extends WeaverModule with ScalaJSModule { self =>
+
+    def millSourcePath = shared.millSourcePath
 
     override def moduleDeps: Seq[PublishModule] =
       shared.crossPlatformModuleDeps.flatMap {
@@ -109,16 +107,10 @@ trait WeaverCrossPlatformModule extends Module { shared =>
       }
 
     override def artifactName = shared.artifactName
-    override def sources = T.sources(
-      shared.millSourcePath / 'src
-    )
 
     override def ivyDeps = super.ivyDeps() ++ shared.crossPlatformIvyDeps()
     trait Tests extends super.Tests {
       override def moduleDeps = super.moduleDeps ++ Seq(framework.js)
-      override def sources = T.sources {
-        shared.millModuleBasePath.value / 'test / 'src
-      }
       override def testFrameworks = Seq(
         "weaver.framework.TestFramework"
       )
