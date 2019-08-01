@@ -8,7 +8,10 @@ import scala.scalajs.reflect.annotation.EnableReflectiveInstantiation
 import cats.effect.Resource
 import cats.effect.ContextShift
 
-trait Suite[F[_]] {
+// Just a non-parameterized marker trait to help SBT's test detection logic.
+trait BaseSuiteClass {}
+
+trait Suite[F[_]] extends BaseSuiteClass {
   def name: String
   def spec: Stream[F, TestOutcome]
 }
