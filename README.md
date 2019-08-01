@@ -8,6 +8,8 @@ A test-framework built on [cats-effect](https://github.com/typelevel/cats-effect
 
 ## Motivation
 
+![time](docs/screenshots/time.png)
+
 Weaver aims at providing a nice experience when writing and running tests :
 
 * tests within a suite are run in parallel for quickest results possible
