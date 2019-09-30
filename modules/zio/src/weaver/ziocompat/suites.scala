@@ -11,6 +11,7 @@ import zio.system.System
 import zio.random.Random
 
 import fs2._
+import cats.effect.ExitCase
 
 trait MutableZIOSuite[R] extends EffectSuite[Task] {
 
@@ -20,7 +21,7 @@ trait MutableZIOSuite[R] extends EffectSuite[Task] {
   val ec = scala.concurrent.ExecutionContext.global
   implicit val runtime: Runtime[BaseEnv] =
     new DefaultRuntime {}
-  implicit def effect = zio.interop.catz.taskEffectInstances
+  implicit def effect = zio.interop.catz.taskEffectInstance
 
   def registerTest[D >: LogModule with Env[R]](name: String)(
       run: ZIO[D, Throwable, Expectations]): Unit =
@@ -41,8 +42,8 @@ trait MutableZIOSuite[R] extends EffectSuite[Task] {
       if (!isInitialized) isInitialized = true
       for {
         reservation <- Stream.eval(sharedResource.reserve)
-        resource <- Stream.bracket(reservation.acquire)(_ =>
-          reservation.release.unit)
+        resource <- Stream.bracketCase(reservation.acquire)((_, exitCase) =>
+          reservation.release(fromCats(exitCase)).unit)
         result <- Stream
           .emits(testSeq)
           .lift[Task]
@@ -64,6 +65,13 @@ trait MutableZIOSuite[R] extends EffectSuite[Task] {
     new AssertionError(
       "Cannot define new tests after TestSuite was initialized"
     )
+
+  private def fromCats[A](exitCase: ExitCase[Throwable]): Exit[Throwable, _] =
+    exitCase match {
+      case ExitCase.Canceled  => Exit.interrupt
+      case ExitCase.Completed => Exit.succeed(())
+      case ExitCase.Error(e)  => Exit.fail(e)
+    }
 
 }
 
