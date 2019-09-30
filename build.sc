@@ -45,7 +45,7 @@ object framework extends WeaverCrossPlatformModule { shared =>
 object zio extends WeaverCrossPlatformModule { shared =>
   override def crossPlatformModuleDeps = Seq(core)
   override def crossPlatformIvyDeps =
-    Agg(ivy"dev.zio::zio-interop-cats:2.0.0.0-RC1")
+    Agg(ivy"dev.zio::zio-interop-cats:2.0.0.0-RC4")
   object jvm extends shared.JVM {
     object test extends Tests
   }
@@ -122,7 +122,7 @@ trait WeaverCrossPlatformModule extends Module { shared =>
 trait WeaverModule extends WeaverPublishModule {
 
   override def ivyDeps = Agg {
-    ivy"co.fs2::fs2-core::1.0.4"
+    ivy"co.fs2::fs2-core::2.0.1"
   }
 
 }
@@ -153,7 +153,7 @@ with gitVersion.GitVersionModule {
 trait WeaverCommonModule extends ScalaModule {
 
   def scalaVersion   = T("2.12.8")
-  def scalaJSVersion = T("0.6.28")
+  def scalaJSVersion = T("0.6.29")
 
   override def scalacOptions = Seq(
     "-deprecation", // Emit warning and location for usages of deprecated APIs.
