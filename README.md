@@ -1,5 +1,6 @@
+[![Build Status](https://oss-drone.bamgrid.com/api/badges/OSS/weaver-test/status.svg)](https://oss-drone.bamgrid.com/OSS/weaver-test)
 
-# Weaver-testkit
+# Weaver-test
 
 A test-framework built on [cats-effect](https://github.com/typelevel/cats-effect) and
 [fs2](https://github.com/functional-streams-for-scala/fs2), with [zio](https://zio.dev) interop.

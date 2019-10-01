@@ -1,0 +1,59 @@
+kind: pipeline
+name: default
+
+steps:
+
+  # Compile the code/run tests
+- name: build
+  image: baccata/mill-docker:0.5.1
+  commands:
+  - ./mill show core.jvm.publishVersion 2>/dev/null | cut -d "\"" -f 2  > version
+  - cat version
+  - ./mill _.jvm.compile
+  - ./mill _.jvm.test
+  environment:
+    COURSIER_CACHE: .cache/coursier
+  volumes:
+  - name: mill-cache
+    path: /root/.mill
+
+  # Publish maven artifacts (on tag push)
+- name: publish-to-artifactory
+  image: baccata/mill-docker:0.5.1
+  commands:
+  - echo Publishing version $(cat version)
+  - ./mill publishAll --username $ART_USER --password $ART_PASSWORD --publishArtifacts __.publishArtifacts
+  - echo done !
+  environment:
+    COURSIER_CACHE: .cache/coursier
+    ART_USER:
+      from_secret: username
+    ART_PASSWORD:
+      from_secret: password
+  when:
+    ref:
+      - refs/tags/v*
+  volumes:
+  - name: mill-cache
+    path: /root/.mill
+
+  ## Cleaning non tar-able files
+- name: clean-mill-worker
+  image: bash
+  commands:
+  - rm -r out/mill-worker-*
+
+volumes:
+- name: mill-cache
+  temp: {}
+
+---
+kind: secret
+name: username
+data: epM48/FMMsOolVdGDs0z3oQeAMyPioOmshPfBRnmrtfNRag67Q==
+---
+kind: secret
+name: password
+data: krBDYD3HhDKTls34m7vad5oLDsk7PkLgmx3u10B3nCIpbYwWc+mq
+
+

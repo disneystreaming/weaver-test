@@ -1,4 +1,4 @@
-import $ivy.`com.lihaoyi:mill-contrib-bloop_2.12:0.5.0`
+import $ivy.`com.lihaoyi:mill-contrib-bloop_2.12:0.5.1`
 
 import mill._
 import mill.scalalib._
