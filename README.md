@@ -75,7 +75,7 @@ object MySuite extends IOSuite[AmazonDynamodb] {
   def sharedResource : Resource[IO, AmazonDynamodb] = Resource.make(...)
 
   // Test that uses the shared resource
-  def test("hello resource"){ (ddb : AmazonDynamodb, log : Log[IO]) =>
+  test("hello resource"){ (ddb : AmazonDynamodb, log : Log[IO]) =>
     // ...
   }
 
@@ -139,7 +139,7 @@ object MyZIOSuite extends ZIOSuite[DynamodbModule] {
   }
 
     // Test that uses the shared resource
-  def test("hello resource"){
+  test("hello resource"){
     for {
       x <- dynamodb.get("key")
     } yield expect(x.nonEmpty)
