@@ -7,6 +7,8 @@ A test-framework built on [cats-effect](https://github.com/typelevel/cats-effect
 
 ## Installation
 
+Weaver-test is currently published for **Scala 2.12 and 2.13**
+
 ### SBT
 
 Add the following (or scoped equivalent) to your `build.sbt` file.
