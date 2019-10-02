@@ -5,7 +5,22 @@
 A test-framework built on [cats-effect](https://github.com/typelevel/cats-effect) and
 [fs2](https://github.com/functional-streams-for-scala/fs2), with [zio](https://zio.dev) interop.
 
-## Usage
+## Installation
+
+### SBT
+
+Add the following (or scoped equivalent) to your `build.sbt` file.
+
+```scala
+resolvers += "dss oss" at "https://artifactory.us-east-1.bamgrid.net/artifactory/oss-maven"
+
+libraryDependencies += "com.disneystreaming.oss" %% "weaver-framework" % "0.1.0" % Test
+testFrameworks += new TestFramework("weaver.framework.TestFramework")
+
+// optionally (for ZIO usage)
+libraryDependencies +=  "com.disneystreaming.oss" %% "weaver-zio" % "0.1.0" % Test
+
+```
 
 ## Motivation
 
