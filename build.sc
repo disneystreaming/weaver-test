@@ -222,3 +222,11 @@ trait WeaverCommonModule extends ScalaModule {
   }
 
 }
+
+def publishAll(
+    username: String,
+    password: String,
+    publishArtifacts: mill.main.Tasks[PublishModule.PublishData]
+) =
+  T.command(
+    WeaverPublishModule.publishAll(username, password, publishArtifacts))
