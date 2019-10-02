@@ -31,7 +31,7 @@ libraryDependencies +=  "com.disneystreaming.oss" %% "weaver-zio" % "0.1.0" % Te
 Weaver aims at providing a nice experience when writing and running tests :
 
 * tests within a suite are run in parallel for quickest results possible
-* expecations (ie assertions) are composable values. This forces
+* expectations (ie assertions) are composable values. This forces
 developers to separate the scenario of the test from the checks they perform,
 which generally keeps tests cleaner / clearer.
 * failures are aggregated and reported at the end of the run. This prevents the developer from having to "scroll up" forever when trying to understand what failed.
@@ -114,7 +114,7 @@ Nothing prevents the user from building their own expectations functions to rese
 
 #### Composing expectations
 
-Something worth noting is that expectations are not throwing, and that if the user wants to perform several checks in the same test, he needs to compose the expecations via the `and` or the `or` methods they carry.
+Something worth noting is that expectations are not throwing, and that if the user wants to perform several checks in the same test, he needs to compose the expectations via the `and` or the `or` methods they carry.
 
 ### Suites (ZIO)
 
