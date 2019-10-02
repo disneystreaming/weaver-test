@@ -1,17 +1,18 @@
 import ammonite.ops._
 import mill._
+import mill.define.{Sources, Task}
 
 import scala.util.Try
 
 // Credit to Dale Wijnand for the regexes (see https://github.com/dwijnand/sbt-dynver)
 trait GitVersionModule extends Module {
 
-  val TRAVIS_TAG = "TRAVIS_TAG"
+  val DRONE_TAG = "DRONE_TAG"
 
   def gitVersion: T[String] = T.input {
     implicit val path: Path = pwd
 
-    T.ctx.env.get(TRAVIS_TAG) match {
+    T.ctx.env.get(DRONE_TAG) match {
       case Some(tag) =>
         parseVersion(tag)
       case None =>
@@ -35,7 +36,7 @@ trait GitVersionModule extends Module {
   def latestTag: T[Option[String]] = T {
     implicit val path: Path = pwd
     val branch              = masterBranch()
-    T.ctx.env.get(TRAVIS_TAG).orElse {
+    T.ctx.env.get(DRONE_TAG).orElse {
       Try(%%("git", "describe", branch, "--abbrev=0", "--tags").out.lines.head).toOption
     }
   }
