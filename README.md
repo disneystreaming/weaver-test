@@ -35,7 +35,7 @@ import cats.effect._
 // Suites must be "objects" for them to be picked by the framework
 object MySuite extends SimpleIOSuite {
 
-  // A non-effectful (pure) functions
+  // A test for non-effectful (pure) functions
   pureTest("hello pure"){
     expect("hello".size == 6)
   }
@@ -74,7 +74,7 @@ object MySuite extends IOSuite[AmazonDynamodb] {
 
   def sharedResource : Resource[IO, AmazonDynamodb] = Resource.make(...)
 
-  // Test that uses the shared resource
+  // A test that uses the shared resource
   test("hello resource"){ (ddb : AmazonDynamodb, log : Log[IO]) =>
     // ...
   }
@@ -113,7 +113,7 @@ object MyZIOSuite extends ZIOSuite[DynamodbModule] {
 
   def sharedResource : Managed[Throwable, DynamodbModule] = Managed.make(...)
 
-  // A non-effectful (pure) functions
+  // A test for non-effectful (pure) functions
   pureTest("hello pure"){
     expect("hello".size == 6)
   }

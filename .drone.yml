@@ -7,10 +7,10 @@ steps:
 - name: build
   image: baccata/mill-docker:0.5.1
   commands:
-  - ./mill show core.jvm.publishVersion 2>/dev/null | cut -d "\"" -f 2  > version
+  - ./mill show core[2.12].jvm.publishVersion 2>/dev/null | cut -d "\"" -f 2  > version
   - cat version
-  - ./mill _.jvm.compile
-  - ./mill _.jvm.test
+  - ./mill __.jvm.compile
+  - ./mill __.jvm.test
   environment:
     COURSIER_CACHE: .cache/coursier
   volumes:

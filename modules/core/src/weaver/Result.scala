@@ -3,13 +3,13 @@ package weaver
 import cats.data.NonEmptyList
 import cats.data.Validated.{ Invalid, Valid }
 
-import scala.compat.Platform.EOL
-
 sealed trait Result {
   def formatted(name: String): String
 }
 
 object Result {
+
+  val EOL = java.lang.System.lineSeparator()
 
   val tab2 = "  "
   val tab4 = "    "

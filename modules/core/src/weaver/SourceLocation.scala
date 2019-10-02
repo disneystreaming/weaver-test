@@ -2,7 +2,6 @@ package weaver
 
 // kudos to https://github.com/monix/minitest
 // format: off
-import scala.language.experimental.macros
 import scala.reflect.macros.whitebox
 import scala.util.{Try => STry}
 

@@ -9,7 +9,6 @@ import cats.implicits._
 import org.scalajs.testinterface.TestUtils
 import sbt.testing.{ Logger => BaseLogger, Task => BaseTask, _ }
 
-import scala.compat.Platform
 import scala.concurrent.duration.Duration
 import scala.concurrent.{ Await, Promise }
 import scala.util.Try
@@ -24,6 +23,7 @@ final class Task(
 
   def tags(): Array[String] = Array.empty
   def taskDef(): TaskDef    = task
+  val EOL = scala.util.Properties.lineSeparator
 
   def execute(
       eventHandler: EventHandler,
@@ -57,7 +57,7 @@ final class Task(
             .through(reportSink)
             .compile
             .drain
-            .map(_ => loggers.foreach(_.info(Platform.EOL)))
+            .map(_ => loggers.foreach(_.info(EOL)))
             .handleErrorWith {
               case NonFatal(e) => // Unexpected failure
                 IO(loggers.foreach { logger =>
