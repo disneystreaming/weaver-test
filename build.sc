@@ -60,7 +60,7 @@ class ZioModule(crossVersion: String)
 
   override def crossPlatformModuleDeps = Seq(core(crossVersion))
   override def crossPlatformIvyDeps =
-    Agg(ivy"dev.zio::zio-interop-cats:2.0.0.0-RC4")
+    Agg(ivy"dev.zio::zio-interop-cats:2.0.0.0-RC7")
   object jvm extends shared.JVM {
     object test extends Tests
   }
@@ -143,7 +143,7 @@ abstract class WeaverCrossPlatformModule(crossVersion: String) extends Module {
 trait WeaverModule extends WeaverCommonModule with WeaverPublishModule {
 
   override def ivyDeps = Agg {
-    ivy"co.fs2::fs2-core::2.0.1"
+    ivy"co.fs2::fs2-core::2.1.0"
   }
 
 }
