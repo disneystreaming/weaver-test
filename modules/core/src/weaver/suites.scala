@@ -78,7 +78,7 @@ trait MutableIOSuite[Res] extends EffectSuite[IO] {
     }
 
   def pureTest(name: String)(run : => Expectations) :  Unit = registerTest(name)(_ => _ => IO(run))
-  def simpleTest(name:  String)(run : IO[Expectations]) : Unit = registerTest(name)(_ => _ => run)
+  def simpleTest(name:  String)(run: => IO[Expectations]) : Unit = registerTest(name)(_ => _ => IO.suspend(run))
   def loggedTest(name: String)(run: Log[IO] => IO[Expectations]) : Unit = registerTest(name)(_ => log => run(log))
   def test(name: String)(run : (Res, Log[IO]) => IO[Expectations]) : Unit = registerTest(name)(run.curried)
 
@@ -105,4 +105,3 @@ trait MutableIOSuite[Res] extends EffectSuite[IO] {
 trait SimpleMutableIOSuite extends MutableIOSuite[Unit]{
   def sharedResource: Resource[IO, Unit] = Resource.pure(())
 }
-
