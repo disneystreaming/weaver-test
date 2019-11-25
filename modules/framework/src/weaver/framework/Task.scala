@@ -1,8 +1,6 @@
 package weaver
 package framework
 
-import weaver._
-
 import cats.effect.IO
 import cats.implicits._
 import cats.data.Chain
@@ -17,6 +15,7 @@ import scala.util.control.NonFatal
 
 final class Task(
     val task: TaskDef,
+    args: List[String],
     cl: ClassLoader,
     maybeLoggedBracket: Option[LoggedBracket],
     maybeNext: IO[Option[BaseTask]])
@@ -54,7 +53,8 @@ final class Task(
         loadSuite(task.fullyQualifiedName(), cl).fold(IO.unit) { suite =>
           loggers.foreach(_.info(cyan(task.fullyQualifiedName())))
 
-          suite.ioSpec
+          suite
+            .ioSpec(args)
             .through(reportSink)
             .compile
             .drain

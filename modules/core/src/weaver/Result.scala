@@ -96,7 +96,7 @@ object Result {
           .fold(className)(m => s"$className: $m")
       }
 
-      formatError(name, description, Some(source), location, Some(5))
+      formatError(name, description, Some(source), location, Some(20))
     }
   }
 

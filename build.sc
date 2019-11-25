@@ -1,4 +1,4 @@
-import $ivy.`com.lihaoyi:mill-contrib-bloop_2.12:0.5.1`
+import $ivy.`com.lihaoyi:mill-contrib-bloop_2.12:$MILL_VERSION`
 import $file.plugins.publish
 
 import mill._

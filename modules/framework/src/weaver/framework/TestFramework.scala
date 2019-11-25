@@ -31,7 +31,7 @@ object TestFramework {
 
   /**
    * A fingerprint that searches only for singleton objects
-   * of type [[weaver.api.EffectSuite]].
+   * of type [[weaver.EffectSuite]].
    */
   object ModuleFingerprint extends SubclassFingerprint {
     val isModule                           = true

@@ -6,7 +6,7 @@ import cats.implicits._
 import cats.effect._
 import cats.effect.concurrent.{ MVar, Ref }
 
-class Runner[F[_]: Concurrent](maxConcurrentSuites: Int)(
+class Runner[F[_]: Concurrent](args: List[String], maxConcurrentSuites: Int)(
     printLine: String => F[Unit]) {
 
   import Runner._
@@ -21,7 +21,10 @@ class Runner[F[_]: Concurrent](maxConcurrentSuites: Int)(
       consumer <- Concurrent[F].start(consume(channel, buffer, Outcome.empty))
       _ <- suites
         .parEvalMap(math.max(1, maxConcurrentSuites)) { suite =>
-          suite.spec.compile.toList
+          suite
+            .spec(args)
+            .compile
+            .toList
             .map(SpecEvent(suite.name, _))
             .flatMap(produce(channel))
         }

@@ -44,6 +44,7 @@ final class Runner(
       list.map { taskDef =>
         new Task(
           taskDef,
+          args.toList,
           classLoader,
           loggedBracket.some,
           next.map(_.some)
@@ -62,5 +63,5 @@ final class Runner(
     serializer(task.taskDef())
 
   def deserializeTask(task: String, deserializer: String => TaskDef): BaseTask =
-    new Task(deserializer(task), classLoader, None, IO.pure(None))
+    new Task(deserializer(task), args.toList, classLoader, None, IO.pure(None))
 }

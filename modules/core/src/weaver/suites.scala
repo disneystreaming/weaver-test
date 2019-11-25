@@ -11,7 +11,7 @@ trait BaseSuiteClass {}
 
 trait Suite[F[_]] extends BaseSuiteClass {
   def name: String
-  def spec: Stream[F, TestOutcome]
+  def spec(args: List[String]): Stream[F, TestOutcome]
 }
 
 // format: off
@@ -43,7 +43,7 @@ trait EffectSuite[F[_]] extends Suite[F] with Expectations.Helpers { self =>
   private val toIOK : F ~> IO = new (F ~> IO){
     def apply[A](fa : F[A]) : IO[A] = effect.toIO(fa)
   }
-  private[weaver] def ioSpec : fs2.Stream[IO, TestOutcome] = spec.translate(toIOK)
+  private[weaver] def ioSpec(args : List[String]) : fs2.Stream[IO, TestOutcome] = spec(args).translate(toIOK)
 }
 
 trait BaseIOSuite extends EffectSuite[IO]{
@@ -71,7 +71,8 @@ trait MutableIOSuite[Res] extends BaseIOSuite {
   def registerTest(name: String)(f: Res => Log[IO] => IO[Expectations]): Unit =
     synchronized {
       if (isInitialized) throw initError()
-      testSeq = testSeq :+ ((res : Res) => Test[IO](name)(f(res)))
+      val test = (res : Res) => Test[IO](name)(f(res))
+      testSeq = testSeq :+ (name -> test)
     }
 
   def pureTest(name: String)(run : => Expectations) :  Unit = registerTest(name)(_ => _ => IO(run))
@@ -79,17 +80,20 @@ trait MutableIOSuite[Res] extends BaseIOSuite {
   def loggedTest(name: String)(run: Log[IO] => IO[Expectations]) : Unit = registerTest(name)(_ => log => run(log))
   def test(name: String)(run : (Res, Log[IO]) => IO[Expectations]) : Unit = registerTest(name)(run.curried)
 
-  lazy val spec: Stream[IO, TestOutcome] =
+  override def spec(args: List[String]) : Stream[IO, TestOutcome] =
     synchronized {
       if (!isInitialized) isInitialized = true
-      for {
+      val argsFilter = filterTests(this.name)(args)
+      val filteredTests = testSeq.collect { case (name, test) if argsFilter(name) => test }
+      if (filteredTests.isEmpty) Stream.empty // no need to allocate resources
+      else for {
         resource <- Stream.resource(sharedResource)
-        tests = testSeq.map(_.apply(resource))
+        tests = filteredTests.map(_.apply(resource))
         result <- Stream.emits(tests).lift[IO].parEvalMap(math.max(1, maxParallelism))(_.compile)
       } yield result
     }
 
-  private[this] var testSeq = Seq.empty[Res => Test[IO]]
+  private[this] var testSeq = Seq.empty[(String, Res => Test[IO])]
   private[this] var isInitialized = false
 
   private[this] def initError() =

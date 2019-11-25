@@ -1,4 +1,5 @@
-package weaver.ziocompat
+package weaver
+package ziocompat
 
 import weaver.EffectSuite
 import weaver.Expectations
@@ -27,7 +28,7 @@ trait MutableZIOSuite[R] extends EffectSuite[Task] {
       run: ZIO[D, Throwable, Expectations]): Unit =
     synchronized {
       if (isInitialized) throw initError()
-      testSeq = testSeq :+ Test[R](name)(run)
+      testSeq = testSeq :+ name -> Test[R](name)(run)
     }
 
   def pureTest(name: String)(run: => Expectations): Unit =
@@ -37,28 +38,34 @@ trait MutableZIOSuite[R] extends EffectSuite[Task] {
       run: ZIO[D, Throwable, Expectations]): Unit =
     registerTest(name)(run)
 
-  lazy val spec: Stream[Task, TestOutcome] =
+  override def spec(args: List[String]): Stream[Task, TestOutcome] =
     synchronized {
       if (!isInitialized) isInitialized = true
-      for {
-        reservation <- Stream.eval(sharedResource.reserve)
-        resource <- Stream.bracketCase(reservation.acquire)((_, exitCase) =>
-          reservation.release(fromCats(exitCase)).unit)
-        result <- Stream
-          .emits(testSeq)
-          .lift[Task]
-          .parEvalMap(math.max(1, maxParallelism))(_.compile.provide(new Clock
-          with Console with System with Random with SharedResourceModule[R] {
-            val clock          = runtime.Environment.clock
-            val system         = runtime.Environment.system
-            val console        = runtime.Environment.console
-            val random         = runtime.Environment.random
-            val sharedResource = resource
-          }))
-      } yield result
+      val argsFilter = filterTests(this.name)(args)
+      val filteredTests = testSeq.collect {
+        case (name, test) if argsFilter(name) => test
+      }
+      if (filteredTests.isEmpty) Stream.empty // no need to allocate resources
+      else
+        for {
+          reservation <- Stream.eval(sharedResource.reserve)
+          resource <- Stream.bracketCase(reservation.acquire)((_, exitCase) =>
+            reservation.release(fromCats(exitCase)).unit)
+          result <- Stream
+            .emits(filteredTests)
+            .lift[Task]
+            .parEvalMap(math.max(1, maxParallelism))(_.compile.provide(new Clock
+            with Console with System with Random with SharedResourceModule[R] {
+              val clock          = runtime.Environment.clock
+              val system         = runtime.Environment.system
+              val console        = runtime.Environment.console
+              val random         = runtime.Environment.random
+              val sharedResource = resource
+            }))
+        } yield result
     }
 
-  private[this] var testSeq       = Seq.empty[Test[R]]
+  private[this] var testSeq       = Seq.empty[(String, Test[R])]
   private[this] var isInitialized = false
 
   private[this] def initError() =

@@ -41,7 +41,7 @@ which generally keeps tests cleaner / clearer.
 
 ### Suites
 
-#### SimpleMutableIOSuite
+#### SimpleIOSuite
 
 The suite that is most familiar to developers :
 
@@ -80,7 +80,7 @@ object MySuite extends SimpleIOSuite {
 }
 ```
 
-#### MutableIOSuite
+#### IOSuite
 
 ```scala
 import weaver.IOSuite
@@ -115,6 +115,20 @@ Nothing prevents the user from building their own expectations functions to rese
 #### Composing expectations
 
 Something worth noting is that expectations are not throwing, and that if the user wants to perform several checks in the same test, he needs to compose the expectations via the `and` or the `or` methods they carry.
+
+### Filtering tests
+
+When using the IOSuite variants, the user can call the test command as such:
+
+``` 
+> test -o *foo*
+```
+
+This will filter prevent the execution of any test that doesn't contain the string "foo" in is qualified name. For a test labeled "foo" in a "FooSuite" object, in the package "fooPackage", the qualified name of a test is :
+
+```
+fooPackage.FooSuite.foo
+```
 
 ### Suites (ZIO)
 
