@@ -5,11 +5,12 @@ import weaver._
 
 import cats.effect.IO
 import cats.implicits._
+import cats.data.Chain
 
 import org.scalajs.testinterface.TestUtils
 import sbt.testing.{ Logger => BaseLogger, Task => BaseTask, _ }
 
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration._
 import scala.concurrent.{ Await, Promise }
 import scala.util.Try
 import scala.util.control.NonFatal
@@ -23,7 +24,7 @@ final class Task(
 
   def tags(): Array[String] = Array.empty
   def taskDef(): TaskDef    = task
-  val EOL = scala.util.Properties.lineSeparator
+  val EOL                   = scala.util.Properties.lineSeparator
 
   def execute(
       eventHandler: EventHandler,
@@ -60,9 +61,15 @@ final class Task(
             .map(_ => loggers.foreach(_.info(EOL)))
             .handleErrorWith {
               case NonFatal(e) => // Unexpected failure
-                IO(loggers.foreach { logger =>
-                  logger.trace(e)
-                })
+                val event: TestOutcome =
+                  TestOutcome("Unexpected error",
+                              0.seconds,
+                              Result.from(e),
+                              Chain.empty)
+                for {
+                  _ <- reportError(eventHandler, e)
+                  _ <- log(task.fullyQualifiedName(), event)
+                } yield ()
             }
         }
       }
@@ -75,6 +82,18 @@ final class Task(
 
   def doLog(event: TestOutcome)(logger: BaseLogger): IO[Unit] = {
     IO(logger.info(event.formatted))
+  }
+
+  def reportError(eventHandler: EventHandler, t: Throwable): IO[Unit] = IO {
+    val errorEvent = new sbt.testing.Event {
+      def fullyQualifiedName(): String   = task.fullyQualifiedName()
+      def duration(): Long               = 0
+      def fingerprint(): Fingerprint     = task.fingerprint()
+      def status(): Status               = sbt.testing.Status.Error
+      def throwable(): OptionalThrowable = new OptionalThrowable(t)
+      def selector(): Selector           = new SuiteSelector
+    }
+    eventHandler.handle(errorEvent)
   }
 
   def execute(
