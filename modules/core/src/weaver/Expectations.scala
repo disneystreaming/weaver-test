@@ -5,7 +5,8 @@ import cats.implicits._
 import cats.data.{ Validated, ValidatedNel }
 import cats.data.Validated._
 
-case class Expectations(val run: ValidatedNel[AssertionException, Unit]) { self =>
+case class Expectations(val run: ValidatedNel[AssertionException, Unit]) {
+  self =>
 
   def and(other: Expectations) =
     Expectations(self.run.product(other.run).void)
@@ -23,7 +24,7 @@ object Expectations {
 
   implicit def fromExpect(e: Expectation)(
       implicit loc: SourceLocation): Expectations =
-      Expectations(e.run.leftMap(_.map(str => new AssertionException(str, loc))))
+    Expectations(e.run.leftMap(_.map(str => new AssertionException(str, loc))))
 
   /**
    * Trick to convert from multiplicative assertion to additive assertion
@@ -58,7 +59,8 @@ object Expectations {
     new Monoid[Additive] {
       override def empty: Additive =
         Additive(
-          Expectations(Validated.invalidNel(new AssertionException("empty", loc))))
+          Expectations(
+            Validated.invalidNel(new AssertionException("empty", loc))))
 
       override def combine(x: Additive, y: Additive): Additive =
         Additive(
@@ -72,7 +74,7 @@ object Expectations {
     val success: Expectations = Monoid[Expectations].empty
 
     def failure(hint: String)(implicit pos: SourceLocation): Expectations =
-    Expectations(Validated.invalidNel(new AssertionException(hint, pos)))
+      Expectations(Validated.invalidNel(new AssertionException(hint, pos)))
 
     def succeed[A]: A => Expectations = _ => success
 
@@ -93,7 +95,7 @@ object Expectations {
     def exists[L[_], A](la: L[A])(f: A => Expectations)(
         implicit foldable: Foldable[L],
         pos: SourceLocation): Expectations =
-        Expectations.Additive.unwrap(la.foldMap(a => Expectations.Additive(f(a))))
+      Expectations.Additive.unwrap(la.foldMap(a => Expectations.Additive(f(a))))
 
     /**
      * Alias to forall

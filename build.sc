@@ -65,6 +65,21 @@ class ZioModule(crossVersion: String)
     object test extends Tests
   }
 }
+
+object scalacheck
+    extends mill.Cross[ScalacheckModule](scalaVersions.keys.toSeq: _*)
+class ScalacheckModule(crossVersion: String)
+    extends WeaverCrossPlatformModule(crossVersion) { shared =>
+
+  override def crossPlatformModuleDeps = Seq(core(crossVersion))
+  override def crossPlatformIvyDeps =
+    Agg(ivy"org.scalacheck::scalacheck::1.14.2")
+  object jvm extends shared.JVM {
+    object test extends Tests
+  }
+
+}
+
 //##############################################################################
 // COMMON SETTINGS
 //##############################################################################

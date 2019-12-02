@@ -1,0 +1,58 @@
+package weaver
+package scalacheck
+
+import org.scalacheck.Gen
+import cats.effect.IO
+import scala.concurrent.duration._
+
+object CheckersTest extends SimpleIOSuite with IOCheckers {
+
+  simpleTest("universal") {
+    forall(Gen.posNum[Int]) { a =>
+      expect(a > 0)
+    }
+  }
+
+  simpleTest("form 1") {
+    forall { a: Int =>
+      expect(a * 2 == 2 * a)
+    }
+  }
+
+  simpleTest("form 2") {
+    forall { (a1: Int, a2: Int) =>
+      expect(a1 * a2 == a2 * a1)
+    }
+  }
+
+  simpleTest("form 3") {
+    forall { (a1: Int, a2: Int, a3: Int) =>
+      expect(a1 * a2 * a3 == a3 * a2 * a1)
+    }
+  }
+
+  simpleTest("form 4") {
+    forall { (a1: Int, a2: Int, a3: Int, a4: Int) =>
+      expect(a1 * a2 * a3 * a4 == a4 * a3 * a2 * a1)
+    }
+  }
+
+  simpleTest("form 5") {
+    forall { (a1: Int, a2: Int, a3: Int, a4: Int, a5: Int) =>
+      expect(a1 * a2 * a3 * a4 * a5 == a5 * a4 * a3 * a2 * a1)
+    }
+  }
+
+  simpleTest("form 6") {
+    forall { (a1: Int, a2: Int, a3: Int, a4: Int, a5: Int, a6: Int) =>
+      expect(a1 * a2 * a3 * a4 * a5 * a6 == a6 * a5 * a4 * a3 * a2 * a1)
+    }
+  }
+
+  simpleTest("io form") {
+    forall { (a1: Int, a2: Int) =>
+      IO.sleep(10.millis).flatMap(_ => IO(expect(a1 + a2 == a2)))
+    }.map(not)
+  }
+
+}

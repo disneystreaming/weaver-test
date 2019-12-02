@@ -1,6 +1,6 @@
 import ammonite.ops._
 import mill._
-import mill.define.{Sources, Task}
+import mill.define.{ Sources, Task }
 
 import scala.util.Try
 

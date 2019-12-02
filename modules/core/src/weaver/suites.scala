@@ -1,12 +1,10 @@
 package weaver
 
 import cats.~>
-import cats.effect.{ Effect, Timer, IO }
+import cats.effect.{ ContextShift, Effect, Timer, IO, Resource }
 import fs2.Stream
 
 import scala.scalajs.reflect.annotation.EnableReflectiveInstantiation
-import cats.effect.Resource
-import cats.effect.ContextShift
 
 // Just a non-parameterized marker trait to help SBT's test detection logic.
 trait BaseSuiteClass {}
@@ -48,11 +46,15 @@ trait EffectSuite[F[_]] extends Suite[F] with Expectations.Helpers { self =>
   private[weaver] def ioSpec : fs2.Stream[IO, TestOutcome] = spec.translate(toIOK)
 }
 
-trait PureIOSuite extends EffectSuite[IO]{
+trait BaseIOSuite extends EffectSuite[IO]{
   val ec = scala.concurrent.ExecutionContext.global
-  implicit def timer = IO.timer(ec)
-  implicit def cs = IO.contextShift(ec)
-  implicit def effect = IO.ioEffect
+  implicit def timer : Timer[IO] = IO.timer(ec)
+  implicit def cs : ContextShift[IO] = IO.contextShift(ec)
+  implicit def effect : Effect[IO] = IO.ioEffect
+}
+
+trait PureIOSuite extends BaseIOSuite {
+
 
   def pureTest(name: String)(run : => Expectations) : IO[TestOutcome] = Test[IO](name)(_ => IO(run)).compile
   def simpleTest(name:  String)(run : IO[Expectations]) : IO[TestOutcome] = Test[IO](name)(_ => run).compile
@@ -60,12 +62,7 @@ trait PureIOSuite extends EffectSuite[IO]{
 
 }
 
-trait MutableIOSuite[Res] extends EffectSuite[IO] {
-
-  val ec = scala.concurrent.ExecutionContext.global
-  implicit def timer : Timer[IO] = IO.timer(ec)
-  implicit def cs : ContextShift[IO] = IO.contextShift(ec)
-  implicit def effect : Effect[IO] = IO.ioEffect
+trait MutableIOSuite[Res] extends BaseIOSuite {
 
   def sharedResource : Resource[IO, Res]
 
