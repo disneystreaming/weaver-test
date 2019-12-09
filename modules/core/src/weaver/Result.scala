@@ -96,7 +96,8 @@ object Result {
           .fold(className)(m => s"$className: $m")
       }
 
-      formatError(name, description, Some(source), location, Some(20))
+      val stackTraceLimit = if (location.isDefined) Some(10) else None
+      formatError(name, description, Some(source), location, stackTraceLimit)
     }
   }
 
@@ -126,13 +127,15 @@ object Result {
 
     val stackTrace = source.fold("") { ex =>
       val trace: Array[String] = {
-        val tr = ex.getStackTrace.map(_.toString)
-        traceLimit.fold(Array.empty[String]) { limit =>
+        val tr = ex.getStackTrace
+          .map(_.toString)
+          .filterNot(_.contains("cats.effect.internals"))
+          .filterNot(_.contains("java.util.concurrent"))
+          .filterNot(_.contains("zio.internal"))
+          .filterNot(_.contains("java.lang.Thread"))
+        traceLimit.fold(tr) { limit =>
           if (tr.length <= limit) tr
-          else
-            tr.filterNot(_.contains("cats.effect.internals"))
-              .filterNot(_.contains("java.util.concurrent"))
-              .take(limit) :+ "..."
+          else tr.take(limit) :+ "..."
         }
       }
 
