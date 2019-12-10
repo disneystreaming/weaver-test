@@ -22,7 +22,7 @@ case class Expectations(val run: ValidatedNel[AssertionException, Unit]) {
 
 object Expectations {
 
-  implicit def fromExpect(e: Expectation)(
+  implicit def fromSingle(e: SingleExpectation)(
       implicit loc: SourceLocation): Expectations =
     Expectations(e.run.leftMap(_.map(str => new AssertionException(str, loc))))
 

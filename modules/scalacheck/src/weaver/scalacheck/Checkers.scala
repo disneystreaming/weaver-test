@@ -45,8 +45,8 @@ trait Checkers[F[_]] {
     }
   }
 
-  implicit def asProp1(e: Expectation): Prop =
-    asProp(Expectations.fromExpect(e))
+  implicit def asProp1(e: SingleExpectation): Prop =
+    asProp(Expectations.fromSingle(e))
 
   implicit def asPropF[P](fp: F[P])(implicit view: P => Prop): Prop =
     effect

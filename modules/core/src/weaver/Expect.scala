@@ -5,23 +5,25 @@ import com.eed3si9n.expecty._
 import cats.data.ValidatedNel
 import cats.implicits._
 
-case class Expectation(run: ValidatedNel[String, Unit]) {
+case class SingleExpectation(run: ValidatedNel[String, Unit]) {
   def and(other: Expectations)(implicit loc: SourceLocation) =
-    Expectations.fromExpect(this).and(other)
+    Expectations.fromSingle(this).and(other)
   def or(other: Expectations)(implicit loc: SourceLocation) =
-    Expectations.fromExpect(this).or(other)
+    Expectations.fromSingle(this).or(other)
+  def toExpectations(implicit loc: SourceLocation) =
+    Expectations.fromSingle(this)
 }
 
-class Expect extends Recorder[Boolean, Expectation] {
+class Expect extends Recorder[Boolean, SingleExpectation] {
 
-  class ExpectyListener extends RecorderListener[Boolean, Expectation] {
+  class ExpectyListener extends RecorderListener[Boolean, SingleExpectation] {
     override def expressionRecorded(
         recordedExpr: RecordedExpression[Boolean],
         recordedMessage: Function0[String]): Unit = {}
 
     override def recordingCompleted(
         recording: Recording[Boolean],
-        recordedMessage: Function0[String]): Expectation = {
+        recordedMessage: Function0[String]): SingleExpectation = {
       val res = recording.recordedExprs.foldMap[ValidatedNel[String, Unit]] {
         expr =>
           lazy val rendering: String =
@@ -37,7 +39,7 @@ class Expect extends Recorder[Boolean, Expectation] {
             fullMessage.invalidNel
           } else ().validNel
       }
-      Expectation(res)
+      SingleExpectation(res)
     }
   }
 
