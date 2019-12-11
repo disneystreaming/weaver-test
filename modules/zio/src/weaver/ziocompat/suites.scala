@@ -54,14 +54,11 @@ trait MutableZIOSuite[R] extends EffectSuite[Task] {
           result <- Stream
             .emits(filteredTests)
             .lift[Task]
-            .parEvalMap(math.max(1, maxParallelism))(_.compile.provide(new Clock
-            with Console with System with Random with SharedResourceModule[R] {
-              val clock          = runtime.Environment.clock
-              val system         = runtime.Environment.system
-              val console        = runtime.Environment.console
-              val random         = runtime.Environment.random
-              val sharedResource = resource
-            }))
+            .parEvalMap(math.max(1, maxParallelism))(
+              _.compile.provide(new Clock.Live with Console.Live
+              with System.Live with Random.Live with SharedResourceModule[R] {
+                val sharedResource = resource
+              }))
         } yield result
     }
 
@@ -75,7 +72,7 @@ trait MutableZIOSuite[R] extends EffectSuite[Task] {
 
   private def fromCats[A](exitCase: ExitCase[Throwable]): Exit[Throwable, _] =
     exitCase match {
-      case ExitCase.Canceled  => Exit.interrupt
+      case ExitCase.Canceled  => Exit.interrupt(Fiber.Id.None)
       case ExitCase.Completed => Exit.succeed(())
       case ExitCase.Error(e)  => Exit.fail(e)
     }

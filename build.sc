@@ -60,7 +60,7 @@ class ZioModule(crossVersion: String)
 
   override def crossPlatformModuleDeps = Seq(core(crossVersion))
   override def crossPlatformIvyDeps =
-    Agg(ivy"dev.zio::zio-interop-cats:2.0.0.0-RC7")
+    Agg(ivy"dev.zio::zio-interop-cats:2.0.0.0-RC10")
   object jvm extends shared.JVM {
     object test extends Tests
   }
@@ -165,7 +165,7 @@ trait WeaverModule extends WeaverCommonModule with WeaverPublishModule {
 
 trait WeaverCommonModule extends ScalaModule {
 
-  def scalaJSVersion = T("0.6.29")
+  def scalaJSVersion = T("0.6.31")
 
   override def scalacOptions = T {
     val specific2_12 =
