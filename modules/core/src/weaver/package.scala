@@ -1,7 +1,7 @@
 package object weaver {
   import java.util.regex.Pattern
 
-  type IOSuite[A]    = MutableIOSuite[A]
+  type IOSuite       = MutableIOSuite
   type SimpleIOSuite = SimpleMutableIOSuite
   type Event         = TestOutcome
 

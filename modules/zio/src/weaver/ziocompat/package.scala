@@ -11,7 +11,7 @@ package object ziocompat {
 
   type Env[R] = SharedResourceModule[R] with BaseEnv
 
-  type ZIOSuite[A]    = MutableZIOSuite[A]
+  type ZIOSuite       = MutableZIOSuite
   type SimpleZIOSuite = SimpleMutableZIOSuite
 
 }

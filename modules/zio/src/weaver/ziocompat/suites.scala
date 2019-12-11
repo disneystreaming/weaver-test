@@ -14,8 +14,9 @@ import zio.random.Random
 import fs2._
 import cats.effect.ExitCase
 
-trait MutableZIOSuite[R] extends EffectSuite[Task] {
+trait MutableZIOSuite extends EffectSuite[Task] {
 
+  type R
   def sharedResource: Managed[Throwable, R]
   def maxParallelism: Int = 10000
 
@@ -79,6 +80,7 @@ trait MutableZIOSuite[R] extends EffectSuite[Task] {
 
 }
 
-trait SimpleMutableZIOSuite extends MutableZIOSuite[Unit] {
+trait SimpleMutableZIOSuite extends MutableZIOSuite {
+  type R = Unit
   def sharedResource: zio.Managed[Throwable, Unit] = zio.Managed.unit
 }

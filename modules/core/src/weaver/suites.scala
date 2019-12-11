@@ -62,8 +62,9 @@ trait PureIOSuite extends BaseIOSuite {
 
 }
 
-trait MutableIOSuite[Res] extends BaseIOSuite {
+trait MutableIOSuite extends BaseIOSuite {
 
+  type Res
   def sharedResource : Resource[IO, Res]
 
   def maxParallelism : Int = 10000
@@ -103,6 +104,7 @@ trait MutableIOSuite[Res] extends BaseIOSuite {
 
 }
 
-trait SimpleMutableIOSuite extends MutableIOSuite[Unit]{
+trait SimpleMutableIOSuite extends MutableIOSuite{
+  type Res = Unit
   def sharedResource: Resource[IO, Unit] = Resource.pure(())
 }
