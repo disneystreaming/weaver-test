@@ -86,11 +86,14 @@ trait MutableIOSuite extends BaseIOSuite {
       if (!isInitialized) isInitialized = true
       val argsFilter = filterTests(this.name)(args)
       val filteredTests = testSeq.collect { case (name, test) if argsFilter(name) => test }
+      val parallism = math.max(1, maxParallelism)
       if (filteredTests.isEmpty) Stream.empty // no need to allocate resources
       else for {
         resource <- Stream.resource(sharedResource)
         tests = filteredTests.map(_.apply(resource))
-        result <- Stream.emits(tests).lift[IO].parEvalMap(math.max(1, maxParallelism))(_.compile)
+        testStream = Stream.emits(tests).lift[IO]
+        result <- if (parallism > 1 ) testStream.parEvalMap(parallism)(_.compile)
+                  else testStream.evalMap(_.compile)
       } yield result
     }
 
