@@ -5,7 +5,7 @@ import cats.implicits._
 import scala.concurrent.duration._
 import java.util.concurrent.TimeUnit
 
-object MutableSuiteTest extends SimpleIOSuite {
+abstract class MutableSuiteTest extends SimpleIOSuite {
 
   pureTest("23 is odd") {
     expect(23 % 2 == 1)
@@ -16,7 +16,7 @@ object MutableSuiteTest extends SimpleIOSuite {
       before <- timer.clock.realTime(TimeUnit.MILLISECONDS)
       _      <- timer.sleep(1.seconds)
       after  <- timer.clock.realTime(TimeUnit.MILLISECONDS)
-    } yield expect(after - before > 1000)
+    } yield expect(after - before >= 1000)
   }
 
   loggedTest("logged") { log =>
@@ -24,3 +24,5 @@ object MutableSuiteTest extends SimpleIOSuite {
   }
 
 }
+
+object MutableSuiteTest extends MutableSuiteTest

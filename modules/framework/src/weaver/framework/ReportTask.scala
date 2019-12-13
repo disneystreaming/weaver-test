@@ -34,7 +34,7 @@ final class ReportTask(
           case (suiteName, events) =>
             loggers.foreach(_.info(cyan(suiteName)))
             for ((_, event) <- events.iterator) {
-              loggers.foreach(_.info(event.formatted))
+              loggers.foreach(_.error(event.formatted))
             }
             loggers.foreach(_.info(""))
         }
