@@ -90,8 +90,9 @@ import weaver.IOSuite
 import cats.effect._
 
 // Same as SimpleIOSuite, but supports sharing a resource across tests
-object MySuite extends IOSuite[AmazonDynamodb] {
+object MySuite extends IOSuite {
 
+  override type Res = AmazonDynamodb
   def sharedResource : Resource[IO, AmazonDynamodb] = Resource.make(...)
 
   // A test that uses the shared resource
@@ -143,8 +144,9 @@ The main difference is that it leverages ZIO's contravariant type parameter to d
 import zio._
 import weaver.zio._
 
-object MyZIOSuite extends ZIOSuite[DynamodbModule] {
+object MyZIOSuite extends ZIOSuite {
 
+  override type Res = DynamodbModule
   def sharedResource : Managed[Throwable, DynamodbModule] = Managed.make(...)
 
   // A test for non-effectful (pure) functions
