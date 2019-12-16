@@ -11,16 +11,19 @@ Weaver-test is currently published for **Scala 2.12 and 2.13**
 
 ### SBT
 
-Add the following (or scoped equivalent) to your `build.sbt` file.
+Refer yourself to the [releases](https://github.bamtech.co/OSS/weaver-test/releases) page to know the latest released version, and add the following (or scoped equivalent) to your `build.sbt` file.
 
 ```scala
 resolvers += "dss oss" at "https://artifactory.us-east-1.bamgrid.net/artifactory/oss-maven"
 
-libraryDependencies += "com.disneystreaming.oss" %% "weaver-framework" % "0.1.0" % Test
+libraryDependencies += "com.disneystreaming.oss" %% "weaver-framework" % "x.y.z" % Test
 testFrameworks += new TestFramework("weaver.framework.TestFramework")
 
 // optionally (for ZIO usage)
-libraryDependencies +=  "com.disneystreaming.oss" %% "weaver-zio" % "0.1.0" % Test
+libraryDependencies +=  "com.disneystreaming.oss" %% "weaver-zio" % "x.y.z" % Test
+
+// optionally (for Scalacheck usage)
+libraryDependencies +=  "com.disneystreaming.oss" %% "weaver-scalacheck" % "x.y.z" % Test
 
 ```
 
@@ -188,7 +191,36 @@ It is possible to run suites outside of your build tool, via a good old `main` f
 
 This is useful when you consider your tests (typically `end-to-end` ones) as a program of its own and want to avoid paying the cost of compiling them every time you run them.
 
+### Scalacheck (property-based testing)
 
+Weaver comes with basic scalacheck integration.
+
+```scala
+import weaver._
+import weaver.scalacheck._
+
+// Notice the IOCheckers mix-in
+object ForallExamples extends SimpleIOSuite with IOCheckers {
+
+  simpleTest("Gen form") {
+    // Takes an explicit "Gen" instance. There is only a single
+    // version of this overload. If you want to pass several Gen instances
+    // at once, just compose them monadically.
+    forall(Gen.posNum[Int]) { a =>
+      expect(a > 0)
+    }
+  }
+
+  simpleTest("Arbitrary form") {
+    // Takes a number of implicit "Arbitrary" instances. There are 6 overloads
+    // to pass 1 to 6 parameters.
+    forall { (a1: Int, a2: Int, a3: Int) =>
+      expect(a1 * a2 * a3 == a3 * a2 * a1)
+    }
+  }
+
+}
+```
 
 ## Contributing
 
