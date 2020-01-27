@@ -79,7 +79,7 @@ object Result {
       extends Result {
 
     def formatted(name: String): String =
-      formatError(name, msg, source, location, None)
+      formatError(name, msg, source, location, Some(0))
   }
 
   final case class Exception(
@@ -135,11 +135,14 @@ object Result {
           .filterNot(_.contains("java.lang.Thread"))
         traceLimit.fold(tr) { limit =>
           if (tr.length <= limit) tr
+          else if (limit == 0) Array()
           else tr.take(limit) :+ "..."
         }
       }
 
-      formatDescription(trace.mkString("\n"), None, Console.RED, tab4)
+      if(trace.size > 0)
+        formatDescription(trace.mkString("\n"), None, Console.RED, tab4)
+      else ""
     }
 
     val formattedMessage = formatDescription(
@@ -149,7 +152,11 @@ object Result {
       tab2
     )
 
-    red("- ") + name + EOL + formattedMessage + stackTrace
+    var res = red("- ") + name + EOL + formattedMessage +  "\n\n"
+    if (stackTrace.nonEmpty){
+      res += stackTrace + "\n\n"
+    }
+    res
   }
 
   private def formatDescription(
@@ -163,7 +170,7 @@ object Result {
         if (index == 0)
           color + prefix + line +
           location.fold("")(l =>
-            s" (${l.fileName.getOrElse("none")}:${l.line})")
+            s" (${l.bestEffortPath.getOrElse("none")}:${l.line})")
         else
           color + prefix + line
     }

@@ -24,7 +24,7 @@ class CoreModule(crossVersion: String)
       ivy"org.scala-js::scalajs-stubs:${scalaJSVersion()}"
     )
   }
-  object js extends shared.JS
+  // object js extends shared.JS
 }
 
 object framework
@@ -46,12 +46,12 @@ class FrameworkModule(crossVersion: String)
     object test extends Tests
   }
 
-  object js extends shared.JS {
-    override def ivyDeps = Agg(
-      ivy"org.scala-js::scalajs-test-interface:${scalaJSVersion()}"
-    )
-    object test extends Tests
-  }
+  // object js extends shared.JS {
+  //   override def ivyDeps = Agg(
+  //     ivy"org.scala-js::scalajs-test-interface:${scalaJSVersion()}"
+  //   )
+  //   object test extends Tests
+  // }
 }
 
 object zio extends mill.Cross[ZioModule](scalaVersions.keys.toSeq: _*)
@@ -125,33 +125,33 @@ abstract class WeaverCrossPlatformModule(crossVersion: String) extends Module {
     }
   }
 
-  trait JS extends WeaverModule with ScalaJSModule { self =>
+  // trait JS extends WeaverModule with ScalaJSModule { self =>
 
-    def millSourcePath = shared.millSourcePath
-    def scalaVersion   = T { scalaVersions(crossVersion) }
+  //   def millSourcePath = shared.millSourcePath
+  //   def scalaVersion   = T { scalaVersions(crossVersion) }
 
-    override def moduleDeps: Seq[PublishModule] =
-      shared.crossPlatformModuleDeps.flatMap {
-        case m: WeaverCrossPlatformModule =>
-          m.millModuleDirectChildren.collect {
-            case child: PublishModule if child.isInstanceOf[ScalaJSModule] =>
-              child
-          }
-        case m: PublishModule if m.isInstanceOf[ScalaJSModule] => Seq(m)
-        case _                                                 => Seq()
-      }
+  //   override def moduleDeps: Seq[PublishModule] =
+  //     shared.crossPlatformModuleDeps.flatMap {
+  //       case m: WeaverCrossPlatformModule =>
+  //         m.millModuleDirectChildren.collect {
+  //           case child: PublishModule if child.isInstanceOf[ScalaJSModule] =>
+  //             child
+  //         }
+  //       case m: PublishModule if m.isInstanceOf[ScalaJSModule] => Seq(m)
+  //       case _                                                 => Seq()
+  //     }
 
-    override def artifactName = shared.artifactName
+  //   override def artifactName = shared.artifactName
 
-    override def ivyDeps = super.ivyDeps() ++ shared.crossPlatformIvyDeps()
-    trait Tests extends super.Tests {
-      override def moduleDeps =
-        super.moduleDeps ++ Seq(framework(crossVersion).js)
-      override def testFrameworks = Seq(
-        "weaver.framework.TestFramework"
-      )
-    }
-  }
+  //   override def ivyDeps = super.ivyDeps() ++ shared.crossPlatformIvyDeps()
+  //   trait Tests extends super.Tests {
+  //     override def moduleDeps =
+  //       super.moduleDeps ++ Seq(framework(crossVersion).js)
+  //     override def testFrameworks = Seq(
+  //       "weaver.framework.TestFramework"
+  //     )
+  //   }
+  // }
 
 }
 
@@ -186,7 +186,7 @@ trait WeaverCommonModule extends ScalaModule {
     Seq(
       "-deprecation", // Emit warning and location for usages of deprecated APIs.
       "-encoding",
-      "utf-8",                         // Specify character encoding used by source files.
+      "utf8",                          // Specify character encoding used by source files.
       "-explaintypes",                 // Explain type errors in more detail.
       "-feature",                      // Emit warning and location for usages of features that should be imported explicitly.
       "-language:existentials",        // Existential types (besides wildcard types) can be written and inferred

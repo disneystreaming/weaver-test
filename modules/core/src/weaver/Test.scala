@@ -17,7 +17,8 @@ class Test[F[_]](val name: String, val f: Log[F] => F[Expectations]) {
     for {
       ref   <- Ref[F].of(Chain.empty[Log.Entry])
       start <- T.clock.realTime(MILLISECONDS)
-      res <- f(Log.collected[F, Chain](ref))
+      res <- Sync[F]
+        .defer(f(Log.collected[F, Chain](ref)))
         .map(Result.fromAssertion)
         .handleError(ex => Result.from(ex))
       end  <- T.clock.realTime(MILLISECONDS)

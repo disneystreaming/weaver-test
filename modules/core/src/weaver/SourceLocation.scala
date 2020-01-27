@@ -9,7 +9,15 @@ final case class SourceLocation(
   fileName: Option[String],
   filePath: Option[String],
   line: Int
-)
+) {
+  def bestEffortPath : Option[String] = filePath.flatMap { case pathString =>
+    val pwd = java.nio.file.Paths.get("").toAbsolutePath
+    val path = java.nio.file.Paths.get(pathString).toAbsolutePath()
+    if (path.startsWith(pwd)) Some(pwd.relativize(path).toString()) else fileName
+  }
+
+
+}
 
 object SourceLocation {
   implicit def fromContext: SourceLocation =

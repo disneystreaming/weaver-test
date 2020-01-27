@@ -23,7 +23,6 @@ case class TestOutcome(
     builder.append(result.formatted(name))
     if (isFailed) {
       val eff = log.map { entry =>
-        builder.append(newLine)
         builder.append(Result.tab4)
         val loc = entry.location.fileName
           .map(fn => s"[$fn:${entry.location.line}]")
@@ -42,6 +41,9 @@ case class TestOutcome(
         }
       }
       discard[Chain[Unit]](eff)
+      if (log.nonEmpty) {
+        builder.append(newLine)
+      }
     }
     builder.mkString
   }
