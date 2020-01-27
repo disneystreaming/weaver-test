@@ -16,8 +16,8 @@ import cats.effect.ExitCase
 
 trait MutableZIOSuite extends EffectSuite[Task] {
 
-  type R
-  def sharedResource: Managed[Throwable, R]
+  type Res
+  def sharedResource: Managed[Throwable, Res]
   def maxParallelism: Int = 10000
 
   val ec = scala.concurrent.ExecutionContext.global
@@ -25,17 +25,17 @@ trait MutableZIOSuite extends EffectSuite[Task] {
     new DefaultRuntime {}
   implicit def effect = zio.interop.catz.taskEffectInstance
 
-  def registerTest[D >: LogModule with Env[R]](name: String)(
+  def registerTest[D >: LogModule with Env[Res]](name: String)(
       run: ZIO[D, Throwable, Expectations]): Unit =
     synchronized {
       if (isInitialized) throw initError()
-      testSeq = testSeq :+ name -> Test[R](name)(run)
+      testSeq = testSeq :+ name -> Test[Res](name)(run)
     }
 
   def pureTest(name: String)(run: => Expectations): Unit =
     registerTest(name)(ZIO(run))
 
-  def test[D >: LogModule with Env[R]](name: String)(
+  def test[D >: LogModule with Env[Res]](name: String)(
       run: ZIO[D, Throwable, Expectations]): Unit =
     registerTest(name)(run)
 
@@ -57,13 +57,13 @@ trait MutableZIOSuite extends EffectSuite[Task] {
             .lift[Task]
             .parEvalMap(math.max(1, maxParallelism))(
               _.compile.provide(new Clock.Live with Console.Live
-              with System.Live with Random.Live with SharedResourceModule[R] {
+              with System.Live with Random.Live with SharedResourceModule[Res] {
                 val sharedResource = resource
               }))
         } yield result
     }
 
-  private[this] var testSeq       = Seq.empty[(String, Test[R])]
+  private[this] var testSeq       = Seq.empty[(String, Test[Res])]
   private[this] var isInitialized = false
 
   private[this] def initError() =
@@ -81,6 +81,6 @@ trait MutableZIOSuite extends EffectSuite[Task] {
 }
 
 trait SimpleMutableZIOSuite extends MutableZIOSuite {
-  type R = Unit
+  type Res = Unit
   def sharedResource: zio.Managed[Throwable, Unit] = zio.Managed.unit
 }
