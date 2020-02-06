@@ -31,13 +31,6 @@ object WeaverPlugin extends AutoPlugin {
     scalacOptions ++= compilerOptions(scalaVersion.value),
     // Turning off fatal warnings for ScalaDoc, otherwise we can't release.
     scalacOptions in (Compile, doc) ~= (_ filterNot (_ == "-Xfatal-warnings")),
-    // Mill-like simple layout
-    unmanagedSourceDirectories in Compile ++= Seq(
-      baseDirectory.value / "src"
-    ),
-    unmanagedSourceDirectories in Test ++= Seq(
-      baseDirectory.value / "test" / "src"
-    ),
     // ScalaDoc settings
     autoAPIMappings := true,
     scalacOptions in ThisBuild ++= Seq(
@@ -144,12 +137,22 @@ object WeaverPlugin extends AutoPlugin {
     publishArtifact in (Compile, packageBin) := false
   )
 
-  def profile: Project ⇒ Project = pr => {
+  def profile: Project => Project = pr => {
     val withCoverage = sys.env.getOrElse("SBT_PROFILE", "") match {
       case "coverage" => pr
       case _          => pr.disablePlugins(scoverage.ScoverageSbtPlugin)
     }
     withCoverage
   }
+
+  // Mill-like simple layout
+  val simpleLayout: Seq[Setting[_]] = Seq(
+    unmanagedSourceDirectories in Compile ++= Seq(
+      baseDirectory.value.getParentFile / "src"
+    ),
+    unmanagedSourceDirectories in Test ++= Seq(
+      baseDirectory.value.getParentFile / "test" / "src"
+    )
+  )
 
 }
