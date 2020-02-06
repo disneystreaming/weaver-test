@@ -14,7 +14,7 @@ lazy val root = project
   )
 
 lazy val core = crossProject(JVMPlatform)
-  .crossType(CrossType.Full)
+  .crossType(CrossType.Pure)
   .in(file("modules/core"))
   .configure(WeaverPlugin.profile)
   .settings(
@@ -29,7 +29,7 @@ lazy val coreJVM = core.jvm
 // lazy val coreJS  = core.js
 
 lazy val framework = crossProject(JVMPlatform)
-  .crossType(CrossType.Full)
+  .crossType(CrossType.Pure)
   .in(file("modules/framework"))
   .dependsOn(core)
   .configure(WeaverPlugin.profile)
@@ -45,7 +45,7 @@ lazy val frameworkJVM = framework.jvm
 // lazy val frameworkJS  = framework.js
 
 lazy val scalacheck = crossProject(JVMPlatform)
-  .crossType(CrossType.Full)
+  .crossType(CrossType.Pure)
   .in(file("modules/scalacheck"))
   .dependsOn(core, framework % "test->compile")
   .configure(WeaverPlugin.profile)
@@ -56,7 +56,7 @@ lazy val scalacheck = crossProject(JVMPlatform)
   )
 
 lazy val zio = crossProject(JVMPlatform)
-  .crossType(CrossType.Full)
+  .crossType(CrossType.Pure)
   .in(file("modules/zio"))
   .dependsOn(core, framework % "test->compile")
   .configure(WeaverPlugin.profile)
