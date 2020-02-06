@@ -5,10 +5,8 @@ steps:
 
   # Compile the code/run tests
 - name: build
-  image: hseeberger/scala-sbt:8u242_1.3.8_2.13.1
+  image: hseeberger/scala-sbt:8u242_1.3.8_2.12.10
   commands:
-  - sbt versionDump
-  - cat version
   - sbt ci
   environment:
     COURSIER_CACHE: .cache/coursier
@@ -18,7 +16,7 @@ steps:
 
   # Publish maven artifacts (on tag push)
 - name: publish-to-artifactory
-  image: hseeberger/scala-sbt:8u242_1.3.8_2.13.1
+  image: hseeberger/scala-sbt:8u242_1.3.8_2.12.10
   commands:
   - echo Publishing version $(cat version)
   - ./mill publishAll --username $ART_USER --password $ART_PASSWORD --publishArtifacts __.publishArtifacts

@@ -1,7 +1,7 @@
 // shadow sbt-scalajs' crossProject and CrossType from Scala.js 0.6.x
 import sbtcrossproject.CrossPlugin.autoImport.{ crossProject, CrossType }
 
-addCommandAlias("ci", ";project root ;reload ;+clean ;+test:compile ;+test")
+addCommandAlias("ci", ";project root ;versionDump ;+clean ;+test:compile ;+test")
 
 lazy val root = project
   .in(file("."))
