@@ -68,3 +68,11 @@ lazy val zio = crossProject(JVMPlatform)
 
 lazy val zioJVM = zio.jvm
 // lazy val scalacheckJS  = scalacheck.js
+
+lazy val versionDump =
+  taskKey[Unit]("Dumps the version in a file named version")
+
+versionDump := {
+  val file = (baseDirectory in ThisBuild).value / "version"
+  IO.write(file, (version in (Compile)).value)
+}

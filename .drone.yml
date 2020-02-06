@@ -5,21 +5,20 @@ steps:
 
   # Compile the code/run tests
 - name: build
-  image: baccata/mill-docker:0.5.1
+  image: hseeberger/scala-sbt:8u242_1.3.8_2.13.1
   commands:
-  - ./mill show core[2.12].jvm.publishVersion 2>/dev/null | cut -d "\"" -f 2  > version
+  - sbt versionDump
   - cat version
-  - ./mill __.jvm.compile
-  - ./mill __.jvm.test
+  - sbt ci
   environment:
     COURSIER_CACHE: .cache/coursier
   volumes:
-  - name: mill-cache
-    path: /root/.mill
+    - name: sbt-cache
+      path: /root/.sbt
 
   # Publish maven artifacts (on tag push)
 - name: publish-to-artifactory
-  image: baccata/mill-docker:0.5.1
+  image: hseeberger/scala-sbt:8u242_1.3.8_2.13.1
   commands:
   - echo Publishing version $(cat version)
   - ./mill publishAll --username $ART_USER --password $ART_PASSWORD --publishArtifacts __.publishArtifacts
@@ -34,17 +33,11 @@ steps:
     ref:
       - refs/tags/v*
   volumes:
-  - name: mill-cache
-    path: /root/.mill
-
-  ## Cleaning non tar-able files
-- name: clean-mill-worker
-  image: bash
-  commands:
-  - rm -r out/mill-worker-*
+  - name: sbt-cache
+    path: /root/.sbt
 
 volumes:
-- name: mill-cache
+- name: sbt-cache
   temp: {}
 
 ---
