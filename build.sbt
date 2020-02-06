@@ -19,9 +19,9 @@ lazy val core = crossProject(JVMPlatform)
   .configure(WeaverPlugin.profile)
   .settings(
     libraryDependencies ++= Seq(
-      "co.fs2"               %% "fs2-core"      % "2.1.0",
-      "com.eed3si9n.expecty" %% "expecty"       % "0.13.0",
-      "org.scala-js"         %% "scalajs-stubs" % scalaJSVersion % "provided"
+      "co.fs2"               %%% "fs2-core"      % "2.1.0",
+      "com.eed3si9n.expecty" %%% "expecty"       % "0.13.0",
+      "org.scala-js"         %%% "scalajs-stubs" % scalaJSVersion % "provided"
     )
   )
 
@@ -35,7 +35,7 @@ lazy val framework = crossProject(JVMPlatform)
   .configure(WeaverPlugin.profile)
   .settings(
     libraryDependencies ++= Seq(
-      "org.scala-js"  %% "scalajs-stubs" % scalaJSVersion % "provided",
+      "org.scala-js"  %%% "scalajs-stubs" % scalaJSVersion % "provided",
       "org.scala-sbt" % "test-interface" % "1.0"
     ),
     scalacOptions in Test ~= (_ filterNot (_ == "-Xfatal-warnings"))
@@ -51,7 +51,7 @@ lazy val scalacheck = crossProject(JVMPlatform)
   .configure(WeaverPlugin.profile)
   .settings(
     libraryDependencies ++= Seq(
-      "org.scalacheck" %% "scalacheck" % "1.14.2"
+      "org.scalacheck" %%% "scalacheck" % "1.14.2"
     )
   )
 
@@ -62,7 +62,7 @@ lazy val zio = crossProject(JVMPlatform)
   .configure(WeaverPlugin.profile)
   .settings(
     libraryDependencies ++= Seq(
-      "dev.zio" %% "zio-interop-cats" % "2.0.0.0-RC10"
+      "dev.zio" %%% "zio-interop-cats" % "2.0.0.0-RC10"
     )
   )
 
