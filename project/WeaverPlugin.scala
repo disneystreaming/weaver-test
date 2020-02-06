@@ -33,10 +33,10 @@ object WeaverPlugin extends AutoPlugin {
     scalacOptions in (Compile, doc) ~= (_ filterNot (_ == "-Xfatal-warnings")),
     // Mill-like simple layout
     unmanagedSourceDirectories in Compile ++= Seq(
-      baseDirectory.value.getParentFile / "src"
+      baseDirectory.value / "src"
     ),
     unmanagedSourceDirectories in Test ++= Seq(
-      baseDirectory.value.getParentFile / "test" / "src"
+      baseDirectory.value / "test" / "src"
     ),
     // ScalaDoc settings
     autoAPIMappings := true,
@@ -128,8 +128,8 @@ object WeaverPlugin extends AutoPlugin {
       new RuleTransformer(new RewriteRule {
         override def transform(node: xml.Node): Seq[xml.Node] = node match {
           case e: Elem
-              if e.label == "dependency" && e.child.exists(
-                child => child.label == "groupId" && child.text == "org.scoverage") =>
+              if e.label == "dependency" && e.child.exists(child =>
+                child.label == "groupId" && child.text == "org.scoverage") =>
             Nil
           case _ => Seq(node)
         }
