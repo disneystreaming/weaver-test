@@ -7,6 +7,7 @@ steps:
 - name: build
   image: hseeberger/scala-sbt:8u242_1.3.8_2.12.10
   commands:
+  - sbt "show coreJVM/Compile/dependencyClasspath"
   - sbt ci
   environment:
     COURSIER_CACHE: .cache/coursier
