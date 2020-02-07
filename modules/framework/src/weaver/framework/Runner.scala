@@ -6,6 +6,7 @@ import cats.effect.{ ContextShift, IO, Timer }
 import cats.effect.concurrent.{ Ref, Semaphore }
 import cats.data.Chain
 import sbt.testing.{ Runner => BaseRunner, Task => BaseTask, _ }
+import cats.effect.Resource
 
 final class Runner(
     val args: Array[String],
@@ -38,8 +39,11 @@ final class Runner(
           } yield ())
       )
 
-      val loggedBracket: LoggedBracket = withLogger =>
-        withLogger((str, event) => ref.update(cat => cat.append(str -> event))) *> semaphore.release
+      val loggedBracket: Resource[IO, Logger] =
+        Resource.make(IO.pure[Logger]((str, event) =>
+          ref.update(cat => cat.append(str -> event)))) { _ =>
+          semaphore.release
+        }
 
       list.map { taskDef =>
         new Task(

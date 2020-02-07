@@ -45,3 +45,4 @@ dynamodb_lib
 .bloop
 .vscode
 .metals
+project/metals.sbt
