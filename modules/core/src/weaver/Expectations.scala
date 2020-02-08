@@ -4,12 +4,15 @@ import cats._
 import cats.implicits._
 import cats.data.{ Validated, ValidatedNel }
 import cats.data.Validated._
+import cats.data.NonEmptyList
 
 case class Expectations(val run: ValidatedNel[AssertionException, Unit]) {
   self =>
 
   def and(other: Expectations) =
     Expectations(self.run.product(other.run).void)
+
+  def &&(other: Expectations) = and(other)
 
   def or(other: Expectations) =
     Expectations(
@@ -18,13 +21,16 @@ case class Expectations(val run: ValidatedNel[AssertionException, Unit]) {
         .orElse(self.run.product(other.run).void)
     )
 
+  def ||(other: Expectations) = or(other)
+
 }
 
 object Expectations {
 
   implicit def fromSingle(e: SingleExpectation)(
       implicit loc: SourceLocation): Expectations =
-    Expectations(e.run.leftMap(_.map(str => new AssertionException(str, loc))))
+    Expectations(
+      e.run.leftMap(str => NonEmptyList.one(new AssertionException(str, loc))))
 
   /**
    * Trick to convert from multiplicative assertion to additive assertion
