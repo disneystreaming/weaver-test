@@ -11,32 +11,31 @@ import cats.implicits._
 
 import org.scalacheck.Gen
 import cats.effect.IO
-import cats.effect.ConcurrentEffect
 import org.scalacheck.Arbitrary
 import cats.effect.concurrent.Ref
 
-trait IOCheckers extends Checkers[IO] { self: BaseIOSuite =>
-  override def concurrentEffect: ConcurrentEffect[IO] = IO.ioConcurrentEffect
+trait IOCheckers extends Checkers[IO] {
+  self: ConcurrentEffectSuite[IO] =>
 }
 
 trait Checkers[F[_]] {
-  self: EffectSuite[F] =>
+  self: ConcurrentEffectSuite[F] =>
+
+  type Prop = F[Expectations]
 
   // Configuration for property-based tests
   def checkConfig: CheckConfig = CheckConfig.default
 
-  implicit def concurrentEffect: ConcurrentEffect[F]
-
-  def forall[A1: Arbitrary: Show, P](f: A1 => Prop[F])(
+  def forall[A1: Arbitrary: Show, P](f: A1 => Prop)(
       implicit loc: SourceLocation): F[Expectations] =
     forall(implicitly[Arbitrary[A1]].arbitrary)(f)
 
-  def forall[A1: Arbitrary: Show, A2: Arbitrary: Show, P](
-      f: (A1, A2) => Prop[F])(implicit loc: SourceLocation): F[Expectations] =
+  def forall[A1: Arbitrary: Show, A2: Arbitrary: Show, P](f: (A1, A2) => Prop)(
+      implicit loc: SourceLocation): F[Expectations] =
     forall(implicitly[Arbitrary[(A1, A2)]].arbitrary)(f.tupled)
 
   def forall[A1: Arbitrary: Show, A2: Arbitrary: Show, A3: Arbitrary: Show, P](
-      f: (A1, A2, A3) => Prop[F])(
+      f: (A1, A2, A3) => Prop)(
       implicit loc: SourceLocation): F[Expectations] = {
     implicit val tuple3Show: Show[(A1, A2, A3)] = {
       case (a1, a2, a3) => s"(${a1.show},${a2.show},${a3.show})"
@@ -49,7 +48,7 @@ trait Checkers[F[_]] {
       A2: Arbitrary: Show,
       A3: Arbitrary: Show,
       A4: Arbitrary: Show,
-      P](f: (A1, A2, A3, A4) => Prop[F])(
+      P](f: (A1, A2, A3, A4) => Prop)(
       implicit loc: SourceLocation): F[Expectations] = {
     implicit val tuple3Show: Show[(A1, A2, A3, A4)] = {
       case (a1, a2, a3, a4) => s"(${a1.show},${a2.show},${a3.show},${a4.show})"
@@ -63,7 +62,7 @@ trait Checkers[F[_]] {
       A3: Arbitrary: Show,
       A4: Arbitrary: Show,
       A5: Arbitrary: Show,
-      P](f: (A1, A2, A3, A4, A5) => Prop[F])(
+      P](f: (A1, A2, A3, A4, A5) => Prop)(
       implicit loc: SourceLocation): F[Expectations] = {
     implicit val tuple3Show: Show[(A1, A2, A3, A4, A5)] = {
       case (a1, a2, a3, a4, a5) =>
@@ -79,7 +78,7 @@ trait Checkers[F[_]] {
       A4: Arbitrary: Show,
       A5: Arbitrary: Show,
       A6: Arbitrary: Show,
-      P](f: (A1, A2, A3, A4, A5, A6) => Prop[F])(
+      P](f: (A1, A2, A3, A4, A5, A6) => Prop)(
       implicit loc: SourceLocation): F[Expectations] = {
     implicit val tuple3Show: Show[(A1, A2, A3, A4, A5, A6)] = {
       case (a1, a2, a3, a4, a5, a6) =>
@@ -91,15 +90,17 @@ trait Checkers[F[_]] {
   /** ScalaCheck test parameters instance. */
   val numbers = fs2.Stream.iterate(1)(_ + 1)
 
-  def forall[A: Show, P](gen: Gen[A])(f: A => Prop[F])(
+  def forall[A: Show, P](gen: Gen[A])(f: A => Prop)(
       implicit loc: SourceLocation): F[Expectations] =
     Ref[F].of(Status.start[A]).flatMap(forall_(gen, f))
 
-  private def forall_[A: Show](gen: Gen[A], f: A => Prop[F])(
+  private def forall_[A: Show](gen: Gen[A], f: A => Prop)(
       state: Ref[F, Status[A]])(
       implicit loc: SourceLocation): F[Expectations] = {
     paramStream
-      .parEvalMapUnordered(10)(testOneTupled(gen, state, f))
+      .parEvalMapUnordered(checkConfig.perPropertyParallelism) {
+        testOneTupled(gen, state, f)
+      }
       .takeWhile(_.shouldContinue, takeFailure = true)
       .takeRight(1) // getting the first error (which finishes the stream)
       .compile
@@ -110,7 +111,7 @@ trait Checkers[F[_]] {
       }
   }
 
-  def paramStream: fs2.Stream[F, (Gen.Parameters, Seed)] = {
+  private def paramStream: fs2.Stream[F, (Gen.Parameters, Seed)] = {
     val initial = startSeed(
       Gen.Parameters.default
         .withSize(checkConfig.maximumGeneratorSize)
@@ -124,16 +125,16 @@ trait Checkers[F[_]] {
   private def testOneTupled[T: Show](
       gen: Gen[T],
       state: Ref[F, Status[T]],
-      f: T => Prop[F])(ps: (Gen.Parameters, Seed)) =
+      f: T => Prop)(ps: (Gen.Parameters, Seed)) =
     testOne(gen, state, f)(ps._1, ps._2)
 
   private def testOne[T: Show](
       gen: Gen[T],
       state: Ref[F, Status[T]],
-      f: T => Prop[F])(params: Gen.Parameters, seed: Seed): F[Status[T]] =
+      f: T => Prop)(params: Gen.Parameters, seed: Seed): F[Status[T]] =
     effect.defer {
       gen(params, seed)
-        .traverse(x => f(x).value.map(x -> _))
+        .traverse(x => f(x).map(x -> _))
         .flatTap {
           case Some((_, ex)) if ex.run.isValid => state.update(_.addSuccess)
           case Some((t, ex))                   => state.update(_.addFailure(t.show, ex))
@@ -180,7 +181,7 @@ trait Checkers[F[_]] {
       else Expectations.Helpers.success
     }
   }
-  private[scalacheck] object Status {
+  private object Status {
     def start[T] = Status[T](0, 0, None)
   }
 

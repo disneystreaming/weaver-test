@@ -8,6 +8,9 @@ import cats.effect.IO
 
 object CheckersTest extends SimpleIOSuite with IOCheckers {
 
+  override def checkConfig: CheckConfig =
+    super.checkConfig.copy(perPropertyParallelism = 100)
+
   simpleTest("universal") {
     forall(Gen.posNum[Int]) { a =>
       expect(a > 0)
@@ -52,7 +55,7 @@ object CheckersTest extends SimpleIOSuite with IOCheckers {
 
   simpleTest("io form") {
     forall { (a1: Int, a2: Int) =>
-      IO.sleep(10.millis).flatMap(_ => IO(expect(a1 + a2 == a2 + a1)))
+      IO.sleep(1.second).map(_ => expect(a1 + a2 == a2 + a1))
     }
   }
 
