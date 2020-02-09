@@ -86,7 +86,13 @@ trait MutableFSuite[F[_]] extends ConcurrentEffectSuite[F]  {
   def pureTest(name: String)(run : => Expectations) :  Unit = registerTest(name)(_ => _ => effect.delay(run))
   def simpleTest(name:  String)(run: => F[Expectations]) : Unit = registerTest(name)(_ => _ => effect.suspend(run))
   def loggedTest(name: String)(run: Log[F] => F[Expectations]) : Unit = registerTest(name)(_ => log => run(log))
-  def test(name: String)(run : (Res, Log[F]) => F[Expectations]) : Unit = registerTest(name)(run.curried)
+  def test(name: String) : PartiallyApplied = new PartiallyApplied(name)
+
+  class PartiallyApplied(name : String) {
+    def apply(run: => F[Expectations]) : Unit = registerTest(name)(_ => _ => effect.suspend(run))
+    def apply(run : Res => F[Expectations]) : Unit = registerTest(name)(res => _ => run(res))
+    def apply(run : (Res, Log[F]) => F[Expectations]) : Unit = registerTest(name)(run.curried)
+  }
 
   implicit def singleExpectationConversion(e: SingleExpectation)(implicit loc: SourceLocation): F[Expectations] =
     Expectations.fromSingle(e).pure[F]

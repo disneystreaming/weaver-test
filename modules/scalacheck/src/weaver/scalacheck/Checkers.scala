@@ -115,7 +115,7 @@ trait Checkers[F[_]] {
     val initial = startSeed(
       Gen.Parameters.default
         .withSize(checkConfig.maximumGeneratorSize)
-        .withInitialSeed(checkConfig.initialSeed))
+        .withInitialSeed(checkConfig.initialSeed.map(Seed(_))))
 
     fs2.Stream.iterate(initial) {
       case (p, s) => (p, s.slide)

@@ -6,7 +6,7 @@ case class CheckConfig(
     maximumDiscardRatio: Int,
     maximumGeneratorSize: Int,
     perPropertyParallelism: Int,
-    initialSeed: Option[org.scalacheck.rng.Seed]
+    initialSeed: Option[Long]
 ) {
   assert(maximumDiscardRatio >= 0)
   assert(maximumDiscardRatio <= 100)
