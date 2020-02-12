@@ -8,7 +8,7 @@ steps:
   image: hseeberger/scala-sbt:8u242_1.3.8_2.12.10
   commands:
   - sbt ci
-  - Built $(cat version)
+  - echo Built $(cat version)
   environment:
     COURSIER_CACHE: .cache/coursier
   volumes:
