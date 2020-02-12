@@ -12,12 +12,13 @@ import scala.concurrent.duration._
 import scala.concurrent.{ Await, Promise }
 import scala.util.control.NonFatal
 import scala.util.control.NoStackTrace
+import cats.effect.Resource
 
 final class Task(
     val task: TaskDef,
     args: List[String],
     cl: ClassLoader,
-    maybeLoggedBracket: Option[LoggedBracket],
+    maybeDeferredLogger: Option[Resource[IO, DeferredLogger]],
     maybeNext: IO[Option[BaseTask]])
     extends WeaverTask {
 
@@ -36,50 +37,47 @@ final class Task(
     def doLog(event: TestOutcome): IO[Unit] =
       loggers.toVector.foldMap(logger => IO(logger.info(event.formatted)))
 
-    val defaultLoggedBracket: LoggedBracket = withLogger =>
-      withLogger((_, event) => doLog(event) *> handle(event))
+    val defaultLoggedBracket: Resource[IO, DeferredLogger] =
+      Resource.pure((_, event) => doLog(event) *> handle(event))
 
-    val loggedBracket = maybeLoggedBracket.getOrElse(defaultLoggedBracket)
+    val loggerResource = maybeDeferredLogger.getOrElse(defaultLoggedBracket)
 
-    loggedBracket
-      .apply { deferredLog =>
-        // format: off
+    // format: off
+    loggerResource.use { log =>
         val reportSink: fs2.Pipe[IO, TestOutcome, Unit] = _.flatMap[IO, Unit] {
           case event @ TestOutcome(_, _, Result.Success | Result.Ignored(_, _) | Result.Cancelled(_, _), _) =>
             fs2.Stream.eval(doLog(event) *> handle(event))
           case event =>
-            fs2.Stream.eval(handle(event) *> deferredLog(task.fullyQualifiedName(), event))
+            fs2.Stream.eval(handle(event) *> log(task.fullyQualifiedName(), event))
         }
         // format: on
 
-        loadSuite(task.fullyQualifiedName(), cl)
-          .flatMap { suite =>
-            loggers.foreach(_.info(cyan(task.fullyQualifiedName())))
-            suite
-              .ioSpec(args)
-              .through(reportSink)
-              .compile
-              .drain
-              .map(_ => loggers.foreach(_.info(EOL)))
-          }
-          .handleErrorWith {
-            case NonFatal(e) =>
-              val event: TestOutcome =
-                TestOutcome("Unexpected failure",
-                            0.seconds,
-                            Result.from(e),
-                            Chain.empty)
-              for {
-                _ <- reportError(eventHandler, e)
-                _ <- deferredLog(task.fullyQualifiedName(), event)
-              } yield ()
-          }
-      }
-      .flatMap(_ => maybeNext)
-      .unsafeRunAsync {
-        case Right(nextTask) => continuation(nextTask.toArray)
-        case Left(_)         => continuation(Array())
-      }
+      loadSuite(task.fullyQualifiedName(), cl)
+        .flatMap { suite =>
+          loggers.foreach(_.info(cyan(task.fullyQualifiedName())))
+          suite
+            .ioSpec(args)
+            .through(reportSink)
+            .compile
+            .drain
+            .map(_ => loggers.foreach(_.info(EOL)))
+        }
+        .handleErrorWith {
+          case NonFatal(e) =>
+            val event: TestOutcome =
+              TestOutcome("Unexpected failure",
+                          0.seconds,
+                          Result.from(e),
+                          Chain.empty)
+            for {
+              _ <- reportError(eventHandler, e)
+              _ <- log(task.fullyQualifiedName(), event)
+            } yield ()
+        }
+    }.flatMap(_ => maybeNext).unsafeRunAsync {
+      case Right(nextTask) => continuation(nextTask.toArray)
+      case Left(_)         => continuation(Array())
+    }
   }
 
   def reportError(eventHandler: EventHandler, t: Throwable): IO[Unit] = IO {
