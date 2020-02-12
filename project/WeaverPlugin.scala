@@ -45,7 +45,7 @@ object WeaverPlugin extends AutoPlugin {
     // https://github.com/sbt/sbt/issues/2654
     incOptions := incOptions.value.withLogRecompileOnMacro(false),
     testFrameworks := Seq(new TestFramework("weaver.framework.TestFramework"))
-  ) ++ coverageSettings
+  ) ++ coverageSettings ++ publishSettings
 
   def compilerOptions(scalaVersion: String) = {
     commonCompilerOptions ++ {
@@ -153,6 +153,52 @@ object WeaverPlugin extends AutoPlugin {
     unmanagedSourceDirectories in Test ++= Seq(
       baseDirectory.value.getParentFile / "test" / "src"
     )
+  )
+
+  lazy val publishSettings = Seq(
+    organization := "com.disneystreaming.oss",
+    publishTo :=
+      Some(
+        Resolver.url(
+          "oss-ivy-publish",
+          url(
+            "https://artifactory.us-east-1.bamgrid.net/artifactory/oss-maven/"))(
+          Patterns(
+            "[organization]/[module]/(scala_[scalaVersion]/)(sbt_[sbtVersion]/)[revision]/[type]s/[artifact](-[classifier]).[ext]"
+          ))
+      ),
+    publishMavenStyle := true,
+    licenses := Seq(
+      "Apache" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
+    homepage := Some(url("https://www.bamtechmedia.com")),
+    scmInfo := Some(
+      ScmInfo(
+        url("https://github.bamtech.co/mdrm/commons"),
+        "scm:git@github.bamtech.co/mdrm/commons.git"
+      )
+    ),
+    developers := List(
+      Developer(
+        id = "Olivier Mélois",
+        name = "Olivier Mélois",
+        email = "olivier.melois@disneystreaming.com",
+        url = url("https://github.bamtech.co/oss")
+      )
+    ),
+    credentials ++=
+      sys.env
+        .get("ART_USER")
+        .zip(sys.env.get("ART_PASSWORD"))
+        .map {
+          case (username, password) =>
+            Credentials(
+              "Artifactory Realm",
+              "artifactory.us-east-1.bamgrid.net",
+              username,
+              password
+            )
+        }
+        .toSeq
   )
 
 }
