@@ -39,8 +39,8 @@ final class Runner(
           } yield ())
       )
 
-      val loggedBracket: Resource[IO, Logger] =
-        Resource.make(IO.pure[Logger]((str, event) =>
+      val loggedBracket: Resource[IO, DeferredLogger] =
+        Resource.make(IO.pure[DeferredLogger]((str, event) =>
           ref.update(cat => cat.append(str -> event)))) { _ =>
           semaphore.release
         }

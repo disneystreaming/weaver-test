@@ -18,7 +18,7 @@ final class Task(
     val task: TaskDef,
     args: List[String],
     cl: ClassLoader,
-    maybeDeferredLogger: Option[Resource[IO, Logger]],
+    maybeDeferredLogger: Option[Resource[IO, DeferredLogger]],
     maybeNext: IO[Option[BaseTask]])
     extends WeaverTask {
 
@@ -37,7 +37,7 @@ final class Task(
     def doLog(event: TestOutcome): IO[Unit] =
       loggers.toVector.foldMap(logger => IO(logger.info(event.formatted)))
 
-    val defaultLoggedBracket: Resource[IO, Logger] =
+    val defaultLoggedBracket: Resource[IO, DeferredLogger] =
       Resource.pure((_, event) => doLog(event) *> handle(event))
 
     val loggerResource = maybeDeferredLogger.getOrElse(defaultLoggedBracket)
