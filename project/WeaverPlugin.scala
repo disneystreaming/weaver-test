@@ -147,10 +147,10 @@ object WeaverPlugin extends AutoPlugin {
 
   // Mill-like simple layout
   val simpleLayout: Seq[Setting[_]] = Seq(
-    unmanagedSourceDirectories in Compile ++= Seq(
+    unmanagedSourceDirectories in Compile := Seq(
       baseDirectory.value.getParentFile / "src"
     ),
-    unmanagedSourceDirectories in Test ++= Seq(
+    unmanagedSourceDirectories in Test := Seq(
       baseDirectory.value.getParentFile / "test" / "src"
     )
   )
