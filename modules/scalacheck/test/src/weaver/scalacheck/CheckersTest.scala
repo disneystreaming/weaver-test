@@ -2,10 +2,14 @@ package weaver
 package scalacheck
 
 import org.scalacheck.Gen
-import cats.effect.IO
 import scala.concurrent.duration._
+import cats.implicits._
+import cats.effect.IO
 
 object CheckersTest extends SimpleIOSuite with IOCheckers {
+
+  override def checkConfig: CheckConfig =
+    super.checkConfig.copy(perPropertyParallelism = 100)
 
   simpleTest("universal") {
     forall(Gen.posNum[Int]) { a =>
@@ -51,8 +55,8 @@ object CheckersTest extends SimpleIOSuite with IOCheckers {
 
   simpleTest("io form") {
     forall { (a1: Int, a2: Int) =>
-      IO.sleep(10.millis).flatMap(_ => IO(expect(a1 + a2 == a2)))
-    }.map(not)
+      IO.sleep(1.second).map(_ => expect(a1 + a2 == a2 + a1))
+    }
   }
 
 }

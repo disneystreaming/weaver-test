@@ -16,7 +16,6 @@ final case class SourceLocation(
     if (path.startsWith(pwd)) Some(pwd.relativize(path).toString()) else fileName
   }
 
-
 }
 
 object SourceLocation {

@@ -2,16 +2,25 @@ package weaver
 
 import com.eed3si9n.expecty._
 
-import cats.data.ValidatedNel
+import cats.data.Validated
 import cats.implicits._
+import cats.data.Validated.Invalid
+import cats.data.Validated.Valid
+import cats.effect.Sync
 
-case class SingleExpectation(run: ValidatedNel[String, Unit]) {
+case class SingleExpectation(run: Validated[String, Unit]) {
   def and(other: Expectations)(implicit loc: SourceLocation) =
     Expectations.fromSingle(this).and(other)
   def or(other: Expectations)(implicit loc: SourceLocation) =
     Expectations.fromSingle(this).or(other)
   def toExpectations(implicit loc: SourceLocation) =
     Expectations.fromSingle(this)
+
+  def failFast[F[_]: Sync](implicit loc: SourceLocation): F[Unit] =
+    this.run match {
+      case Invalid(e) => Sync[F].raiseError(new AssertionException(e, loc))
+      case Valid(_)   => Sync[F].unit
+    }
 }
 
 class Expect extends Recorder[Boolean, SingleExpectation] {
@@ -24,7 +33,7 @@ class Expect extends Recorder[Boolean, SingleExpectation] {
     override def recordingCompleted(
         recording: Recording[Boolean],
         recordedMessage: Function0[String]): SingleExpectation = {
-      val res = recording.recordedExprs.foldMap[ValidatedNel[String, Unit]] {
+      val res = recording.recordedExprs.foldMap[Validated[String, Unit]] {
         expr =>
           lazy val rendering: String =
             new ExpressionRenderer(showTypes = false).render(expr)
@@ -36,8 +45,8 @@ class Expect extends Recorder[Boolean, SingleExpectation] {
                 (if (msg == "") ""
                  else ": " + msg)
             val fullMessage = header + "\n\n" + rendering
-            fullMessage.invalidNel
-          } else ().validNel
+            fullMessage.invalid
+          } else ().valid
       }
       SingleExpectation(res)
     }

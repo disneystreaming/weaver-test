@@ -2,123 +2,187 @@ package weaver
 package scalacheck
 
 import cats.implicits._
-import cats.data.Validated.Invalid
-import cats.data.Validated.Valid
-import cats.Parallel
-
-import org.scalacheck.Test.Parameters
-import org.scalacheck.util.Pretty
-import org.scalacheck.{ Arbitrary, Prop, Shrink, Test }
-import org.scalacheck.Prop
 
 import org.scalacheck.Gen
 import cats.effect.IO
+import org.scalacheck.rng.Seed
+import cats.Show
+import cats.implicits._
 
-trait IOCheckers extends Checkers[IO] { self: BaseIOSuite =>
+import org.scalacheck.Gen
+import cats.effect.IO
+import org.scalacheck.Arbitrary
+import cats.effect.concurrent.Ref
 
-  override implicit def parallel: Parallel[IO] = IO.ioParallel
-
+trait IOCheckers extends Checkers[IO] {
+  self: ConcurrentEffectSuite[IO] =>
 }
 
 trait Checkers[F[_]] {
-  self: EffectSuite[F] =>
+  self: ConcurrentEffectSuite[F] =>
 
-  implicit def parallel: Parallel[F]
+  type Prop = F[Expectations]
+
+  // Configuration for property-based tests
+  def checkConfig: CheckConfig = CheckConfig.default
+
+  def forall[A1: Arbitrary: Show, P](f: A1 => Prop)(
+      implicit loc: SourceLocation): F[Expectations] =
+    forall(implicitly[Arbitrary[A1]].arbitrary)(f)
+
+  def forall[A1: Arbitrary: Show, A2: Arbitrary: Show, P](f: (A1, A2) => Prop)(
+      implicit loc: SourceLocation): F[Expectations] =
+    forall(implicitly[Arbitrary[(A1, A2)]].arbitrary)(f.tupled)
+
+  def forall[A1: Arbitrary: Show, A2: Arbitrary: Show, A3: Arbitrary: Show, P](
+      f: (A1, A2, A3) => Prop)(
+      implicit loc: SourceLocation): F[Expectations] = {
+    implicit val tuple3Show: Show[(A1, A2, A3)] = {
+      case (a1, a2, a3) => s"(${a1.show},${a2.show},${a3.show})"
+    }
+    forall(implicitly[Arbitrary[(A1, A2, A3)]].arbitrary)(f.tupled)
+  }
+
+  def forall[
+      A1: Arbitrary: Show,
+      A2: Arbitrary: Show,
+      A3: Arbitrary: Show,
+      A4: Arbitrary: Show,
+      P](f: (A1, A2, A3, A4) => Prop)(
+      implicit loc: SourceLocation): F[Expectations] = {
+    implicit val tuple3Show: Show[(A1, A2, A3, A4)] = {
+      case (a1, a2, a3, a4) => s"(${a1.show},${a2.show},${a3.show},${a4.show})"
+    }
+    forall(implicitly[Arbitrary[(A1, A2, A3, A4)]].arbitrary)(f.tupled)
+  }
+
+  def forall[
+      A1: Arbitrary: Show,
+      A2: Arbitrary: Show,
+      A3: Arbitrary: Show,
+      A4: Arbitrary: Show,
+      A5: Arbitrary: Show,
+      P](f: (A1, A2, A3, A4, A5) => Prop)(
+      implicit loc: SourceLocation): F[Expectations] = {
+    implicit val tuple3Show: Show[(A1, A2, A3, A4, A5)] = {
+      case (a1, a2, a3, a4, a5) =>
+        s"(${a1.show},${a2.show},${a3.show},${a4.show},${a5.show})"
+    }
+    forall(implicitly[Arbitrary[(A1, A2, A3, A4, A5)]].arbitrary)(f.tupled)
+  }
+
+  def forall[
+      A1: Arbitrary: Show,
+      A2: Arbitrary: Show,
+      A3: Arbitrary: Show,
+      A4: Arbitrary: Show,
+      A5: Arbitrary: Show,
+      A6: Arbitrary: Show,
+      P](f: (A1, A2, A3, A4, A5, A6) => Prop)(
+      implicit loc: SourceLocation): F[Expectations] = {
+    implicit val tuple3Show: Show[(A1, A2, A3, A4, A5, A6)] = {
+      case (a1, a2, a3, a4, a5, a6) =>
+        s"(${a1.show},${a2.show},${a3.show},${a4.show},${a5.show},${a6.show})"
+    }
+    forall(implicitly[Arbitrary[(A1, A2, A3, A4, A5, A6)]].arbitrary)(f.tupled)
+  }
 
   /** ScalaCheck test parameters instance. */
-  def checkConfig: Parameters = Test.Parameters.default.withWorkers(1)
+  val numbers = fs2.Stream.iterate(1)(_ + 1)
 
-  def checkAsync(prop: Prop)(implicit loc: SourceLocation): F[Expectations] =
-    PropTest.check[F](checkConfig, prop).map { result =>
-      val reason = Pretty.pretty(result)
-      if (!result.passed) Expectations.Helpers.failure(reason)
-      else Expectations.Helpers.success
-    }
+  def forall[A: Show, P](gen: Gen[A])(f: A => Prop)(
+      implicit loc: SourceLocation): F[Expectations] =
+    Ref[F].of(Status.start[A]).flatMap(forall_(gen, f))
 
-  implicit def asProp(e: Expectations): Prop = {
-    e.run match {
-      case Invalid(_) =>
-        val label = Result.fromAssertion(e).formatted("Property: ")
-        Prop.falsified.label(label)
-      case Valid(_) =>
-        Prop.proved
+  private def forall_[A: Show](gen: Gen[A], f: A => Prop)(
+      state: Ref[F, Status[A]])(
+      implicit loc: SourceLocation): F[Expectations] = {
+    paramStream
+      .parEvalMapUnordered(checkConfig.perPropertyParallelism) {
+        testOneTupled(gen, state, f)
+      }
+      .takeWhile(_.shouldContinue, takeFailure = true)
+      .takeRight(1) // getting the first error (which finishes the stream)
+      .compile
+      .last
+      .map {
+        case Some(status) => status.endResult
+        case None         => Expectations.Helpers.success
+      }
+  }
+
+  private def paramStream: fs2.Stream[F, (Gen.Parameters, Seed)] = {
+    val initial = startSeed(
+      Gen.Parameters.default
+        .withSize(checkConfig.maximumGeneratorSize)
+        .withInitialSeed(checkConfig.initialSeed.map(Seed(_))))
+
+    fs2.Stream.iterate(initial) {
+      case (p, s) => (p, s.slide)
     }
   }
 
-  implicit def asProp1(e: SingleExpectation): Prop =
-    asProp(Expectations.fromSingle(e))
+  private def testOneTupled[T: Show](
+      gen: Gen[T],
+      state: Ref[F, Status[T]],
+      f: T => Prop)(ps: (Gen.Parameters, Seed)) =
+    testOne(gen, state, f)(ps._1, ps._2)
 
-  implicit def asPropF[P](fp: F[P])(implicit view: P => Prop): Prop =
-    effect
-      .toIO(fp)
-      .attempt
-      .map {
-        case Left(error)  => Prop.exception(error)
-        case Right(value) => view(value)
-      }
-      .unsafeRunSync() // TODO https://github.bamtech.co/OSS/weaver-test/issues/18
+  private def testOne[T: Show](
+      gen: Gen[T],
+      state: Ref[F, Status[T]],
+      f: T => Prop)(params: Gen.Parameters, seed: Seed): F[Status[T]] =
+    effect.defer {
+      gen(params, seed)
+        .traverse(x => f(x).map(x -> _))
+        .flatTap {
+          case Some((_, ex)) if ex.run.isValid => state.update(_.addSuccess)
+          case Some((t, ex))                   => state.update(_.addFailure(t.show, ex))
+          case None                            => state.update(_.addDiscard)
+        }
+        .productR(state.get)
+    }
 
-  // format: off
+  def startSeed(params: Gen.Parameters): (Gen.Parameters, Seed) =
+    params.initialSeed match {
+      case Some(seed) => (params.withNoInitialSeed, seed)
+      case None       => (params, Seed.random())
+    }
 
-  /**
-   * Universal quantifier
-   */
-  def forall[A,P](gen: Gen[A])(f: A => P)
-  (implicit
-    p: P => Prop,
-    s1: Shrink[A], pp1: A => Pretty
-  ): F[Expectations] = checkAsync(Prop.forAll(gen)(f)(p, s1, pp1))
+  private[scalacheck] case class Status[T](
+      succeeded: Int,
+      discarded: Int,
+      failure: Option[Expectations]
+  ) {
+    def addSuccess: Status[T] =
+      if (failure.isEmpty) copy(succeeded = succeeded + 1) else this
+    def addDiscard: Status[T] =
+      if (failure.isEmpty) copy(discarded = discarded + 1) else this
+    def addFailure(input: String, exp: Expectations): Status[T] =
+      if (failure.isEmpty) {
+        val ith = succeeded + discarded + 1
+        val failure = Expectations.Helpers
+          .failure(s"Property test failed on try $ith with input $input")
+          .and(exp)
+        copy(failure = Some(failure))
+      } else this
 
-  def forall[A1,P](f: A1 => P)
-    (implicit
-      p: P => Prop,
-      a1: Arbitrary[A1], s1: Shrink[A1], pp1: A1 => Pretty
-    ): F[Expectations] = checkAsync(Prop.forAll(f)(p, a1, s1, pp1))
+    def shouldStop =
+      failure.isDefined ||
+        succeeded >= checkConfig.minimumSuccessful ||
+        discarded >= checkConfig.maximumDiscardRatio
 
-  def forall[A1,A2,P](f: (A1,A2) => P)
-    (implicit
-      p: P => Prop,
-      a1: Arbitrary[A1], s1: Shrink[A1], pp1: A1 => Pretty,
-      a2: Arbitrary[A2], s2: Shrink[A2], pp2: A2 => Pretty
-    ): F[Expectations] = checkAsync(Prop.forAll(f)(p, a1, s1, pp1, a2, s2, pp2))
+    def shouldContinue = !shouldStop
 
-  def forall[A1,A2,A3,P](f: (A1,A2,A3) => P)
-    (implicit
-      p: P => Prop,
-      a1: Arbitrary[A1], s1: Shrink[A1], pp1: A1 => Pretty,
-      a2: Arbitrary[A2], s2: Shrink[A2], pp2: A2 => Pretty,
-      a3: Arbitrary[A3], s3: Shrink[A3], pp3: A3 => Pretty
-    ): F[Expectations] = checkAsync(Prop.forAll(f)(p, a1, s1, pp1, a2, s2, pp2, a3, s3, pp3))
-
-  def forall[A1,A2,A3,A4,P](f: (A1,A2,A3,A4) => P)
-    (implicit
-      p: P => Prop,
-      a1: Arbitrary[A1], s1: Shrink[A1], pp1: A1 => Pretty,
-      a2: Arbitrary[A2], s2: Shrink[A2], pp2: A2 => Pretty,
-      a3: Arbitrary[A3], s3: Shrink[A3], pp3: A3 => Pretty,
-      a4: Arbitrary[A4], s4: Shrink[A4], pp4: A4 => Pretty
-    ): F[Expectations] = checkAsync(Prop.forAll(f)(p, a1, s1, pp1, a2, s2, pp2, a3, s3, pp3, a4, s4, pp4))
-
-  def forall[A1,A2,A3,A4,A5,P](f: (A1,A2,A3,A4,A5) => P)
-    (implicit
-      p: P => Prop,
-      a1: Arbitrary[A1], s1: Shrink[A1], pp1: A1 => Pretty,
-      a2: Arbitrary[A2], s2: Shrink[A2], pp2: A2 => Pretty,
-      a3: Arbitrary[A3], s3: Shrink[A3], pp3: A3 => Pretty,
-      a4: Arbitrary[A4], s4: Shrink[A4], pp4: A4 => Pretty,
-      a5: Arbitrary[A5], s5: Shrink[A5], pp5: A5 => Pretty
-    ): F[Expectations] = checkAsync(Prop.forAll(f)(p, a1, s1, pp1, a2, s2, pp2, a3, s3, pp3, a4, s4, pp4, a5, s5, pp5))
-
-  def forall[A1,A2,A3,A4,A5,A6,P](f: (A1,A2,A3,A4,A5,A6) => P)
-    (implicit
-      p: P => Prop,
-      a1: Arbitrary[A1], s1: Shrink[A1], pp1: A1 => Pretty,
-      a2: Arbitrary[A2], s2: Shrink[A2], pp2: A2 => Pretty,
-      a3: Arbitrary[A3], s3: Shrink[A3], pp3: A3 => Pretty,
-      a4: Arbitrary[A4], s4: Shrink[A4], pp4: A4 => Pretty,
-      a5: Arbitrary[A5], s5: Shrink[A5], pp5: A5 => Pretty,
-      a6: Arbitrary[A6], s6: Shrink[A6], pp6: A6 => Pretty
-    ): F[Expectations] = checkAsync(Prop.forAll(f)(p, a1, s1, pp1, a2, s2, pp2, a3, s3, pp3, a4, s4, pp4, a5, s5, pp5, a6, s6, pp6))
-  // format: on
+    def endResult(implicit loc: SourceLocation) = failure.getOrElse {
+      if (succeeded < checkConfig.minimumSuccessful)
+        Expectations.Helpers.failure(
+          s"Discarded more inputs ($discarded) than allowed")
+      else Expectations.Helpers.success
+    }
+  }
+  private object Status {
+    def start[T] = Status[T](0, 0, None)
+  }
 
 }

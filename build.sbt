@@ -4,6 +4,9 @@ import sbtcrossproject.CrossPlugin.autoImport.{ crossProject, CrossType }
 addCommandAlias("ci",
                 ";project root ;versionDump ;+clean ;+test:compile ;+test")
 
+addCommandAlias("release",
+                ";project root ;+publish")
+
 lazy val root = project
   .in(file("."))
   .aggregate(coreJVM, frameworkJVM, scalacheckJVM, zioJVM)
