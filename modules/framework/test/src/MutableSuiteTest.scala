@@ -1,4 +1,6 @@
-package weaver.test
+package weaver
+package framework
+package test
 
 import weaver._
 import cats.implicits._
