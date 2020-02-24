@@ -29,6 +29,7 @@ case class TestOutcome(
           .getOrElse("")
         builder.append(s"${entry.level.show}$loc ")
         builder.append(entry.msg)
+        builder.append(newLine)
         val keyLengthMax = entry.ctx.map(_._1.length).foldLeft[Int](0)(math.max)
         entry.ctx.foreach {
           case (k, v) =>
