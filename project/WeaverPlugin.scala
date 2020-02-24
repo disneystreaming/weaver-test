@@ -157,17 +157,11 @@ object WeaverPlugin extends AutoPlugin {
 
   lazy val publishSettings = Seq(
     organization := "com.disneystreaming.oss",
-    version := sys.env.getOrElse("DRONE_TAG", version.value).dropWhile(_ == 'v'),
-    publishTo :=
-      Some(
-        Resolver.url(
-          "oss-ivy-publish",
-          url(
-            "https://artifactory.us-east-1.bamgrid.net/artifactory/oss-maven/"))(
-          Patterns(
-            "[organization]/[module]/(scala_[scalaVersion]/)(sbt_[sbtVersion]/)[revision]/[type]s/[artifact](-[classifier]).[ext]"
-          ))
-      ),
+    version := sys.env
+      .getOrElse("DRONE_TAG", version.value)
+      .dropWhile(_ == 'v'),
+    publishTo := Some(
+      "oss-maven-publish" at "https://artifactory.us-east-1.bamgrid.net/artifactory/oss-maven/"),
     publishMavenStyle := true,
     licenses := Seq(
       "Apache" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
