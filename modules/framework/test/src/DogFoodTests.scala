@@ -45,6 +45,18 @@ object DogFoodSuite extends SimpleIOSuite with DogFood {
       expect(logMessages.map(_.message) == Chain("this test", "has failed"))
     }
   }
+
+  simpleTest("test suite outputs stack traces of exception causes") {
+    runSuite(Meta.ErroringWithCauses).map { case(logs, _) =>
+      val maybeError = logs.collectFirst { case LoggedEvent.Error(msg) => msg }
+
+      exists(maybeError) { error =>
+        expect(error.contains("Exception: 1")) and
+          expect(error.contains("Caused by: 2")) and
+          expect(error.contains("Caused by: 3"))
+      }
+    }
+  }
 }
 
 // The build tool will only detect and run top-level test suites. We can however nest objects
@@ -64,6 +76,13 @@ object Meta {
         _ <- log.info("this test")
         _ <- log.info("has failed")
       } yield failure("expected")
+    }
+
+  }
+
+  object ErroringWithCauses extends SimpleIOSuite {
+    loggedTest("erroring with causes") { log =>
+      throw new Exception("1", new Exception("2", new Exception("3")))
     }
 
   }
