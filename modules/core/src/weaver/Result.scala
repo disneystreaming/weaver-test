@@ -1,7 +1,9 @@
 package weaver
 
 import cats.data.NonEmptyList
-import cats.data.Validated.{ Invalid, Valid }
+import cats.data.Validated.{Invalid, Valid}
+
+import scala.annotation.tailrec
 
 sealed trait Result {
   def formatted(name: String): String
@@ -118,6 +120,31 @@ object Result {
     }
   }
 
+  @tailrec
+  private def formatStackTraces(accumulator: Seq[String], ex: Throwable, traceLimit: Option[Int]): Seq[String] = {
+    val trace: Array[String] = {
+      val tr = ex.getStackTrace
+        .map(_.toString)
+        .filterNot(_.contains("cats.effect.internals"))
+        .filterNot(_.contains("java.util.concurrent"))
+        .filterNot(_.contains("zio.internal"))
+        .filterNot(_.contains("java.lang.Thread"))
+      traceLimit.fold(tr) { limit =>
+        if (tr.length <= limit) tr
+        else if (limit == 0) Array()
+        else tr.take(limit) :+ "..."
+      }
+    }
+
+    Option(ex.getCause) match {
+      case None =>
+        accumulator ++ trace
+      case Some(cause) =>
+        val traceCausedBy = accumulator ++ trace ++ Vector("\nCaused by:",  cause.getMessage)
+        formatStackTraces(traceCausedBy, cause, traceLimit)
+    }
+  }
+
   private def formatError(
       name: String,
       msg: String,
@@ -126,21 +153,9 @@ object Result {
       traceLimit: Option[Int]): String = {
 
     val stackTrace = source.fold("") { ex =>
-      val trace: Array[String] = {
-        val tr = ex.getStackTrace
-          .map(_.toString)
-          .filterNot(_.contains("cats.effect.internals"))
-          .filterNot(_.contains("java.util.concurrent"))
-          .filterNot(_.contains("zio.internal"))
-          .filterNot(_.contains("java.lang.Thread"))
-        traceLimit.fold(tr) { limit =>
-          if (tr.length <= limit) tr
-          else if (limit == 0) Array()
-          else tr.take(limit) :+ "..."
-        }
-      }
+      val trace = formatStackTraces(Vector.empty, ex, traceLimit)
 
-      if(trace.size > 0)
+      if(trace.nonEmpty)
         formatDescription(trace.mkString("\n"), None, Console.RED, tab4)
       else ""
     }
