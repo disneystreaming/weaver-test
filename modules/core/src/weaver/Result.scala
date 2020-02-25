@@ -140,7 +140,7 @@ object Result {
       case None =>
         accumulator ++ trace
       case Some(cause) =>
-        val traceCausedBy = accumulator ++ trace ++ Vector("\nCaused by:",  cause.getMessage)
+        val traceCausedBy = accumulator ++ trace :+ ("\nCaused by: " + cause.getMessage)
         formatStackTraces(traceCausedBy, cause, traceLimit)
     }
   }
