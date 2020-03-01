@@ -3,18 +3,20 @@ package weaver
 import cats.data.NonEmptyList
 import cats.data.Validated.{ Invalid, Valid }
 
-import scala.annotation.tailrec
-
 sealed trait Result {
   def formatted(name: String): String
 }
 
 object Result {
 
-  val EOL = java.lang.System.lineSeparator()
+  val EOL        = java.lang.System.lineSeparator()
+  val DOUBLE_EOL = EOL * 2
 
-  val tab2 = "  "
-  val tab4 = "    "
+  sealed abstract class Tabulation(val prefix: String) {
+    override def toString = prefix
+  }
+  case object tab2 extends Tabulation("  ")
+  case object tab4 extends Tabulation("    ")
 
   def fromAssertion(assertion: Expectations): Result = assertion.run match {
     case Valid(_) => Success
@@ -35,7 +37,7 @@ object Result {
     def formatted(name: String): String = {
       val reasonStr =
         reason.fold("")(msg =>
-          formatDescription(msg, Some(location), Console.YELLOW, tab2))
+          indent(msg, Some(location), Console.YELLOW, tab2))
       yellow("- ") + name + yellow(" !!! IGNORED !!!") + EOL + reasonStr
     }
   }
@@ -46,7 +48,7 @@ object Result {
     def formatted(name: String): String = {
       val reasonStr =
         reason.fold("")(msg =>
-          formatDescription(msg, Some(location), Console.YELLOW, tab2))
+          indent(msg, Some(location), Console.YELLOW, tab2))
       yellow("- ") + name + yellow(" !!! CANCELLED !!!") + EOL + reasonStr
     }
   }
@@ -70,7 +72,7 @@ object Result {
         }
 
         val header = red("-") + " " + name + EOL
-        header + descriptions.toList.mkString("\n\n")
+        header + descriptions.toList.mkString(DOUBLE_EOL)
       }
   }
 
@@ -120,34 +122,6 @@ object Result {
     }
   }
 
-  @tailrec
-  private def formatStackTraces(
-      accumulator: Seq[String],
-      ex: Throwable,
-      traceLimit: Option[Int]): Seq[String] = {
-    val trace: Array[String] = {
-      val tr = ex.getStackTrace
-        .map(_.toString)
-        .filterNot(_.contains("cats.effect.internals"))
-        .filterNot(_.contains("java.util.concurrent"))
-        .filterNot(_.contains("zio.internal"))
-        .filterNot(_.contains("java.lang.Thread"))
-      traceLimit.fold(tr) { limit =>
-        if (tr.length <= limit) tr
-        else if (limit == 0) Array()
-        else tr.take(limit) :+ "..."
-      }
-    }
-
-    Option(ex.getCause) match {
-      case None =>
-        accumulator ++ trace
-      case Some(cause) =>
-        val traceCausedBy = accumulator ++ trace :+ ("\nCaused by: " + cause.getMessage)
-        formatStackTraces(traceCausedBy, cause, traceLimit)
-    }
-  }
-
   private def formatError(
       name: String,
       msg: String,
@@ -156,23 +130,38 @@ object Result {
       traceLimit: Option[Int]): String = {
 
     val stackTrace = source.fold("") { ex =>
-      val trace = formatStackTraces(Vector.empty, ex, traceLimit)
+      val stackTraceLines = TestErrorFormatter.formatStackTrace(ex, traceLimit)
 
-      if (trace.nonEmpty)
-        formatDescription(trace.mkString("\n"), None, Console.RED, tab4)
-      else ""
+      def traverseCauses(ex: Throwable): Vector[Throwable] = {
+        Option(ex.getCause) match {
+          case None        => Vector()
+          case Some(cause) => Vector(cause) ++ traverseCauses(cause)
+        }
+      }
+
+      val causes = traverseCauses(ex)
+      val causeStackTraceLines = causes.flatMap { cause =>
+        Vector(EOL + "Caused by: " + cause.toString + EOL) ++
+        TestErrorFormatter.formatStackTrace(cause, traceLimit)
+      }
+
+      val errorOutputLines = stackTraceLines ++ causeStackTraceLines
+
+      if (errorOutputLines.nonEmpty) {
+        indent(errorOutputLines.mkString(EOL), None, Console.RED, tab2)
+      } else ""
     }
 
-    val formattedMessage = formatDescription(
+    val formattedMessage = indent(
       if (msg != null && msg.nonEmpty) msg else "Test failed",
       location,
       Console.RED,
       tab2
     )
 
-    var res = red("- ") + name + EOL + formattedMessage + "\n\n"
+    var res = red("- ") + name + EOL + formattedMessage + DOUBLE_EOL
     if (stackTrace.nonEmpty) {
-      res += stackTrace + "\n\n"
+      res += stackTrace + DOUBLE_EOL
     }
     res
   }
@@ -193,6 +182,26 @@ object Result {
           color + prefix + line
     }
 
-    lines.mkString("\n") + Console.RESET
+    lines.mkString(EOL) + Console.RESET
+  }
+
+  private def indent(
+      message: String,
+      location: Option[SourceLocation],
+      color: String,
+      width: Tabulation): String = {
+
+    val lines = message.split("\\r?\\n").zipWithIndex.map {
+      case (line, index) =>
+        val prefix = if (line.trim == "") "" else width.prefix
+        if (index == 0)
+          color + prefix + line +
+          location.fold("")(l =>
+            s" (${l.bestEffortPath.getOrElse("none")}:${l.line})")
+        else
+          color + prefix + line
+    }
+
+    lines.mkString(EOL) + Console.RESET
   }
 }

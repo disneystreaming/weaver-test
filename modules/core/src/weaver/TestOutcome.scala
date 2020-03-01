@@ -47,11 +47,12 @@ case class TestOutcome(
         entry.ctx.foreach {
           case (k, v) =>
             builder.append(newLine)
-            builder.append(Result.tab4 + Result.tab4)
+            builder.append(Result.tab4.prefix * 2)
             builder.append(k)
             (0 to (keyLengthMax - k.length)).foreach(builder.append(" "))
             builder.append("-> ")
             builder.append(v)
+            builder.append(newLine)
         }
       }
       discard[Chain[Unit]](eff)

@@ -40,7 +40,10 @@ final class ReportTask(
         }
       }
     }
-  }.unsafeRunAsync(_ => continuation(Array.empty))
+  }.unsafeRunAsync {
+    case Right(_) => continuation(Array.empty)
+    case Left(e)  => e.printStackTrace(); continuation(Array.empty)
+  }
 
   def execute(
       eventHandler: EventHandler,

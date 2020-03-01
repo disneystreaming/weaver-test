@@ -11,7 +11,6 @@ import sbt.testing.Status
 import scala.concurrent.duration.{ FiniteDuration, TimeUnit }
 
 object DogFoodSuite extends SimpleIOSuite with DogFood {
-
   simpleTest("test suite reports successes events") {
     runSuite(Meta.MutableSuiteTest).map {
       case (_, events) => forall(events)(isSuccess)
@@ -59,15 +58,36 @@ object DogFoodSuite extends SimpleIOSuite with DogFood {
   simpleTest("test suite outputs stack traces of exception causes") {
     runSuite(Meta.ErroringWithCauses).map {
       case (logs, _) =>
-        val maybeError = logs.collectFirst {
-          case LoggedEvent.Error(msg) => msg
-        }
+        val maybeError = logs
+          .collectFirst { case LoggedEvent.Error(msg) => msg }
+          .map(TestConsole.removeASCIIColors)
+          .map(_.trim)
 
-        exists(maybeError) { error =>
-          expect(error.contains("Exception: 1")) and
-          expect(error.contains("Caused by: 2")) and
-          expect(error.contains("Caused by: 3"))
-        }
+        val expected =
+          """
+          |- erroring with causes
+          |  Meta$CustomException: surfaced error
+          |
+          |  DogFoodTests.scala:15    my.package.MyClass#MyMethod
+          |  DogFoodTests.scala:20    my.package.ClassOfDifferentLength#method$new$1
+          |
+          |  Caused by: weaver.framework.test.Meta$CustomException: first cause
+          |
+          |  DogFoodTests.scala:15    my.package.MyClass#MyMethod
+          |  DogFoodTests.scala:20    my.package.ClassOfDifferentLength#method$new$1
+          |  <snipped>                                   cats.effect.internals.<...>
+          |  <snipped>                                    java.util.concurrent.<...>
+          |
+          |  Caused by: weaver.framework.test.Meta$CustomException: root
+          |
+          |  DogFoodTests.scala:15    my.package.MyClass#MyMethod
+          |  DogFoodTests.scala:20    my.package.ClassOfDifferentLength#method$new$1
+          |  <snipped>                                   cats.effect.internals.<...>
+          |  <snipped>                                    java.util.concurrent.<...>
+          |
+          |""".stripMargin.trim
+
+        expect(maybeError.contains(expected))
     }
   }
 }
@@ -96,9 +116,46 @@ object Meta {
   }
 
   object ErroringWithCauses extends SimpleIOSuite {
-    loggedTest("erroring with causes") { _ =>
-      throw new Exception("1", new Exception("2", new Exception("3")))
+    loggedTest("erroring with causes") { log =>
+      throw CustomException(
+        "surfaced error",
+        CustomException("first cause",
+                        CustomException("root", withSnips = true),
+                        withSnips = true))
     }
+
+  }
+
+  case class CustomException(
+      str: String,
+      causedBy: Exception = null,
+      withSnips: Boolean = false)
+      extends Exception(str, causedBy) {
+
+    val SnippedStackTrace = Array[StackTraceElement](
+      new StackTraceElement("cats.effect.internals.IORuntime",
+                            "run",
+                            "IORuntime.scala",
+                            5),
+      new StackTraceElement("java.util.concurrent.Thread",
+                            "execute",
+                            "Thread.java",
+                            45)
+    )
+
+    val preset = Array(
+      new StackTraceElement("my.package.MyClass",
+                            "MyMethod",
+                            "DogFoodTests.scala",
+                            15),
+      new StackTraceElement("my.package.ClassOfDifferentLength",
+                            "method$new$1",
+                            "DogFoodTests.scala",
+                            20)
+    )
+
+    override def getStackTrace: Array[StackTraceElement] =
+      if (withSnips) preset ++ SnippedStackTrace else preset
 
   }
 
