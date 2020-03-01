@@ -38,7 +38,8 @@ object Meta {
   object ParallelChecks extends SimpleIOSuite with IOCheckers {
 
     override def checkConfig: CheckConfig =
-      super.checkConfig.copy(perPropertyParallelism = 100, minimumSuccessful = 100)
+      super.checkConfig
+        .copy(perPropertyParallelism = 100, minimumSuccessful = 100)
 
     simpleTest("sleeping forall") {
       forall { (x: Int, y: Int) =>

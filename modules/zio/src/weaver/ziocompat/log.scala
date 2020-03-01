@@ -4,6 +4,9 @@ import weaver.SourceLocation
 
 import zio.ZIO
 
+import zio.interop.catz.implicits._
+import zio.interop.catz.core._
+
 object log {
 
   def info(

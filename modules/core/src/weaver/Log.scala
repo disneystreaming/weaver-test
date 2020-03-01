@@ -1,8 +1,11 @@
 package weaver
 
-import cats.implicits._
+import java.util.concurrent.TimeUnit
+
+import cats.effect.Timer
 import cats.effect.concurrent.Ref
-import cats.{ Applicative, Monoid, MonoidK, Show, ~> }
+import cats.implicits._
+import cats.{ Applicative, FlatMap, Monoid, MonoidK, Show, ~> }
 import weaver.Log.PartiallyAppliedLevel
 
 abstract class Log[F[_]] { self =>
@@ -12,14 +15,17 @@ abstract class Log[F[_]] { self =>
     override def log(l: => Log.Entry) = fk(self.log(l))
   }
 
-  final val info  = new PartiallyAppliedLevel[F](Log.info)(self)
-  final val warn  = new PartiallyAppliedLevel[F](Log.warn)(self)
-  final val debug = new PartiallyAppliedLevel[F](Log.debug)(self)
-  final val error = new PartiallyAppliedLevel[F](Log.error)(self)
+  final val info =
+    new PartiallyAppliedLevel[F](Log.info)(self)
+  final val warn =
+    new PartiallyAppliedLevel[F](Log.warn)(self)
+  final val debug =
+    new PartiallyAppliedLevel[F](Log.debug)(self)
+  final val error =
+    new PartiallyAppliedLevel[F](Log.error)(self)
 }
 
 object Log {
-
   def apply[F[_]](implicit instance: Log[F]): Log[F] = instance
 
   // Logger that doesn't do anything
@@ -35,6 +41,7 @@ object Log {
   }
 
   case class Entry(
+      timestamp: Long,
       msg: String,
       ctx: Map[String, String],
       level: Log.Level,
@@ -49,8 +56,8 @@ object Log {
 
   object Level {
     implicit val levelShow: Show[Level] = {
-      case `info`  => "[INFO] "
-      case `warn`  => "[WARN] "
+      case `info`  => "[INFO]"
+      case `warn`  => "[WARN]"
       case `debug` => "[DEBUG]"
       case `error` => "[ERROR]"
     }
@@ -61,8 +68,13 @@ object Log {
     def apply(
         msg: => String,
         ctx: Map[String, String] = Map.empty,
-        cause: Throwable = null)(implicit loc: SourceLocation): F[Unit] =
-      Log[F].log(Entry(msg, ctx, level, Option(cause), loc))
+        cause: Throwable = null)(
+        implicit loc: SourceLocation,
+        timer: Timer[F],
+        F: FlatMap[F]): F[Unit] =
+      F.flatMap(timer.clock.realTime(TimeUnit.MILLISECONDS)) { now =>
+        Log[F].log(Entry(now, msg, ctx, level, Option(cause), loc))
+      }
   }
 
 }

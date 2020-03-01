@@ -2,9 +2,13 @@ package weaver
 package framework
 package test
 
-import cats.data.Chain
+import java.time.OffsetDateTime
+
+import cats.effect.{ Clock, IO, Timer }
 import cats.implicits._
 import sbt.testing.Status
+
+import scala.concurrent.duration.{ FiniteDuration, TimeUnit }
 
 object DogFoodSuite extends SimpleIOSuite with DogFood {
 
@@ -31,30 +35,39 @@ object DogFoodSuite extends SimpleIOSuite with DogFood {
   }
 
   simpleTest("test suite outputs logs for failed tests") {
-    runSuite(Meta.FailingSuiteWithlogs).map { case(logs, _) =>
-      val logRegex = """^\s+\[(.*?)\]\s+\[.*?\]\s+(.*?)$""".r
-      case class LogMessage(level: String, message: String)
+    runSuite(Meta.FailingSuiteWithlogs).map {
+      case (logs, _) =>
+        val expected =
+          s"""
+            |- failure
+            |  expected (src/main/DogFoodTests.scala:5)
+            |
+            |    [INFO]  12:54:35 [DogFoodTests.scala:5] this test
+            |    [ERROR] 12:54:35 [DogFoodTests.scala:5] has failed
+            |""".stripMargin.trim
 
-      val errorEvents = logs.collect { case LoggedEvent.Error(msg) => msg }
+        val errorEvents =
+          logs
+            .collectFirst { case LoggedEvent.Error(msg) => msg }
+            .map(TestConsole.removeASCIIColors)
+            .map(_.trim)
 
-      val logMessages = errorEvents.flatMap(event => Chain(event.lines.toSeq:_*)).collect {
-        case logRegex(level, message) => LogMessage(level, message)
-      }
-
-      expect(logMessages.map(_.level).distinct == Chain("INFO")) and
-      expect(logMessages.map(_.message) == Chain("this test", "has failed"))
+        expect(errorEvents.contains(expected))
     }
   }
 
   simpleTest("test suite outputs stack traces of exception causes") {
-    runSuite(Meta.ErroringWithCauses).map { case(logs, _) =>
-      val maybeError = logs.collectFirst { case LoggedEvent.Error(msg) => msg }
+    runSuite(Meta.ErroringWithCauses).map {
+      case (logs, _) =>
+        val maybeError = logs.collectFirst {
+          case LoggedEvent.Error(msg) => msg
+        }
 
-      exists(maybeError) { error =>
-        expect(error.contains("Exception: 1")) and
+        exists(maybeError) { error =>
+          expect(error.contains("Exception: 1")) and
           expect(error.contains("Caused by: 2")) and
           expect(error.contains("Caused by: 3"))
-      }
+        }
     }
   }
 }
@@ -72,18 +85,46 @@ object Meta {
 
   object FailingSuiteWithlogs extends SimpleIOSuite {
     loggedTest("failure") { log =>
+      implicit val timer          = TimeCop.setTimer
+      implicit val sourceLocation = TimeCop.sourceLocation
       for {
         _ <- log.info("this test")
-        _ <- log.info("has failed")
+        _ <- log.error("has failed")
       } yield failure("expected")
     }
 
   }
 
   object ErroringWithCauses extends SimpleIOSuite {
-    loggedTest("erroring with causes") { log =>
+    loggedTest("erroring with causes") { _ =>
       throw new Exception("1", new Exception("2", new Exception("3")))
     }
+
+  }
+
+  object TimeCop {
+    private val setTimestamp = OffsetDateTime.now
+      .withHour(12)
+      .withMinute(54)
+      .withSecond(35)
+      .toEpochSecond * 1000
+
+    implicit val setClock = new Clock[IO] {
+      override def realTime(unit: TimeUnit): IO[Long] = IO(setTimestamp)
+
+      override def monotonic(unit: TimeUnit): IO[Long] = ???
+    }
+
+    implicit val setTimer: Timer[IO] = new Timer[IO] {
+      override def clock: Clock[IO] = setClock
+
+      override def sleep(duration: FiniteDuration): IO[Unit] = ???
+    }
+
+    implicit val sourceLocation: SourceLocation = SourceLocation(
+      Some("DogFoodTests.scala"),
+      Some("src/main/DogFoodTests.scala"),
+      5)
 
   }
 }

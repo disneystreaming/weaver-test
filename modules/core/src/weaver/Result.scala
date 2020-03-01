@@ -1,7 +1,7 @@
 package weaver
 
 import cats.data.NonEmptyList
-import cats.data.Validated.{Invalid, Valid}
+import cats.data.Validated.{ Invalid, Valid }
 
 import scala.annotation.tailrec
 
@@ -69,7 +69,7 @@ object Result {
             )
         }
 
-        val header = red("- ") + name + EOL
+        val header = red("-") + " " + name + EOL
         header + descriptions.toList.mkString("\n\n")
       }
   }
@@ -121,7 +121,10 @@ object Result {
   }
 
   @tailrec
-  private def formatStackTraces(accumulator: Seq[String], ex: Throwable, traceLimit: Option[Int]): Seq[String] = {
+  private def formatStackTraces(
+      accumulator: Seq[String],
+      ex: Throwable,
+      traceLimit: Option[Int]): Seq[String] = {
     val trace: Array[String] = {
       val tr = ex.getStackTrace
         .map(_.toString)
@@ -155,7 +158,7 @@ object Result {
     val stackTrace = source.fold("") { ex =>
       val trace = formatStackTraces(Vector.empty, ex, traceLimit)
 
-      if(trace.nonEmpty)
+      if (trace.nonEmpty)
         formatDescription(trace.mkString("\n"), None, Console.RED, tab4)
       else ""
     }
@@ -167,8 +170,8 @@ object Result {
       tab2
     )
 
-    var res = red("- ") + name + EOL + formattedMessage +  "\n\n"
-    if (stackTrace.nonEmpty){
+    var res = red("- ") + name + EOL + formattedMessage + "\n\n"
+    if (stackTrace.nonEmpty) {
       res += stackTrace + "\n\n"
     }
     res

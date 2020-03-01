@@ -29,7 +29,6 @@ trait DogFood {
   def runSuite(suite: EffectSuite[IO]): IO[State] =
     runSuite(suite.getClass.getName.dropRight(1))
 
-
   def isSuccess(event: sbt.testing.Event)(
       implicit loc: SourceLocation): Expectations = {
     event.status() match {
