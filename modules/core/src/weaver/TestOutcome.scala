@@ -42,19 +42,22 @@ case class TestOutcome(
         builder.append(s"${formatTimestamp(entry.timestamp)} ")
         builder.append(s"$loc ")
         builder.append(entry.msg)
-        builder.append(newLine)
         val keyLengthMax = entry.ctx.map(_._1.length).foldLeft[Int](0)(math.max)
+
         entry.ctx.foreach {
           case (k, v) =>
             builder.append(newLine)
             builder.append(Result.tab4.prefix * 2)
             builder.append(k)
-            (0 to (keyLengthMax - k.length)).foreach(builder.append(" "))
+            (0 to (keyLengthMax - k.length)).foreach(_ => builder.append(" "))
             builder.append("-> ")
             builder.append(v)
-            builder.append(newLine)
         }
+        builder.append(newLine)
+
+        ()
       }
+
       discard[Chain[Unit]](eff)
       if (log.nonEmpty) {
         builder.append(newLine)

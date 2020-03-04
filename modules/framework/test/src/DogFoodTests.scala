@@ -43,6 +43,10 @@ object DogFoodSuite extends SimpleIOSuite with DogFood {
             |
             |    [INFO]  12:54:35 [DogFoodTests.scala:5] this test
             |    [ERROR] 12:54:35 [DogFoodTests.scala:5] has failed
+            |    [DEBUG] 12:54:35 [DogFoodTests.scala:5] with context
+            |        a       -> b
+            |        token   -> <something>
+            |        request -> true
             |""".stripMargin.trim
 
         val errorEvents =
@@ -107,9 +111,17 @@ object Meta {
     loggedTest("failure") { log =>
       implicit val timer          = TimeCop.setTimer
       implicit val sourceLocation = TimeCop.sourceLocation
+
+      val context = Map(
+        "a"       -> "b",
+        "token"   -> "<something>",
+        "request" -> "true"
+      )
+
       for {
         _ <- log.info("this test")
         _ <- log.error("has failed")
+        _ <- log.debug("with context", context)
       } yield failure("expected")
     }
 
@@ -123,7 +135,6 @@ object Meta {
                         CustomException("root", withSnips = true),
                         withSnips = true))
     }
-
   }
 
   case class CustomException(
