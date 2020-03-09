@@ -168,8 +168,8 @@ object WeaverPlugin extends AutoPlugin {
     homepage := Some(url("https://www.bamtechmedia.com")),
     scmInfo := Some(
       ScmInfo(
-        url("https://github.bamtech.co/mdrm/commons"),
-        "scm:git@github.bamtech.co/mdrm/commons.git"
+        url("https://github.bamtech.co/OSS/weaver-test"),
+        "scm:git@github.bamtech.co:OSS/weaver-test.git"
       )
     ),
     developers := List(
