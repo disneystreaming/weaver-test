@@ -4,11 +4,30 @@ name: default
 steps:
 
   # Compile the code/run tests
-- name: build
-  image: hseeberger/scala-sbt:8u242_1.3.8_2.12.10
+# - name: build
+#   image: hseeberger/scala-sbt:8u242_1.3.8_2.12.10
+#   commands:
+#   - sbt ci
+#   - echo Built $(cat version)
+#   environment:
+#     COURSIER_CACHE: .cache/coursier
+#   volumes:
+#     - name: sbt-cache
+#       path: /root/.sbt
+
+- name: build docker image
+  image: docker
+  volumes:
+  - name: dockersock
+    path: /var/run/docker.sock
   commands:
-  - sbt ci
-  - echo Built $(cat version)
+  - docker build -t weaver-scala-sbt-yarn:latest docker/
+
+- name: build-site
+  image: weaver-scala-sbt-yarn:latest
+  pull: if-not-exists
+  commands:
+  - sbt 'docs/docusaurusCreateSite'
   environment:
     COURSIER_CACHE: .cache/coursier
   volumes:
@@ -35,9 +54,31 @@ steps:
   - name: sbt-cache
     path: /root/.sbt
 
+- name: publish-site
+  image: weaver-scala-sbt-yarn:latest
+  pull: if-not-exists
+  commands:
+  - mkdir -p $HOME/.ssh
+  - ssh-keyscan -t rsa github.bamtech.co >> $HOME/.ssh/known_hosts
+  - sbt 'docs/docusaurusPublishGhpages'
+  environment:
+    COURSIER_CACHE: .cache/coursier
+    GIT_USER: $DRONE_COMMIT_AUTHOR
+    GITHUB_DEPLOY_KEY:
+      from_secret: github_deploy_public_key
+  when:
+    ref:
+      - refs/tags/v*
+  volumes:
+    - name: sbt-cache
+      path: /root/.sbt
+
 volumes:
 - name: sbt-cache
   temp: {}
+- name: dockersock
+  host:
+    path: /var/run/docker.sock
 
 ---
 kind: secret
@@ -47,5 +88,4 @@ data: epM48/FMMsOolVdGDs0z3oQeAMyPioOmshPfBRnmrtfNRag67Q==
 kind: secret
 name: password
 data: krBDYD3HhDKTls34m7vad5oLDsk7PkLgmx3u10B3nCIpbYwWc+mq
-
 

@@ -42,6 +42,14 @@ snapshots
 dynamodb_lib
 *.db
 
+# Node
+node_modules
+website/translated_docs
+website/build/
+website/yarn.lock
+website/node_modules
+website/i18n/*
+
 .bloop
 .vscode
 .metals

@@ -29,7 +29,7 @@ libraryDependencies +=  "com.disneystreaming.oss" %% "weaver-scalacheck" % "x.y.
 
 ## Motivation
 
-![time](docs/screenshots/time.png)
+![time](docs/assets/time.png)
 
 Weaver aims at providing a nice experience when writing and running tests :
 
@@ -112,7 +112,7 @@ The various `test` functions have in common that they expect the developer to re
 
 The most convenient way to build `Expectations` is to use the `expect` function. It captures the boolean expression at compile time and provides useful feedback on what goes wrong when it does :
 
-![Oops](docs/screenshots/oops.png)
+![Oops](docs/assets/oops.png)
 
 Nothing prevents the user from building their own expectations functions to resemble what they're used to.
 

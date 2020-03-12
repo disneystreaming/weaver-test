@@ -1,0 +1,6 @@
+{
+  "docs": {
+    "Overview": ["installation", "motivation"],
+    "Usage": ["common_usage", "expectations", "resources", "logging"]
+  }
+}
