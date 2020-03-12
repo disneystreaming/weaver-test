@@ -11,8 +11,15 @@ import cats.effect.Sync
 case class SingleExpectation(run: Validated[String, Unit]) {
   def and(other: Expectations)(implicit loc: SourceLocation) =
     Expectations.fromSingle(this).and(other)
+  def &&(other: Expectations)(implicit loc: SourceLocation) =
+    Expectations.fromSingle(this).and(other)
   def or(other: Expectations)(implicit loc: SourceLocation) =
     Expectations.fromSingle(this).or(other)
+  def ||(other: Expectations)(implicit loc: SourceLocation) =
+    Expectations.fromSingle(this).or(other)
+  def xor(other: Expectations)(implicit loc: SourceLocation) =
+    Expectations.fromSingle(this).xor(other)
+
   def toExpectations(implicit loc: SourceLocation) =
     Expectations.fromSingle(this)
 

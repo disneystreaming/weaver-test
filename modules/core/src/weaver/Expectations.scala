@@ -9,19 +9,27 @@ import cats.data.NonEmptyList
 case class Expectations(val run: ValidatedNel[AssertionException, Unit]) {
   self =>
 
-  def and(other: Expectations) =
+  def and(other: Expectations): Expectations =
     Expectations(self.run.product(other.run).void)
 
-  def &&(other: Expectations) = and(other)
+  def &&(other: Expectations): Expectations = and(other)
 
-  def or(other: Expectations) =
+  def or(other: Expectations): Expectations =
     Expectations(
       self.run
         .orElse(other.run)
         .orElse(self.run.product(other.run).void)
     )
 
-  def ||(other: Expectations) = or(other)
+  def ||(other: Expectations): Expectations = or(other)
+
+  def xor(other: Expectations)(implicit loc: SourceLocation): Expectations =
+    (run, other.run) match {
+      case (Valid(_), Valid(_)) =>
+        Expectations.Helpers.failure("Both expectations were met")
+      case (otherL, otherR) =>
+        Expectations(otherL.orElse(otherR).orElse(otherL.product(otherR).void))
+    }
 
 }
 
