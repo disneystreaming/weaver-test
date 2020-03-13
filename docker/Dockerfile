@@ -23,3 +23,11 @@ RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - \
 RUN yarn --version
 
 ####### END OF YARN INSTALLATION ########
+
+### GPG TWEAKS ###
+
+COPY gpg.conf .gnupg/gpg.conf
+COPY gpg-agent.conf .gnupg/gpg-agent.conf
+RUN echo RELOADAGENT | gpg-connect-agent
+
+### END OF GPG TWEAKS ###
