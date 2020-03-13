@@ -17,27 +17,8 @@ steps:
   image: weaver-scala-sbt-yarn:latest
   pull: if-not-exists
   commands:
-  # - sbt ci
-  # - echo Built $(cat version)
-  - echo $PGP_SECRET | base64 --decode | gpg --import --no-tty --batch --yes
-  - sbt +publishLocalSigned
-  environment:
-    COURSIER_CACHE: .cache/coursier
-    PGP_SECRET:
-      from_secret: pgp_secret
-    PGP_PASSPHRASE:
-      from_secret: pgp_passphrase
-  volumes:
-    - name: sbt-cache
-      path: /root/.sbt
-
-
-# Building website site
-- name: build-site
-  image: weaver-scala-sbt-yarn:latest
-  pull: if-not-exists
-  commands:
-  - sbt 'docs/docusaurusCreateSite'
+  - sbt ci
+  - echo Built $(cat version)
   environment:
     COURSIER_CACHE: .cache/coursier
   volumes:
@@ -45,14 +26,13 @@ steps:
       path: /root/.sbt
 
 # Publish maven artifacts (on tag push)
-- name: publish-to-artifactory
-  image: hseeberger/scala-sbt:8u242_1.3.8_2.12.10
+- name: publish-to-sonatype
+  image: weaver-scala-sbt-yarn:latest
+  pull: if-not-exists
   commands:
-  - echo $PGP_SECRET | base64 -D > secret.gpg
-  - gpg --import secret.gpg
-  - echo Publishing version $(cat version)
+  - echo $PGP_SECRET | base64 --decode | gpg --import --no-tty --batch --yes
+  - echo Releasing version $(cat version)
   - sbt release
-  - echo done releasing
   environment:
     COURSIER_CACHE: .cache/coursier
     SONATYPE_USER:

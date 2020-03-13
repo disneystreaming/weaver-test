@@ -2,7 +2,7 @@
 import sbtcrossproject.CrossPlugin.autoImport.{ crossProject, CrossType }
 
 addCommandAlias("ci",
-                ";project root ;versionDump; scalafmtCheckAll ;+clean ;+test:compile ;+test")
+                ";project root ;versionDump; scalafmtCheckAll ;+clean ;+test:compile ;+test; docs/docusaurusCreateSite")
 
 addCommandAlias("release", ";project root ; +publishSigned; sonatypeReleaseAll")
 
