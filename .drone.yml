@@ -3,18 +3,25 @@ name: default
 
 steps:
 
-  Compile the code/run tests
+# Compile the code/run tests
 - name: build
   image: hseeberger/scala-sbt:8u242_1.3.8_2.12.10
   commands:
-  - sbt ci
-  - echo Built $(cat version)
+  # - sbt ci
+  # - echo Built $(cat version)
+  - echo $PGP_SECRET | base64 --decode | gpg --import --no-tty --batch --yes
+  - GPG_TTY=$(tty) sbt +publishLocalSigned
   environment:
     COURSIER_CACHE: .cache/coursier
+    PGP_SECRET:
+      from_secret: pgp_secret
+    PGP_PASSPHRASE:
+      from_secret: pgp_passphrase
   volumes:
     - name: sbt-cache
       path: /root/.sbt
 
+# Build image containing sbt AND yarn
 - name: build docker image
   image: docker
   volumes:
@@ -23,6 +30,7 @@ steps:
   commands:
   - docker build -t weaver-scala-sbt-yarn:latest docker/
 
+# Building website site
 - name: build-site
   image: weaver-scala-sbt-yarn:latest
   pull: if-not-exists
@@ -34,7 +42,7 @@ steps:
     - name: sbt-cache
       path: /root/.sbt
 
-  # Publish maven artifacts (on tag push)
+# Publish maven artifacts (on tag push)
 - name: publish-to-artifactory
   image: hseeberger/scala-sbt:8u242_1.3.8_2.12.10
   commands:

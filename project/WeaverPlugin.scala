@@ -5,6 +5,7 @@ import xerial.sbt.Sonatype.SonatypeKeys._
 
 import sbt._
 import sbt.Keys._
+import com.jsuereth.sbtpgp.PgpKeys._
 
 /**
  * Common project settings.
