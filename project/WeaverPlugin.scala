@@ -1,6 +1,7 @@
 // For getting Scoverage out of the generated POM
 import scala.xml.Elem
 import scala.xml.transform.{ RewriteRule, RuleTransformer }
+import xerial.sbt.Sonatype.SonatypeKeys._
 
 import sbt._
 import sbt.Keys._
@@ -156,16 +157,15 @@ object WeaverPlugin extends AutoPlugin {
   )
 
   lazy val publishSettings = Seq(
-    organization := "com.disneystreaming.oss",
+    organization := "com.disneystreaming",
     version := sys.env
       .getOrElse("DRONE_TAG", version.value)
       .dropWhile(_ == 'v'),
-    publishTo := Some(
-      "oss-maven-publish" at "https://artifactory.us-east-1.bamgrid.net/artifactory/oss-maven/"),
+    publishTo := sonatypePublishToBundle.value,
     publishMavenStyle := true,
     licenses := Seq(
       "Apache" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
-    homepage := Some(url("https://www.bamtechmedia.com")),
+    homepage := Some(url("https://github.com/disneystreaming")),
     scmInfo := Some(
       ScmInfo(
         url("https://github.bamtech.co/OSS/weaver-test"),
@@ -177,18 +177,18 @@ object WeaverPlugin extends AutoPlugin {
         id = "Olivier Mélois",
         name = "Olivier Mélois",
         email = "olivier.melois@disneystreaming.com",
-        url = url("https://github.bamtech.co/oss")
+        url = url("https://github.com/baccata")
       )
     ),
     credentials ++=
       sys.env
-        .get("ART_USER")
-        .zip(sys.env.get("ART_PASSWORD"))
+        .get("SONATYPE_USER")
+        .zip(sys.env.get("SONATYPE_PASSWORD"))
         .map {
           case (username, password) =>
             Credentials(
-              "Artifactory Realm",
-              "artifactory.us-east-1.bamgrid.net",
+              "Sonatype Nexus Repository Manager",
+              "oss.sonatype.org",
               username,
               password
             )

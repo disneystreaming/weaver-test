@@ -4,7 +4,7 @@ import sbtcrossproject.CrossPlugin.autoImport.{ crossProject, CrossType }
 addCommandAlias("ci",
                 ";project root ;versionDump; scalafmtCheckAll ;+clean ;+test:compile ;+test")
 
-addCommandAlias("release", ";project root ;+publish")
+addCommandAlias("release", ";project root ; +publishSigned; sonatypeReleaseAll")
 
 lazy val root = project
   .in(file("."))
