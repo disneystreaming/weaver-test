@@ -179,6 +179,12 @@ object WeaverPlugin extends AutoPlugin {
         name = "Olivier Mélois",
         email = "olivier.melois@disneystreaming.com",
         url = url("https://github.com/baccata")
+      ),
+      Developer(
+        id = "Anton Sviridov",
+        name = "Anton Sviridov",
+        email = "anton.sviridov@disneystreaming.com",
+        url = url("https://github.com/keynmol")
       )
     ),
     credentials ++=
