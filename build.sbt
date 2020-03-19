@@ -35,16 +35,16 @@ lazy val coreJVM = core.jvm
 lazy val docs = project
   .in(file("modules/docs"))
   .enablePlugins(DocusaurusPlugin, MdocPlugin)
+  .dependsOn(coreJVM, scalacheckJVM)
   .settings(
     moduleName := "docs",
     watchSources += (ThisBuild / baseDirectory).value / "docs",
     libraryDependencies ++= Seq(
       "org.http4s" %% "http4s-dsl"          % "0.21.0",
       "org.http4s" %% "http4s-blaze-server" % "0.21.0",
-      "org.http4s" %% "http4s-blaze-client" % "0.21.0"
+      "org.http4s" %% "http4s-blaze-client" % "0.21.0",
     )
   )
-  .dependsOn(coreJVM)
 
 lazy val framework = crossProject(JVMPlatform)
   .crossType(CrossType.Pure)
