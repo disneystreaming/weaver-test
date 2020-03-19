@@ -6,26 +6,22 @@ import weaver.Expectations
 import weaver.TestOutcome
 
 import zio._
-import zio.clock.Clock
-import zio.console.Console
-import zio.system.System
-import zio.random.Random
 
 import fs2._
 import cats.effect.ExitCase
 
-trait MutableZIOSuite extends EffectSuite[Task] {
+abstract class MutableZIOSuite[Res <: Has[_]](implicit tag: Tagged[Res])
+    extends EffectSuite[Task] {
 
-  type Res
-  def sharedResource: Managed[Throwable, Res]
+  val sharedLayer: ZLayer[ZEnv, Throwable, Res]
+
   def maxParallelism: Int = 10000
 
-  val ec = scala.concurrent.ExecutionContext.global
-  implicit val runtime: Runtime[BaseEnv] =
-    new DefaultRuntime {}
-  implicit def effect = zio.interop.catz.taskEffectInstance
+  val ec                              = scala.concurrent.ExecutionContext.global
+  implicit val runtime: Runtime[ZEnv] = zio.Runtime.default
+  implicit def effect                 = zio.interop.catz.taskEffectInstance
 
-  def registerTest[D >: LogModule with Env[Res]](name: String)(
+  def registerTest[D >: PerTestEnv[Res]](name: String)(
       run: ZIO[D, Throwable, Expectations]): Unit =
     synchronized {
       if (isInitialized) throw initError()
@@ -35,7 +31,7 @@ trait MutableZIOSuite extends EffectSuite[Task] {
   def pureTest(name: String)(run: => Expectations): Unit =
     registerTest(name)(ZIO(run))
 
-  def test[D >: LogModule with Env[Res]](name: String)(
+  def test[D >: PerTestEnv[Res]](name: String)(
       run: ZIO[D, Throwable, Expectations]): Unit =
     registerTest(name)(run)
 
@@ -47,20 +43,20 @@ trait MutableZIOSuite extends EffectSuite[Task] {
         case (name, test) if argsFilter(name) => test
       }
       if (filteredTests.isEmpty) Stream.empty // no need to allocate resources
-      else
+      else {
+        val baseEnv    = ZLayer.succeedMany(runtime.environment)
+        val suiteLayer = baseEnv >>> sharedLayer.passthrough
         for {
-          reservation <- Stream.eval(sharedResource.reserve)
+          reservation <- Stream.eval(suiteLayer.build.reserve)
           resource <- Stream.bracketCase(reservation.acquire)((_, exitCase) =>
             reservation.release(fromCats(exitCase)).unit)
           result <- Stream
             .emits(filteredTests)
             .lift[Task]
             .parEvalMap(math.max(1, maxParallelism))(
-              _.compile.provide(new Clock.Live with Console.Live
-              with System.Live with Random.Live with SharedResourceModule[Res] {
-                val sharedResource = resource
-              }))
+              _.compile.provide(resource))
         } yield result
+      }
     }
 
   private[this] var testSeq       = Seq.empty[(String, Test[Res])]
@@ -80,7 +76,7 @@ trait MutableZIOSuite extends EffectSuite[Task] {
 
 }
 
-trait SimpleMutableZIOSuite extends MutableZIOSuite {
-  type Res = Unit
-  def sharedResource: zio.Managed[Throwable, Unit] = zio.Managed.unit
+trait SimpleMutableZIOSuite extends MutableZIOSuite[Has[Unit]] {
+  override val sharedLayer: zio.ZLayer[ZEnv, Throwable, Has[Unit]] =
+    ZLayer.fromEffect(UIO.unit)
 }

@@ -85,7 +85,7 @@ lazy val zio = crossProject(JVMPlatform)
   .settings(WeaverPlugin.simpleLayout)
   .settings(
     libraryDependencies ++= Seq(
-      "dev.zio" %%% "zio-interop-cats" % "2.0.0.0-RC10"
+      "dev.zio" %%% "zio-interop-cats" % "2.0.0.0-RC12"
     )
   )
 
