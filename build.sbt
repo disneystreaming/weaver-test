@@ -35,7 +35,7 @@ lazy val coreJVM = core.jvm
 lazy val docs = project
   .in(file("modules/docs"))
   .enablePlugins(DocusaurusPlugin, MdocPlugin)
-  .dependsOn(coreJVM, scalacheckJVM)
+  .dependsOn(coreJVM, scalacheckJVM, zioJVM)
   .settings(
     moduleName := "docs",
     watchSources += (ThisBuild / baseDirectory).value / "docs",

@@ -1,9 +1,9 @@
 ---
 id: scalacheck
-title: SclaCheck Integration
+title: ScalaCheck integration
 ---
 
-Weaver comes with basic [ScalaCheck](https://www.scalacheck.org/) integration, allowing for property-based testing when using Weaver.
+Weaver comes with basic [ScalaCheck](https://www.scalacheck.org/) integration, allowing for property-based testing.
 
 ## Installation
 
