@@ -54,7 +54,7 @@ class Runner[F[_]: Concurrent](args: List[String], maxConcurrentSuites: Int)(
     def handle(specEvent: SpecEvent): F[Outcome] = {
       val (successes, failures, outcome) =
         specEvent.events.foldMap[(List[Event], List[Event], Outcome)] {
-          case ev if ev.isFailed =>
+          case ev if ev.status.isFailed =>
             (List.empty, List(ev), Outcome.fromEvent(ev))
           case ev => (List(ev), List.empty, Outcome.fromEvent(ev))
         }
@@ -116,16 +116,16 @@ object Runner {
   object Outcome {
     val empty = Outcome(0, 0, 0, 0)
 
-    def fromEvent(event: Event): Outcome = event.result match {
-      case Result.Exception(_, _) =>
+    def fromEvent(event: Event): Outcome = event.status match {
+      case Status.Exception =>
         Outcome(0, 0, 0, failures = 1)
-      case Result.Failure(_, _, _) | Result.Failures(_) =>
+      case Status.Failure =>
         Outcome(0, 0, 0, failures = 1)
-      case Result.Success =>
+      case Status.Success =>
         Outcome(successes = 1, 0, 0, 0)
-      case Result.Ignored(_, _) =>
+      case Status.Ignored =>
         Outcome(0, ignored = 1, 0, 0)
-      case Result.Cancelled(_, _) =>
+      case Status.Cancelled =>
         Outcome(0, 0, cancelled = 1, 0)
     }
 

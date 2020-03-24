@@ -5,7 +5,12 @@ import cats.data.Chain
 import cats.effect.IO
 import cats.effect.concurrent.Ref
 import cats.implicits._
-import sbt.testing.{ Event => SbtEvent, Task => SbtTask, _ }
+import sbt.testing.{
+  Event => SbtEvent,
+  Task => SbtTask,
+  Status => SbtStatus,
+  _
+}
 import weaver._
 import cats.kernel.Eq
 
@@ -32,7 +37,7 @@ trait DogFood {
   def isSuccess(event: sbt.testing.Event)(
       implicit loc: SourceLocation): Expectations = {
     event.status() match {
-      case Status.Success => Expectations.Helpers.success
+      case SbtStatus.Success => Expectations.Helpers.success
       case status =>
         Expectations.Helpers.failure(
           s"${event.fullyQualifiedName()}:${event.selector()} failed with $status")

@@ -44,22 +44,21 @@ final class Task(
 
     // format: off
     loggerResource.use { log =>
-        val reportSink: fs2.Pipe[IO, TestOutcome, Unit] = _.flatMap[IO, Unit] {
-          case event @ TestOutcome(_, _, Result.Success | Result.Ignored(_, _) | Result.Cancelled(_, _), _) =>
-            fs2.Stream.eval(doLog(event) *> handle(event))
+      def report(event: TestOutcome) : IO[Unit] = IO.suspend {
+        event match {
+          case event if ! event.status.isFailed =>
+            doLog(event) *> handle(event)
           case event =>
-            fs2.Stream.eval(handle(event) *> log(task.fullyQualifiedName(), event))
+            handle(event) *> log(task.fullyQualifiedName(), event)
         }
+      }
         // format: on
 
       loadSuite(task.fullyQualifiedName(), cl)
         .flatMap { suite =>
           loggers.foreach(_.info(cyan(task.fullyQualifiedName())))
           suite
-            .ioSpec(args)
-            .through(reportSink)
-            .compile
-            .drain
+            .run(args)(report)
             .map(_ => loggers.foreach(_.info(EOL)))
         }
         .handleErrorWith {

@@ -17,23 +17,23 @@ abstract class MutableZIOSuite[Res <: Has[_]](implicit tag: Tagged[Res])
 
   def maxParallelism: Int = 10000
 
-  val ec                              = scala.concurrent.ExecutionContext.global
   implicit val runtime: Runtime[ZEnv] = zio.Runtime.default
   implicit def effect                 = zio.interop.catz.taskEffectInstance
 
-  def registerTest[D >: PerTestEnv[Res]](name: String)(
-      run: ZIO[D, Throwable, Expectations]): Unit =
+  private[this] type Test = ZIO[Env[Res], Nothing, TestOutcome]
+
+  protected def registerTest(name: String)(test: Test): Unit =
     synchronized {
       if (isInitialized) throw initError()
-      testSeq = testSeq :+ name -> Test[Res](name)(run)
+      testSeq = testSeq :+ (name -> test)
     }
 
   def pureTest(name: String)(run: => Expectations): Unit =
-    registerTest(name)(ZIO(run))
+    registerTest(name)(Test(name, ZIO(run)))
 
-  def test[D >: PerTestEnv[Res]](name: String)(
-      run: ZIO[D, Throwable, Expectations]): Unit =
-    registerTest(name)(run)
+  def test(name: String)(
+      run: ZIO[PerTestEnv[Res], Throwable, Expectations]): Unit =
+    registerTest(name)(Test(name, run))
 
   override def spec(args: List[String]): Stream[Task, TestOutcome] =
     synchronized {
@@ -53,13 +53,12 @@ abstract class MutableZIOSuite[Res <: Has[_]](implicit tag: Tagged[Res])
           result <- Stream
             .emits(filteredTests)
             .lift[Task]
-            .parEvalMap(math.max(1, maxParallelism))(
-              _.compile.provide(resource))
+            .parEvalMap(math.max(1, maxParallelism))(_.provide(resource))
         } yield result
       }
     }
 
-  private[this] var testSeq       = Seq.empty[(String, Test[Res])]
+  private[this] var testSeq       = Seq.empty[(String, Test)]
   private[this] var isInitialized = false
 
   private[this] def initError() =

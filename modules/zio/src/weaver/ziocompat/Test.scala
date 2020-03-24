@@ -11,11 +11,11 @@ import java.util.concurrent.TimeUnit
 
 import scala.concurrent.duration._
 
-class Test[R <: Has[_]](
-    val name: String,
-    val f: ZIO[PerTestEnv[R], Throwable, Expectations]) {
+object Test {
 
-  def compile: ZIO[Env[R], Nothing, TestOutcome] =
+  def apply[R <: Has[_]](
+      name: String,
+      f: ZIO[PerTestEnv[R], Throwable, Expectations]): ZIO[Env[R], Nothing, TestOutcome] =
     for {
       ref   <- Ref.make(Chain.empty[Log.Entry])
       start <- zio.clock.currentTime(TimeUnit.MILLISECONDS)
@@ -25,12 +25,5 @@ class Test[R <: Has[_]](
       end  <- zio.clock.currentTime(TimeUnit.MILLISECONDS)
       logs <- ref.get
     } yield TestOutcome(name, (end - start).millis, res, logs)
-}
-
-object Test {
-
-  def apply[R <: Has[_]](name: String)(
-      f: ZIO[PerTestEnv[R], Throwable, Expectations]): Test[R] =
-    new Test(name, f)
 
 }

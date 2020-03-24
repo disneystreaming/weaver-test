@@ -8,9 +8,9 @@ import scala.concurrent.duration.{ MILLISECONDS, _ }
 import cats.effect.Sync
 import cats.effect.Timer
 
-class Test[F[_]](val name: String, val f: Log[F] => F[Expectations]) {
+object Test {
 
-  def compile(
+  def apply[F[_]](name: String, f: Log[F] => F[Expectations])(
       implicit F: Sync[F],
       T: Timer[F]
   ): F[TestOutcome] =
@@ -24,11 +24,10 @@ class Test[F[_]](val name: String, val f: Log[F] => F[Expectations]) {
       end  <- T.clock.realTime(MILLISECONDS)
       logs <- ref.get
     } yield TestOutcome(name, (end - start).millis, res, logs)
-}
 
-object Test {
-
-  def apply[F[_]](name: String)(f: Log[F] => F[Expectations]): Test[F] =
-    new Test(name, f)
+  def apply[F[_]](name: String, f: F[Expectations])(
+      implicit F: Sync[F],
+      T: Timer[F]
+  ): F[TestOutcome] = apply(name, (_: Log[F]) => f)
 
 }
