@@ -7,7 +7,7 @@ import scala.concurrent.duration.FiniteDuration
 trait TestOutcome {
   def name: String
   def duration: FiniteDuration
-  def status: Status
+  def status: TestStatus
   def log: Chain[Log.Entry]
   def formatted: String
   def cause: Option[Throwable]
@@ -28,12 +28,12 @@ object TestOutcome {
       log: Chain[Log.Entry])
       extends TestOutcome {
 
-    def status: Status = result match {
-      case Result.Success                               => Status.Success
-      case Result.Cancelled(_, _)                       => Status.Cancelled
-      case Result.Ignored(_, _)                         => Status.Ignored
-      case Result.Failure(_, _, _) | Result.Failures(_) => Status.Failure
-      case Result.Exception(_, _)                       => Status.Exception
+    def status: TestStatus = result match {
+      case Result.Success                               => TestStatus.Success
+      case Result.Cancelled(_, _)                       => TestStatus.Cancelled
+      case Result.Ignored(_, _)                         => TestStatus.Ignored
+      case Result.Failure(_, _, _) | Result.Failures(_) => TestStatus.Failure
+      case Result.Exception(_, _)                       => TestStatus.Exception
     }
 
     def cause: Option[Throwable] = result match {

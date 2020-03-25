@@ -117,15 +117,15 @@ object Runner {
     val empty = Outcome(0, 0, 0, 0)
 
     def fromEvent(event: Event): Outcome = event.status match {
-      case Status.Exception =>
+      case TestStatus.Exception =>
         Outcome(0, 0, 0, failures = 1)
-      case Status.Failure =>
+      case TestStatus.Failure =>
         Outcome(0, 0, 0, failures = 1)
-      case Status.Success =>
+      case TestStatus.Success =>
         Outcome(successes = 1, 0, 0, 0)
-      case Status.Ignored =>
+      case TestStatus.Ignored =>
         Outcome(0, ignored = 1, 0, 0)
-      case Status.Cancelled =>
+      case TestStatus.Cancelled =>
         Outcome(0, 0, cancelled = 1, 0)
     }
 

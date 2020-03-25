@@ -27,11 +27,11 @@ trait WeaverTask extends SbtTask {
 
     def status(): SbtStatus =
       event.status match {
-        case Status.Exception => SbtStatus.Error
-        case Status.Failure   => SbtStatus.Failure
-        case Status.Success   => SbtStatus.Success
-        case Status.Ignored   => SbtStatus.Ignored
-        case Status.Cancelled => SbtStatus.Canceled
+        case TestStatus.Exception => SbtStatus.Error
+        case TestStatus.Failure   => SbtStatus.Failure
+        case TestStatus.Success   => SbtStatus.Success
+        case TestStatus.Ignored   => SbtStatus.Ignored
+        case TestStatus.Cancelled => SbtStatus.Canceled
       }
 
     def selector(): Selector = {
