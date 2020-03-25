@@ -1,11 +1,8 @@
 package weaver
 
 import cats.data.Chain
-import cats.implicits._
 
 import scala.concurrent.duration.FiniteDuration
-import LogFormatter.{ formatTimestamp }
-import weaver.Log.{ debug, error, info, warn }
 
 trait TestOutcome {
   def name: String
@@ -45,53 +42,7 @@ object TestOutcome {
       case _                                => None
     }
 
-    def formatted: String = {
-      val builder = new StringBuilder()
-      val newLine = '\n'
-      builder.append(result.formatted(name))
-      if (status.isFailed) {
-        val hasDebugOrError =
-          log.exists(e => List(debug, error).contains(e.level))
-        val shortLevelPadder = if (hasDebugOrError) "  " else " "
-        val levelPadder: Log.Level => String = {
-          case `info` | `warn`   => shortLevelPadder
-          case `debug` | `error` => " "
-        }
-
-        val eff = log.map { entry =>
-          builder.append(Result.tab4)
-          val loc = entry.location.fileName
-            .map(fn => s"[$fn:${entry.location.line}]")
-            .getOrElse("")
-
-          builder.append(s"${entry.level.show}${levelPadder(entry.level)}")
-          builder.append(s"${formatTimestamp(entry.timestamp)} ")
-          builder.append(s"$loc ")
-          builder.append(entry.msg)
-          val keyLengthMax =
-            entry.ctx.map(_._1.length).foldLeft[Int](0)(math.max)
-
-          entry.ctx.foreach {
-            case (k, v) =>
-              builder.append(newLine)
-              builder.append(Result.tab4.prefix * 2)
-              builder.append(k)
-              (0 to (keyLengthMax - k.length)).foreach(_ => builder.append(" "))
-              builder.append("-> ")
-              builder.append(v)
-          }
-          builder.append(newLine)
-
-          ()
-        }
-
-        discard[Chain[Unit]](eff)
-        if (log.nonEmpty) {
-          builder.append(newLine)
-        }
-      }
-      builder.mkString
-    }
-
+    def formatted: String =
+      Formatter.outcomeWithResult(this, result)
   }
 }

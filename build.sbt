@@ -1,8 +1,9 @@
 // shadow sbt-scalajs' crossProject and CrossType from Scala.js 0.6.x
 import sbtcrossproject.CrossPlugin.autoImport.{ crossProject, CrossType }
 
-addCommandAlias("ci",
-                ";project root ;versionDump; scalafmtCheckAll ;+clean ;+test:compile ;+test")
+addCommandAlias(
+  "ci",
+  ";project root ;versionDump; scalafmtCheckAll ;+clean ;+test:compile ;+test")
 
 addCommandAlias("release", ";project root ;+publish")
 
@@ -42,7 +43,7 @@ lazy val docs = project
     libraryDependencies ++= Seq(
       "org.http4s" %% "http4s-dsl"          % "0.21.0",
       "org.http4s" %% "http4s-blaze-server" % "0.21.0",
-      "org.http4s" %% "http4s-blaze-client" % "0.21.0",
+      "org.http4s" %% "http4s-blaze-client" % "0.21.0"
     )
   )
 

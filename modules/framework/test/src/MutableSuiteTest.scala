@@ -28,7 +28,6 @@ abstract class MutableSuiteTest extends SimpleIOSuite {
   loggedTest("logged") { log =>
     log.info("hello").as(success)
   }
-
 }
 
 object MutableSuiteTest extends MutableSuiteTest

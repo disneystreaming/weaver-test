@@ -77,7 +77,6 @@ object TestErrorFormatter {
     import cats.implicits._
 
     val (snipPrefix, snipSuffix) = ("<snipped>", ".<...>")
-    val snipExtraLength          = snipPrefix.length + snipSuffix.length
 
     val sources = stackTrace.map {
       case el: Element => el.location
@@ -86,22 +85,11 @@ object TestErrorFormatter {
 
     val maxLen = sources.map(_.length).toList.max
 
-    val renderedElements = stackTrace.collect {
+    val formatted = stackTrace.map {
       case el: Element =>
         s"${el.location.padTo(maxLen + 4, ' ')}${el.st.getClassName}#${el.st.getMethodName}"
-    }
-
-    val maxElementLength = renderedElements.map(_.length).max
-
-    val formatted = stackTrace.map {
-      case el @ Element(invocation) =>
-        s"${el.location.padTo(maxLen + 4, ' ')}${invocation.getClassName}#${invocation.getMethodName}"
       case Snip(pack) =>
-        val paddingLength = (maxElementLength - snipExtraLength) - pack.length
-        val filler        = " "
-
-        val padder = filler * paddingLength
-        snipPrefix + padder + pack + snipSuffix
+        s"${snipPrefix.padTo(maxLen + 4, ' ')}$pack$snipSuffix"
     }
 
     val truncatedMaybe = if (truncated) Vector("...") else Vector()

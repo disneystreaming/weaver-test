@@ -25,13 +25,13 @@ trait EffectSuite[F[_]] extends Suite[F] with Expectations.Helpers { self =>
   /**
    * Raise an error that leads to the running test being tagged as "cancelled".
    */
-  def cancel(reason: String)(pos: SourceLocation): F[Nothing] =
+  def cancel(reason: String)(implicit pos: SourceLocation): F[Nothing] =
     effect.raiseError(new CanceledException(Some(reason), pos))
 
   /**
    * Raises an error that leads to the running test being tagged as "ignored"
    */
-  def ignore(reason: String)(pos: SourceLocation): F[Nothing] =
+  def ignore(reason: String)(implicit pos: SourceLocation): F[Nothing] =
     effect.raiseError(new IgnoredException(Some(reason), pos))
 
   /**
