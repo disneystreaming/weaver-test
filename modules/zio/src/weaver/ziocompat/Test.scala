@@ -1,15 +1,13 @@
 package weaver.ziocompat
 
-import weaver.Expectations
-import weaver.Log
-import weaver.Result
-import weaver.TestOutcome
-
-import cats.data.Chain
-import zio._
 import java.util.concurrent.TimeUnit
 
+import cats.data.Chain
+import weaver.{ Expectations, Log, Result, TestOutcome }
+import zio._
+
 import scala.concurrent.duration._
+import scala.util.control.NonFatal
 
 object Test {
 
@@ -21,6 +19,7 @@ object Test {
       start <- zio.clock.currentTime(TimeUnit.MILLISECONDS)
       res <- f
         .provideSomeLayer[Env[R]](ZLayer.succeed(RefLog(ref)))
+        .unrefine { case NonFatal(e) => e }
         .fold(Result.from, Result.fromAssertion)
       end  <- zio.clock.currentTime(TimeUnit.MILLISECONDS)
       logs <- ref.get

@@ -1,8 +1,10 @@
 package weaver.ziocompat
 
+import sbt.testing.Status
+import weaver.framework.DogFood
+import weaver.ziocompat.modules._
 import zio._
 import zio.duration._
-import modules._
 
 object ZIOSuiteTest extends ZIOSuite[KVStore] {
 
@@ -29,6 +31,54 @@ object ZIOSuiteTest extends ZIOSuite[KVStore] {
       previous <- KVStore.delete("hello")
       now      <- KVStore.get("hello")
     } yield expect(previous == Some("world")) and expect(now == None)
+  }
+
+  List(TestWithExceptionInTest,
+       TestWithExceptionInExpectation,
+       TestWithExceptionInInitialisation).foreach { testSuite =>
+    test(s"fail properly in ${testSuite.getClass.getSimpleName}") {
+      for {
+        (_, events) <- DogFood.runSuite(testSuite).to[Task]
+      } yield {
+        val event = events.headOption.get
+        expect(event.throwable().get().getMessage == "oh no") and
+        expect(event.status == Status.Error)
+      }
+    }
+  }
+
+  test("fail properly on failed expectations") {
+    for {
+      (_, events) <- DogFood.runSuite(TestWithFailedExpectation).to[Task]
+    } yield expect(events.headOption.get.status == Status.Failure)
+  }
+
+  object TestWithExceptionInTest extends SimpleZIOSuite {
+    test("example test") {
+      Task.fail(new RuntimeException("oh no"))
+    }
+  }
+
+  object TestWithExceptionInExpectation extends SimpleZIOSuite {
+    test("example test") {
+      for {
+        _ <- Task.succeed(())
+      } yield throw new RuntimeException("oh no")
+    }
+  }
+
+  object TestWithExceptionInInitialisation extends SimpleZIOSuite {
+    test("example test") {
+      throw new RuntimeException("oh no")
+    }
+  }
+
+  object TestWithFailedExpectation extends SimpleZIOSuite {
+    test("example test") {
+      for {
+        _ <- Task.succeed(())
+      } yield expect(false)
+    }
   }
 
 }

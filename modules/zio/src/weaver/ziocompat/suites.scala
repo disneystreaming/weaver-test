@@ -4,11 +4,11 @@ package ziocompat
 import weaver.EffectSuite
 import weaver.Expectations
 import weaver.TestOutcome
-
 import zio._
-
 import fs2._
 import cats.effect.ExitCase
+
+import scala.util.Try
 
 abstract class MutableZIOSuite[Res <: Has[_]](implicit tag: Tagged[Res])
     extends EffectSuite[Task] {
@@ -32,8 +32,8 @@ abstract class MutableZIOSuite[Res <: Has[_]](implicit tag: Tagged[Res])
     registerTest(name)(Test(name, ZIO(run)))
 
   def test(name: String)(
-      run: ZIO[PerTestEnv[Res], Throwable, Expectations]): Unit =
-    registerTest(name)(Test(name, run))
+      run: => ZIO[PerTestEnv[Res], Throwable, Expectations]): Unit =
+    registerTest(name)(Test(name, ZIO.fromTry(Try { run }).flatten))
 
   override def spec(args: List[String]): Stream[Task, TestOutcome] =
     synchronized {

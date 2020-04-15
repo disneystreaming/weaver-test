@@ -31,7 +31,7 @@ trait DogFood {
     } yield (logs, events)
 
   // Method used to run a test-suite
-  def runSuite(suite: EffectSuite[IO]): IO[State] =
+  def runSuite[F[_]](suite: EffectSuite[F]): IO[State] =
     runSuite(suite.getClass.getName.dropRight(1))
 
   def isSuccess(event: sbt.testing.Event)(
