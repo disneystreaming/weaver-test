@@ -7,6 +7,8 @@ addCommandAlias(
 
 addCommandAlias("release", ";project root ;+publish")
 
+scalaVersion in ThisBuild := WeaverPlugin.scala213
+
 lazy val root = project
   .in(file("."))
   .aggregate(coreJVM, frameworkJVM, scalacheckJVM, zioJVM)
