@@ -37,6 +37,20 @@ object Meta {
     }
   }
 
+  object FailingTestStatusReporting extends SimpleIOSuite {
+    simpleTest("I succeeded") {
+      success
+    }
+
+    simpleTest("I failed") {
+      failure(":(")
+    }
+
+    simpleTest("I succeeded again") {
+      success
+    }
+  }
+
   object FailingSuiteWithlogs extends SimpleIOSuite {
     loggedTest("failure") { log =>
       implicit val timer          = TimeCop.setTimer

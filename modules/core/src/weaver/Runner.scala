@@ -6,6 +6,8 @@ import cats.implicits._
 import cats.effect._
 import cats.effect.concurrent.{ MVar, Ref }
 
+import TestOutcome.{ Summary, Verbose }
+
 class Runner[F[_]: Concurrent](args: List[String], maxConcurrentSuites: Int)(
     printLine: String => F[Unit]) {
 
@@ -49,8 +51,9 @@ class Runner[F[_]: Concurrent](args: List[String], maxConcurrentSuites: Int)(
 
     val stars = "*************"
 
-    def newLine                      = printLine("")
-    def printTestEvent(event: Event) = printLine(event.formatted)
+    def newLine = printLine("")
+    def printTestEvent(mode: TestOutcome.Mode)(event: Event) =
+      printLine(event.formatted(mode))
     def handle(specEvent: SpecEvent): F[Outcome] = {
       val (successes, failures, outcome) =
         specEvent.events.foldMap[(List[Event], List[Event], Outcome)] {
@@ -61,7 +64,7 @@ class Runner[F[_]: Concurrent](args: List[String], maxConcurrentSuites: Int)(
 
       for {
         _ <- printLine(cyan(specEvent.name))
-        _ <- successes.traverse(printTestEvent)
+        _ <- (successes ++ failures).traverse(printTestEvent(Summary))
         _ <- newLine
         _ <- buffer
           .update(_.append(specEvent.copy(events = failures)))
@@ -85,7 +88,7 @@ class Runner[F[_]: Concurrent](args: List[String], maxConcurrentSuites: Int)(
           _ <- (printLine(red(stars) + "FAILURES" + red(stars)) *> failures
             .traverse[F, Unit] { specEvent =>
               printLine(cyan(specEvent.name)) *>
-              specEvent.events.traverse(printTestEvent) *>
+              specEvent.events.traverse(printTestEvent(Verbose)) *>
               newLine
             }
             .void).whenA(failures.nonEmpty)

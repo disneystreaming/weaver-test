@@ -6,7 +6,6 @@ import cats.data.Chain
 import cats.syntax.show._
 
 object Formatter {
-
   val EOL        = java.lang.System.lineSeparator()
   val DOUBLE_EOL = EOL * 2
 
@@ -41,18 +40,24 @@ object Formatter {
     }
   }
 
-  def outcomeWithResult(outcome: TestOutcome, result: Result): String = {
+  def outcomeWithResult(
+      outcome: TestOutcome,
+      result: Result,
+      mode: TestOutcome.Mode): String = {
 
     import outcome._
+    import TestOutcome.{ Verbose, Summary }
 
     val builder = new StringBuilder()
     val newLine = '\n'
     builder.append(formatResultStatus(name, result))
-    result.formatted.foreach { resultInfo =>
-      builder.append(EOL)
-      builder.append(resultInfo)
-    }
-    if (status.isFailed) {
+
+    if ((mode == Verbose && outcome.status.isFailed) || (mode == Summary && !outcome.status.isFailed))
+      result.formatted.foreach { resultInfo =>
+        builder.append(EOL)
+        builder.append(resultInfo)
+      }
+    if (status.isFailed && mode == Verbose) {
       val hasDebugOrError =
         log.exists(e => List(debug, error).contains(e.level))
       val shortLevelPadder = if (hasDebugOrError) "  " else " "

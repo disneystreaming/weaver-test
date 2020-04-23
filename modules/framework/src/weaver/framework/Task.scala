@@ -35,7 +35,8 @@ final class Task(
       IO(eventHandler.handle(sbtEvent(event)))
 
     def doLog(event: TestOutcome): IO[Unit] =
-      loggers.toVector.foldMap(logger => IO(logger.info(event.formatted)))
+      loggers.toVector.foldMap(logger =>
+        IO(logger.info(event.formatted(TestOutcome.Summary))))
 
     val defaultLoggedBracket: Resource[IO, DeferredLogger] =
       Resource.pure((_, event) => doLog(event) *> handle(event))
@@ -49,7 +50,7 @@ final class Task(
           case event if ! event.status.isFailed =>
             doLog(event) *> handle(event)
           case event =>
-            handle(event) *> log(task.fullyQualifiedName(), event)
+            doLog(event) *> handle(event) *> log(task.fullyQualifiedName(), event)
         }
       }
         // format: on

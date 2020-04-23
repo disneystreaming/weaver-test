@@ -4,16 +4,22 @@ import cats.data.Chain
 
 import scala.concurrent.duration.FiniteDuration
 
+import TestOutcome.Mode
+
 trait TestOutcome {
   def name: String
   def duration: FiniteDuration
   def status: TestStatus
   def log: Chain[Log.Entry]
-  def formatted: String
+  def formatted(mode: Mode): String
   def cause: Option[Throwable]
 }
 
 object TestOutcome {
+
+  sealed trait Mode
+  case object Summary extends Mode
+  case object Verbose extends Mode
 
   def apply(
       name: String,
@@ -42,7 +48,7 @@ object TestOutcome {
       case _                                => None
     }
 
-    def formatted: String =
-      Formatter.outcomeWithResult(this, result)
+    def formatted(mode: Mode): String =
+      Formatter.outcomeWithResult(this, result, mode)
   }
 }

@@ -17,9 +17,10 @@ object DogFoodSuite extends SimpleIOSuite with DogFood {
     "the framework reports exceptions occurring during suite initialisation") {
     runSuite("weaver.framework.test.Meta$CrashingSuite").map {
       case (logs, events) =>
-        val errorLogs = extractLogEvent(logs) {
+        val errorLogs = extractLogEventAfterFailures(logs) {
           case LoggedEvent.Error(msg) => msg
         }
+
         exists(events.headOption) { event =>
           val name = event.fullyQualifiedName()
           expect(name == "weaver.framework.test.Meta$CrashingSuite") and
@@ -28,6 +29,24 @@ object DogFoodSuite extends SimpleIOSuite with DogFood {
           expect(log.contains("Unexpected failure")) and
           expect(log.contains("Boom"))
         }
+    }
+  }
+
+  simpleTest(
+    "test suite outputs failed test names alongside successes in status report") {
+    runSuite(Meta.FailingTestStatusReporting).map {
+      case (logs, _) =>
+        val statusReport = outputBeforeFailures(logs).mkString_("\n").trim()
+
+        val expected = """
+        |weaver.framework.test.Meta$FailingTestStatusReporting
+        |+ I succeeded
+        |- I failed
+        |+ I succeeded again
+        |
+        """.stripMargin.trim
+
+        expectEqual(expected, statusReport)
     }
   }
 
@@ -47,7 +66,7 @@ object DogFoodSuite extends SimpleIOSuite with DogFood {
             |        request -> true
             |""".stripMargin.trim
 
-        val actual = extractLogEvent(logs) {
+        val actual = extractLogEventAfterFailures(logs) {
           case LoggedEvent.Error(msg) => msg
         }.get
 
@@ -58,7 +77,7 @@ object DogFoodSuite extends SimpleIOSuite with DogFood {
   simpleTest("test suite outputs stack traces of exception causes") {
     runSuite(Meta.ErroringWithCauses).map {
       case (logs, _) =>
-        val actual = extractLogEvent(logs) {
+        val actual = extractLogEventAfterFailures(logs) {
           case LoggedEvent.Error(msg) => msg
         }.get
 
@@ -93,7 +112,7 @@ object DogFoodSuite extends SimpleIOSuite with DogFood {
   simpleTest("failures with multi-line test name are rendered correctly") {
     runSuite(Meta.Rendering).map {
       case (logs, _) =>
-        val actual = extractLogEvent(logs) {
+        val actual = extractLogEventAfterFailures(logs) {
           case LoggedEvent.Error(msg) => msg
         }.get
 
@@ -116,7 +135,7 @@ object DogFoodSuite extends SimpleIOSuite with DogFood {
     runSuite(Meta.Rendering).map {
       case (logs, _) =>
         val actual =
-          extractLogEvent(logs) {
+          extractLogEventBeforeFailures(logs) {
             case LoggedEvent.Info(msg) if msg.contains("(success)") => msg
           }.get
 
@@ -135,7 +154,7 @@ object DogFoodSuite extends SimpleIOSuite with DogFood {
     runSuite(Meta.Rendering).map {
       case (logs, _) =>
         val actual =
-          extractLogEvent(logs) {
+          extractLogEventBeforeFailures(logs) {
             case LoggedEvent.Info(msg) if msg.contains("(ignored)") => msg
           }.get
 
@@ -155,7 +174,7 @@ object DogFoodSuite extends SimpleIOSuite with DogFood {
     runSuite(Meta.Rendering).map {
       case (logs, _) =>
         val actual =
-          extractLogEvent(logs) {
+          extractLogEventBeforeFailures(logs) {
             case LoggedEvent.Info(msg) if msg.contains("(cancelled)") => msg
           }.get
 
@@ -192,23 +211,56 @@ object DogFoodSuite extends SimpleIOSuite with DogFood {
           padStr(s"'$expectedLine'", maxExpectedLineLength) + s" $op " + s"'$actualLine'"
         case (Some(expectedLine), None) =>
           padStr(s"'$expectedLine'", maxExpectedLineLength) + " != " + s"<missing>"
-        case (None, None) => ""
+        case (None, None) => "something impossible happened"
       }
       .mkString("\n")
   }
 
   private def expectEqual(expected: String, actual: String): Expectations = {
-    if (expected != actual) {
-      val report = multiLineComparisonReport(expected, actual)
+    if (expected.trim != actual.trim) {
+      val report = multiLineComparisonReport(expected.trim, actual.trim)
+
       failure(
         s"Output is not as expected (line-by-line-comparison below): \n\n$report")
     } else
       Expectations.Helpers.success
   }
 
-  private def extractLogEvent(logs: Chain[LoggedEvent])(
+  private def outputBeforeFailures(logs: Chain[LoggedEvent]): Chain[String] = {
+    logs
+      .takeWhile {
+        case LoggedEvent.Info(s) if s.contains("FAILURES") => false
+        case _                                             => true
+      }
+      .collect {
+        case LoggedEvent.Info(s)  => s
+        case LoggedEvent.Debug(s) => s
+        case LoggedEvent.Warn(s)  => s
+        case LoggedEvent.Error(s) => s
+      }
+      .map(TestConsole.removeASCIIColors)
+      .map(_.trim)
+  }
+
+  private def extractLogEventBeforeFailures(logs: Chain[LoggedEvent])(
       pf: PartialFunction[LoggedEvent, String]): Option[String] = {
     logs
+      .takeWhile {
+        case LoggedEvent.Info(s) if s.contains("FAILURES") => false
+        case _                                             => true
+      }
+      .collectFirst(pf)
+      .map(TestConsole.removeASCIIColors)
+      .map(_.trim)
+  }
+
+  private def extractLogEventAfterFailures(logs: Chain[LoggedEvent])(
+      pf: PartialFunction[LoggedEvent, String]): Option[String] = {
+    logs
+      .dropWhile {
+        case LoggedEvent.Info(s) if s.contains("FAILURES") => false
+        case _                                             => true
+      }
       .collectFirst(pf)
       .map(TestConsole.removeASCIIColors)
       .map(_.trim)
