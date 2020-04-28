@@ -1,7 +1,7 @@
 package weaver
 
 import cats.implicits._
-import cats.effect.{ ContextShift, Effect, Timer, IO, Resource }
+import cats.effect.{ ContextShift, Effect, IO, Resource, Timer }
 import cats.effect.implicits._
 import fs2.Stream
 
@@ -42,8 +42,10 @@ trait EffectSuite[F[_]] extends Suite[F] with Expectations.Helpers { self =>
 
   override def name : String = self.getClass.getName.replace("$", "")
 
+  protected def adaptRunError: PartialFunction[Throwable, Throwable] = PartialFunction.empty
+
   private[weaver] def run(args : List[String])(report : TestOutcome => IO[Unit]) : IO[Unit] =
-    spec(args).evalMap(testOutcome => effect.liftIO(report(testOutcome))).compile.drain.toIO
+    spec(args).evalMap(testOutcome => effect.liftIO(report(testOutcome))).compile.drain.toIO.adaptErr(adaptRunError)
 }
 
 trait ConcurrentEffectSuite[F[_]] extends EffectSuite[F] {

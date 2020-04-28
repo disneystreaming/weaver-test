@@ -1,12 +1,9 @@
 package weaver
 package ziocompat
 
-import weaver.EffectSuite
-import weaver.Expectations
-import weaver.TestOutcome
-import zio._
+import cats.effect.{ ConcurrentEffect, ExitCase }
 import fs2._
-import cats.effect.ExitCase
+import zio._
 
 import scala.util.Try
 
@@ -18,7 +15,8 @@ abstract class MutableZIOSuite[Res <: Has[_]](implicit tag: Tagged[Res])
   def maxParallelism: Int = 10000
 
   implicit val runtime: Runtime[ZEnv] = zio.Runtime.default
-  implicit def effect                 = zio.interop.catz.taskEffectInstance
+  implicit def effect: ConcurrentEffect[Task] =
+    zio.interop.catz.taskEffectInstance
 
   private[this] type Test = ZIO[Env[Res], Nothing, TestOutcome]
 
@@ -73,6 +71,9 @@ abstract class MutableZIOSuite[Res <: Has[_]](implicit tag: Tagged[Res])
       case ExitCase.Error(e)  => Exit.fail(e)
     }
 
+  override protected def adaptRunError: PartialFunction[Throwable, Throwable] = {
+    case FiberFailure(cause) => cause.asInstanceOf[Cause[Throwable]].squash
+  }
 }
 
 trait SimpleMutableZIOSuite extends MutableZIOSuite[Has[Unit]] {

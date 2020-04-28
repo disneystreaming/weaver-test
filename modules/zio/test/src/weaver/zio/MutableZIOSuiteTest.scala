@@ -33,16 +33,20 @@ object ZIOSuiteTest extends ZIOSuite[KVStore] {
     } yield expect(previous == Some("world")) and expect(now == None)
   }
 
-  List(TestWithExceptionInTest,
-       TestWithExceptionInExpectation,
-       TestWithExceptionInInitialisation).foreach { testSuite =>
+  List(
+    TestWithExceptionInTest,
+    TestWithExceptionInExpectation,
+    TestWithExceptionInInitialisation,
+    TestWithEventualDiedSharedLayer,
+    TestWithFailedSharedLayer
+  ).foreach { testSuite =>
     test(s"fail properly in ${testSuite.getClass.getSimpleName}") {
       for {
         (_, events) <- DogFood.runSuite(testSuite).to[Task]
       } yield {
         val event = events.headOption.get
-        expect(event.throwable().get().getMessage == "oh no") and
-        expect(event.status == Status.Error)
+        expect(event.status == Status.Error) and
+        expect(event.throwable().get().getMessage == "oh no")
       }
     }
   }
@@ -81,6 +85,23 @@ object ZIOSuiteTest extends ZIOSuite[KVStore] {
     }
   }
 
+  object TestWithFailedSharedLayer extends MutableZIOSuite[Has[Unit]] {
+    override val sharedLayer: ZLayer[zio.ZEnv, Throwable, Has[Unit]] =
+      ZLayer.fail(new RuntimeException("oh no"))
+
+    test("example test") {
+      ZIO.succeed(expect(true))
+    }
+  }
+
+  object TestWithEventualDiedSharedLayer extends MutableZIOSuite[Has[Unit]] {
+    override val sharedLayer: ZLayer[zio.ZEnv, Throwable, Has[Unit]] =
+      ZLayer.fromEffect(ZIO.effect(throw new RuntimeException("oh no")))
+
+    test("example test") {
+      ZIO.succeed(expect(true))
+    }
+  }
 }
 
 object modules {
