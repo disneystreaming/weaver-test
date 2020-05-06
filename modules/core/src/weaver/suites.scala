@@ -46,6 +46,12 @@ trait EffectSuite[F[_]] extends Suite[F] with Expectations.Helpers { self =>
 
   private[weaver] def run(args : List[String])(report : TestOutcome => IO[Unit]) : IO[Unit] =
     spec(args).evalMap(testOutcome => effect.liftIO(report(testOutcome))).compile.drain.toIO.adaptErr(adaptRunError)
+
+  implicit def singleExpectationConversion(e: SingleExpectation)(implicit loc: SourceLocation): F[Expectations] =
+    Expectations.fromSingle(e).pure[F]
+
+  implicit def expectationsConversion(e: Expectations): F[Expectations] =
+    e.pure[F]
 }
 
 trait ConcurrentEffectSuite[F[_]] extends EffectSuite[F] {
@@ -91,12 +97,6 @@ trait MutableFSuite[F[_]] extends ConcurrentEffectSuite[F]  {
     def apply(run : Res => F[Expectations]) : Unit = registerTest(name)(res => Test(name, run(res)))
     def apply(run : (Res, Log[F]) => F[Expectations]) : Unit = registerTest(name)(res => Test(name, log => run(res, log)))
   }
-
-  implicit def singleExpectationConversion(e: SingleExpectation)(implicit loc: SourceLocation): F[Expectations] =
-    Expectations.fromSingle(e).pure[F]
-
-  implicit def expectationsConversion(e: Expectations): F[Expectations] =
-    e.pure[F]
 
   override def spec(args: List[String]) : Stream[F, TestOutcome] =
     synchronized {
