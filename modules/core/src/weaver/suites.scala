@@ -44,7 +44,7 @@ trait EffectSuite[F[_]] extends Suite[F] with Expectations.Helpers { self =>
 
   protected def adaptRunError: PartialFunction[Throwable, Throwable] = PartialFunction.empty
 
-  private[weaver] def run(args : List[String])(report : TestOutcome => IO[Unit]) : IO[Unit] =
+  def run(args : List[String])(report : TestOutcome => IO[Unit]) : IO[Unit] =
     spec(args).evalMap(testOutcome => effect.liftIO(report(testOutcome))).compile.drain.toIO.adaptErr(adaptRunError)
 
   implicit def singleExpectationConversion(e: SingleExpectation)(implicit loc: SourceLocation): F[Expectations] =
