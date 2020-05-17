@@ -42,6 +42,9 @@ lazy val docs = project
   .settings(
     moduleName := "docs",
     watchSources += (ThisBuild / baseDirectory).value / "docs",
+    mdocVariables := Map(
+      "VERSION" -> version.value
+    ),
     libraryDependencies ++= Seq(
       "org.http4s" %% "http4s-dsl"          % "0.21.0",
       "org.http4s" %% "http4s-blaze-server" % "0.21.0",

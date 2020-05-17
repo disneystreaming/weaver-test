@@ -12,14 +12,14 @@ Refer yourself to the [releases](https://github.bamtech.co/OSS/weaver-test/relea
 ```scala
 resolvers += "dss oss" at "https://artifactory.us-east-1.bamgrid.net/artifactory/oss-maven"
 
-libraryDependencies += "com.disneystreaming.oss" %% "weaver-framework" % "x.y.z" % Test
+libraryDependencies += "com.disneystreaming.oss" %% "weaver-framework" % "@VERSION@" % Test
 testFrameworks += new TestFramework("weaver.framework.TestFramework")
 
 // optionally (for ZIO usage)
-libraryDependencies +=  "com.disneystreaming.oss" %% "weaver-zio" % "x.y.z" % Test
+libraryDependencies +=  "com.disneystreaming.oss" %% "weaver-zio" % "@VERSION@" % Test
 
 // optionally (for Scalacheck usage)
-libraryDependencies +=  "com.disneystreaming.oss" %% "weaver-scalacheck" % "x.y.z" % Test
+libraryDependencies +=  "com.disneystreaming.oss" %% "weaver-scalacheck" % "@VERSION@" % Test
 ```
 
 ## Mill
@@ -32,9 +32,9 @@ object foo extends ScalaModule {
 
   object test extends Tests {
     def ivyDeps = Agg(
-      ivy"com.disneystreaming.oss::weaver-framework:x.y.z",
-      ivy"com.disneystreaming.oss::weaver-scalacheck:x.y.z",
-      ivy"com.disneystreaming.oss::weaver-zio:x.y.z"
+      ivy"com.disneystreaming.oss::weaver-framework:@VERSION@",
+      ivy"com.disneystreaming.oss::weaver-scalacheck:@VERSION@",
+      ivy"com.disneystreaming.oss::weaver-zio:@VERSION@"
     )
     def testFrameworks = Seq("weaver.framework.TestFramework")
   }

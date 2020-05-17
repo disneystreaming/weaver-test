@@ -9,14 +9,14 @@ You'll need to install an additional dependency in order to use weaver to test Z
 
 ### SBT
 ```scala
-libraryDependencies +=  "com.disneystreaming.oss" %% "weaver-zio" % "x.y.z" % Test
+libraryDependencies +=  "com.disneystreaming.oss" %% "weaver-zio" % "@VERSION@" % Test
 ```
 
 ### Mill
 ```scala
 object test extends Tests {
   def ivyDeps = Agg(
-    ivy"com.disneystreaming.oss::weaver-zio:x.y.z"
+    ivy"com.disneystreaming.oss::weaver-zio:@VERSION@"
   )
 }
 ```
