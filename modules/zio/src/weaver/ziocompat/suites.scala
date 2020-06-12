@@ -1,13 +1,14 @@
 package weaver
 package ziocompat
 
-import cats.effect.{ ConcurrentEffect, ExitCase }
+import cats.effect.ConcurrentEffect
 import fs2._
 import zio._
+import zio.interop.catz._
 
 import scala.util.Try
 
-abstract class MutableZIOSuite[Res <: Has[_]](implicit tag: Tagged[Res])
+abstract class MutableZIOSuite[Res <: Has[_]](implicit tag: Tag[Res])
     extends EffectSuite[Task] {
 
   val sharedLayer: ZLayer[ZEnv, Throwable, Res]
@@ -45,9 +46,7 @@ abstract class MutableZIOSuite[Res <: Has[_]](implicit tag: Tagged[Res])
         val baseEnv    = ZLayer.succeedMany(runtime.environment)
         val suiteLayer = baseEnv >>> sharedLayer.passthrough
         for {
-          reservation <- Stream.eval(suiteLayer.build.reserve)
-          resource <- Stream.bracketCase(reservation.acquire)((_, exitCase) =>
-            reservation.release(fromCats(exitCase)).unit)
+          resource <- Stream.resource(suiteLayer.build.toResourceZIO)
           result <- Stream
             .emits(filteredTests)
             .lift[Task]
@@ -63,13 +62,6 @@ abstract class MutableZIOSuite[Res <: Has[_]](implicit tag: Tagged[Res])
     new AssertionError(
       "Cannot define new tests after TestSuite was initialized"
     )
-
-  private def fromCats[A](exitCase: ExitCase[Throwable]): Exit[Throwable, _] =
-    exitCase match {
-      case ExitCase.Canceled  => Exit.interrupt(Fiber.Id.None)
-      case ExitCase.Completed => Exit.succeed(())
-      case ExitCase.Error(e)  => Exit.fail(e)
-    }
 
   override protected def adaptRunError: PartialFunction[Throwable, Throwable] = {
     case FiberFailure(cause) => cause.asInstanceOf[Cause[Throwable]].squash

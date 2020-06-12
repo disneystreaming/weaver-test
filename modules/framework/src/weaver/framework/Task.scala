@@ -2,14 +2,16 @@ package weaver
 package framework
 
 import cats.effect.IO
-import cats.implicits._
+import cats.instances.unit._
+import IO.ioMonoid
+import cats.syntax.foldable._
+import cats.instances.vector._
 import cats.data.Chain
 
-import org.scalajs.testinterface.TestUtils
+import org.portablescala.reflect._
 import sbt.testing.{ Logger => BaseLogger, Task => BaseTask, _ }
 
 import scala.concurrent.duration._
-import scala.concurrent.{ Await, Promise }
 import scala.util.control.NonFatal
 import scala.util.control.NoStackTrace
 import cats.effect.Resource
@@ -19,27 +21,78 @@ final class Task(
     args: List[String],
     cl: ClassLoader,
     maybeDeferredLogger: Option[Resource[IO, DeferredLogger]],
-    maybeNext: IO[Option[BaseTask]])
+    maybeNext: Option[BaseTask])
     extends WeaverTask {
 
   def tags(): Array[String] = Array.empty
   def taskDef(): TaskDef    = task
-  val EOL                   = scala.util.Properties.lineSeparator
+  val EOL                   = TaskCompat.lineSeparator
 
   def execute(
       eventHandler: EventHandler,
       loggers: Array[BaseLogger],
       continuation: Array[BaseTask] => Unit): Unit = {
+    executeWrapper(eventHandler, loggers)
+      .map(continuation)
+      .unsafeRunAsyncAndForget()
+  }
+
+  def reportError(eventHandler: EventHandler, t: Throwable): IO[Unit] = IO {
+    val errorEvent = new sbt.testing.Event {
+      def fullyQualifiedName(): String   = task.fullyQualifiedName()
+      def duration(): Long               = 0
+      def fingerprint(): Fingerprint     = task.fingerprint()
+      def status(): Status               = sbt.testing.Status.Error
+      def throwable(): OptionalThrowable = new OptionalThrowable(t)
+      def selector(): Selector           = new SuiteSelector
+    }
+    eventHandler.handle(errorEvent)
+  }
+
+  def execute(
+      eventHandler: EventHandler,
+      loggers: Array[BaseLogger]): Array[BaseTask] = {
+    executeWrapper(eventHandler, loggers).unsafeRunSync()
+  }
+
+  def loadSuite(name: String, loader: ClassLoader): IO[EffectSuite[Any]] = {
+    val moduleName = name + "$"
+    IO(Reflect.lookupLoadableModuleClass(moduleName))
+      .flatMap {
+        case None =>
+          IO.raiseError(
+            new Exception(s"Could not load class $moduleName") with NoStackTrace
+          )
+        case Some(cls) => IO(cls.loadModule())
+      }
+      .flatMap {
+        case ref: EffectSuite[_] => IO.pure(ref)
+        case other =>
+          IO.raiseError {
+            new Exception(s"$other is not an effect suite") with NoStackTrace
+          }
+      }
+  }
+
+  private def executeWrapper(
+      eventHandler: EventHandler,
+      loggers: Array[BaseLogger]): IO[Array[BaseTask]] = {
 
     def handle(event: TestOutcome): IO[Unit] =
       IO(eventHandler.handle(sbtEvent(event)))
 
     def doLog(event: TestOutcome): IO[Unit] =
-      loggers.toVector.foldMap(logger =>
-        IO(logger.info(event.formatted(TestOutcome.Summary))))
+      loggers.toVector.foldMap { logger =>
+        val formattingMode =
+          if (maybeDeferredLogger.isDefined) TestOutcome.Summary
+          else TestOutcome.Verbose
+        IO(logger.info(event.formatted(formattingMode)))
+      }
 
     val defaultLoggedBracket: Resource[IO, DeferredLogger] =
-      Resource.pure((_, event) => doLog(event) *> handle(event))
+      Resource.pure[IO, DeferredLogger](
+        (_, event) => doLog(event) *> handle(event)
+      )
 
     val loggerResource = maybeDeferredLogger.getOrElse(defaultLoggedBracket)
 
@@ -53,7 +106,7 @@ final class Task(
             doLog(event) *> handle(event) *> log(task.fullyQualifiedName(), event)
         }
       }
-        // format: on
+      // format: on
 
       loadSuite(task.fullyQualifiedName(), cl)
         .flatMap { suite =>
@@ -74,39 +127,10 @@ final class Task(
               _ <- log(task.fullyQualifiedName(), event)
             } yield ()
         }
-    }.flatMap(_ => maybeNext).unsafeRunAsync {
-      case Right(nextTask) => continuation(nextTask.toArray)
-      case Left(_)         => continuation(Array())
+    }.as(maybeNext).attempt.map {
+      case Right(nextTask) => nextTask.toArray
+      case Left(_)         => Array.empty[BaseTask]
     }
   }
-
-  def reportError(eventHandler: EventHandler, t: Throwable): IO[Unit] = IO {
-    val errorEvent = new sbt.testing.Event {
-      def fullyQualifiedName(): String   = task.fullyQualifiedName()
-      def duration(): Long               = 0
-      def fingerprint(): Fingerprint     = task.fingerprint()
-      def status(): Status               = sbt.testing.Status.Error
-      def throwable(): OptionalThrowable = new OptionalThrowable(t)
-      def selector(): Selector           = new SuiteSelector
-    }
-    eventHandler.handle(errorEvent)
-  }
-
-  def execute(
-      eventHandler: EventHandler,
-      loggers: Array[BaseLogger]): Array[BaseTask] = {
-    val p = Promise[Array[BaseTask]]()
-    execute(eventHandler, loggers, tasks => p.success(tasks))
-    Await.result(p.future, Duration.Inf)
-  }
-
-  def loadSuite(name: String, loader: ClassLoader): IO[EffectSuite[Any]] =
-    IO(TestUtils.loadModule(name, loader)).flatMap {
-      case ref: EffectSuite[_] => IO.pure(ref)
-      case other =>
-        IO.raiseError {
-          new Exception(s"$other is not an effect suite") with NoStackTrace
-        }
-    }
 
 }

@@ -5,8 +5,9 @@ steps:
 
   # Compile the code/run tests
 - name: build
-  image: hseeberger/scala-sbt:8u242_1.3.8_2.12.10
+  image: hseeberger/scala-sbt:8u252_1.3.10_2.12.11
   commands:
+  - apt install nodejs -y
   - sbt ci
   - echo Built $(cat version)
   environment:
@@ -36,8 +37,9 @@ steps:
 
   # Publish maven artifacts (on tag push)
 - name: publish-to-artifactory
-  image: hseeberger/scala-sbt:8u242_1.3.8_2.12.10
+  image: hseeberger/scala-sbt:8u252_1.3.10_2.12.11
   commands:
+  - apt install nodejs -y
   - echo Publishing version $(cat version)
   - sbt release
   - echo done !

@@ -54,3 +54,6 @@ website/i18n/*
 .vscode
 .metals
 project/metals.sbt
+
+# Version file
+version

@@ -1,31 +1,44 @@
 package weaver
 package framework
 
+import cats.syntax.option._
 import cats.data.Chain
-import cats.effect.IO
+import cats.effect.{ IO, Timer }
 import cats.effect.concurrent.Ref
-import cats.implicits._
 import sbt.testing.{
   Event => SbtEvent,
   Task => SbtTask,
   Status => SbtStatus,
   _
 }
-import weaver._
+import weaver._, Platform._
 import cats.kernel.Eq
+import scala.concurrent.duration._
 
 // Functionality to test how the frameworks react to successful and failing tests/suites
 trait DogFood {
   type State = (Chain[LoggedEvent], Chain[SbtEvent])
 
+  private val timer: Timer[IO] =
+    IO.timer(scala.concurrent.ExecutionContext.global)
+
+  // ScalaJS executes asynchronously, therefore we need to wait
+  // for some time before getting the logs back. On JVM platform
+  // we do not need to wait, since the suite will run synchronously
+  private val patience: Option[FiniteDuration] = PlatformCompat.platform match {
+    case JS  => 2.seconds.some
+    case JVM => none
+  }
+
   // Method used to run a test-suite
-  def runSuite(suiteName: String): IO[State] =
+  def runSuite(suiteName: String) =
     for {
       logRef   <- Ref.of[IO, Chain[LoggedEvent]](Chain[LoggedEvent]())
       eventRef <- Ref.of[IO, Chain[SbtEvent]](Chain[SbtEvent]())
       eventHandler = new DogFood.MemoryEventHandler(eventRef)
       logger       = new DogFood.MemoryLogger(logRef)
       _      <- runTasks(eventHandler, logger)(getTasks(suiteName))
+      _      <- patience.fold(IO.unit)(timer.sleep)
       logs   <- logRef.get
       events <- eventRef.get
     } yield (logs, events)
@@ -47,7 +60,7 @@ trait DogFood {
   // todo: ensure none of these contain side effects
   private def getTasks(fullyQualifiedName: String): Array[SbtTask] = {
     val tf     = new TestFramework
-    val runner = tf.runner(Array(), Array(), this.getClass.getClassLoader)
+    val runner = tf.runner(Array(), Array(), new ClassLoader() {})
     val taskDefs: Array[TaskDef] = Array(
       new TaskDef(fullyQualifiedName,
                   TestFramework.ModuleFingerprint,
@@ -58,10 +71,7 @@ trait DogFood {
 
   private def runTasks(eventHandler: EventHandler, logger: Logger)(
       tasks: Array[SbtTask]): IO[Unit] =
-    tasks.toVector.foldMap { task =>
-      IO(task.execute(eventHandler, Array(logger)))
-        .flatMap(runTasks(eventHandler, logger))
-    }
+    DogFoodCompat.runTasks(eventHandler, logger)(tasks)
 
 }
 

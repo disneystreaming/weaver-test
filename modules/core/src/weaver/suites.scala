@@ -1,14 +1,16 @@
 package weaver
 
-import cats.implicits._
+import cats.syntax.applicative._
+import cats.syntax.applicativeError._
 import cats.effect.{ ContextShift, Effect, IO, Resource, Timer }
 import cats.effect.implicits._
 import fs2.Stream
 
-import scala.scalajs.reflect.annotation.EnableReflectiveInstantiation
+import org.portablescala.reflect.annotation.EnableReflectiveInstantiation
 import cats.effect.ConcurrentEffect
 
 // Just a non-parameterized marker trait to help SBT's test detection logic.
+@EnableReflectiveInstantiation
 trait BaseSuiteClass {}
 
 trait Suite[F[_]] extends BaseSuiteClass {
@@ -17,7 +19,6 @@ trait Suite[F[_]] extends BaseSuiteClass {
 }
 
 // format: off
-@EnableReflectiveInstantiation
 trait EffectSuite[F[_]] extends Suite[F] with Expectations.Helpers { self =>
 
   implicit def effect : Effect[F]

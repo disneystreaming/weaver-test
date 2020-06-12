@@ -8,7 +8,7 @@ package object ziocompat {
   type LogModule               = Has[Log[UIO]]
   type PerTestEnv[R <: Has[_]] = Env[R] with LogModule
 
-  val unitTag = implicitly[Tagged[Unit]]
+  val unitTag = implicitly[Tag[Unit]]
   type ZIOSuite[R <: Has[_]] = MutableZIOSuite[R]
   type SimpleZIOSuite        = SimpleMutableZIOSuite
 

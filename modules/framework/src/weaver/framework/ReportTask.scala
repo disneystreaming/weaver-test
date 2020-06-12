@@ -9,11 +9,8 @@ import cats.implicits._
 
 import sbt.testing.{ TaskDef, Task => BaseTask, Logger => BaseLogger, _ }
 
-import scala.concurrent.{ Await, Promise }
-import scala.concurrent.duration.Duration
-
 final class ReportTask(
-    withLog: (Chain[(String, TestOutcome)] => IO[Unit]) => IO[Unit])
+    processLogs: (Chain[(String, TestOutcome)] => IO[Unit]) => IO[Unit])
     extends WeaverTask { self =>
 
   def tags(): Array[String] = Array.empty
@@ -22,36 +19,15 @@ final class ReportTask(
       eventHandler: EventHandler,
       loggers: Array[BaseLogger],
       continuation: Array[BaseTask] => Unit): Unit = {
-
-    discard[EventHandler](eventHandler)
-    withLog { log =>
-      IO {
-        if (log.nonEmpty) {
-          loggers.foreach(
-            _.info(red("*************") + "FAILURES" + red("**************")))
-        }
-        log.groupBy(_._1).foreach {
-          case (suiteName, events) =>
-            loggers.foreach(_.info(cyan(suiteName)))
-            for ((_, event) <- events.iterator) {
-              loggers.foreach(_.error(event.formatted(TestOutcome.Verbose)))
-            }
-            loggers.foreach(_.info(""))
-        }
-      }
-    }
-  }.unsafeRunAsync {
-    case Right(_) => continuation(Array.empty)
-    case Left(e)  => e.printStackTrace(); continuation(Array.empty)
+    executeWrapper(eventHandler, loggers)
+      .map(continuation)
+      .unsafeRunAsyncAndForget()
   }
 
   def execute(
       eventHandler: EventHandler,
       loggers: Array[BaseLogger]): Array[BaseTask] = {
-
-    val p = Promise[Array[BaseTask]]()
-    execute(eventHandler, loggers, tasks => p.success(tasks))
-    Await.result(p.future, Duration.Inf)
+    executeWrapper(eventHandler, loggers).unsafeRunSync()
   }
 
   override def taskDef(): TaskDef = {
@@ -59,6 +35,35 @@ final class ReportTask(
                 new Fingerprint {},
                 false,
                 Array())
+  }
+
+  private def executeWrapper(
+      eventHandler: EventHandler,
+      loggers: Array[BaseLogger]): IO[Array[BaseTask]] = {
+    discard[EventHandler](eventHandler)
+    processLogs(ReportTask.report(loggers)).attempt.map {
+      case Right(_) => Array.empty[BaseTask]
+      case Left(e)  => e.printStackTrace(); Array.empty[BaseTask]
+    }
+  }
+}
+
+object ReportTask {
+
+  def report(loggers: Array[BaseLogger])(
+      logs: Chain[(String, TestOutcome)]): IO[Unit] = IO {
+    if (logs.nonEmpty) {
+      loggers.foreach(
+        _.info(red("*************") + "FAILURES" + red("**************")))
+    }
+    logs.groupBy(_._1).foreach {
+      case (suiteName, events) =>
+        loggers.foreach(_.info(cyan(suiteName)))
+        for ((_, event) <- events.iterator) {
+          loggers.foreach(_.error(event.formatted(TestOutcome.Verbose)))
+        }
+        loggers.foreach(_.info(""))
+    }
   }
 
 }
