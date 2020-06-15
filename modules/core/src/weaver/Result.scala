@@ -4,19 +4,11 @@ import cats.data.NonEmptyList
 import cats.data.Validated.{ Invalid, Valid }
 
 sealed trait Result {
-  def formatted(name: String): String
+  def formatted: Option[String]
 }
 
 object Result {
-
-  val EOL        = java.lang.System.lineSeparator()
-  val DOUBLE_EOL = EOL * 2
-
-  sealed abstract class Tabulation(val prefix: String) {
-    override def toString = prefix
-  }
-  case object tab2 extends Tabulation("  ")
-  case object tab4 extends Tabulation("    ")
+  import Formatter._
 
   def fromAssertion(assertion: Expectations): Result = assertion.run match {
     case Valid(_) => Success
@@ -26,37 +18,29 @@ object Result {
   }
 
   final case object Success extends Result {
-    def formatted(name: String): String = {
-      green("+ ") + name
-    }
+    def formatted: Option[String] = None
   }
 
   final case class Ignored(reason: Option[String], location: SourceLocation)
       extends Result {
 
-    def formatted(name: String): String = {
-      val reasonStr =
-        reason.fold("")(msg =>
-          indent(msg, Some(location), Console.YELLOW, tab2))
-      yellow("- ") + name + yellow(" !!! IGNORED !!!") + EOL + reasonStr
+    def formatted: Option[String] = {
+      reason.map(msg => indent(msg, Some(location), Console.YELLOW, TAB2))
     }
   }
 
   final case class Cancelled(reason: Option[String], location: SourceLocation)
       extends Result {
 
-    def formatted(name: String): String = {
-      val reasonStr =
-        reason.fold("")(msg =>
-          indent(msg, Some(location), Console.YELLOW, tab2))
-      yellow("- ") + name + yellow(" !!! CANCELLED !!!") + EOL + reasonStr
+    def formatted: Option[String] = {
+      reason.map(msg => indent(msg, Some(location), Console.YELLOW, TAB2))
     }
   }
 
   final case class Failures(failures: NonEmptyList[Failure]) extends Result {
 
-    def formatted(name: String): String =
-      if (failures.size == 1) failures.head.formatted(name)
+    def formatted: Option[String] =
+      if (failures.size == 1) failures.head.formatted
       else {
 
         val descriptions = failures.zipWithIndex.map {
@@ -71,8 +55,7 @@ object Result {
             )
         }
 
-        val header = red("-") + " " + name + EOL
-        header + descriptions.toList.mkString(DOUBLE_EOL)
+        Some(descriptions.toList.mkString(DOUBLE_EOL))
       }
   }
 
@@ -82,8 +65,8 @@ object Result {
       location: Option[SourceLocation])
       extends Result {
 
-    def formatted(name: String): String =
-      formatError(name, msg, source, location, Some(0))
+    def formatted: Option[String] =
+      Some(formatError(msg, source, location, Some(0)))
   }
 
   final case class Exception(
@@ -91,7 +74,7 @@ object Result {
       location: Option[SourceLocation])
       extends Result {
 
-    def formatted(name: String): String = {
+    def formatted: Option[String] = {
       val description = {
         val name      = source.getClass.getName
         val className = name.substring(name.lastIndexOf(".") + 1)
@@ -101,7 +84,8 @@ object Result {
       }
 
       val stackTraceLimit = if (location.isDefined) Some(10) else None
-      formatError(name, description, Some(source), location, stackTraceLimit)
+
+      Some(formatError(description, Some(source), location, stackTraceLimit))
     }
   }
 
@@ -123,7 +107,6 @@ object Result {
   }
 
   private def formatError(
-      name: String,
       msg: String,
       source: Option[Throwable],
       location: Option[SourceLocation],
@@ -148,7 +131,7 @@ object Result {
       val errorOutputLines = stackTraceLines ++ causeStackTraceLines
 
       if (errorOutputLines.nonEmpty) {
-        indent(errorOutputLines.mkString(EOL), None, Console.RED, tab2)
+        indent(errorOutputLines.mkString(EOL), None, Console.RED, TAB2)
       } else ""
     }
 
@@ -156,10 +139,10 @@ object Result {
       if (msg != null && msg.nonEmpty) msg else "Test failed",
       location,
       Console.RED,
-      tab2
+      TAB2
     )
 
-    var res = red("- ") + name + EOL + formattedMessage + DOUBLE_EOL
+    var res = formattedMessage + DOUBLE_EOL
     if (stackTrace.nonEmpty) {
       res += stackTrace + DOUBLE_EOL
     }

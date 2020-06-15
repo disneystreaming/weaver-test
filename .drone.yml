@@ -3,7 +3,6 @@ name: default
 
 steps:
 
-# Build image containing sbt AND yarn
 - name: build docker image
   image: docker
   volumes:
@@ -11,6 +10,22 @@ steps:
     path: /var/run/docker.sock
   commands:
   - docker build -t weaver-scala-sbt-yarn:latest docker/
+
+  # Compile the code/run tests
+- name: build
+  image: weaver-scala-sbt-yarn:latest
+  pull: if-not-exists
+  commands:
+  - apt install nodejs -y
+  - sbt ci
+  - echo Built $(cat version)
+  environment:
+    COURSIER_CACHE: .cache/coursier
+  volumes:
+    - name: sbt-cache
+      path: /root/.sbt
+
+
 
 # Compile the code/run tests
 - name: build
@@ -55,7 +70,7 @@ steps:
   pull: if-not-exists
   commands:
   - mkdir -p $HOME/.ssh
-  - ssh-keyscan -t rsa github.bamtech.co >> $HOME/.ssh/known_hosts
+  - ssh-keyscan -t rsa github.com >> $HOME/.ssh/known_hosts
   - sbt 'docs/docusaurusPublishGhpages'
   - echo done publishing website
   environment:

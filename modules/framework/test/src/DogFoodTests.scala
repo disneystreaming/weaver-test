@@ -2,13 +2,9 @@ package weaver
 package framework
 package test
 
-import java.time.OffsetDateTime
-
-import cats.effect.{ Clock, IO, Timer }
 import cats.implicits._
 import sbt.testing.Status
-
-import scala.concurrent.duration.{ FiniteDuration, TimeUnit }
+import cats.data.Chain
 
 object DogFoodSuite extends SimpleIOSuite with DogFood {
   simpleTest("test suite reports successes events") {
@@ -21,7 +17,10 @@ object DogFoodSuite extends SimpleIOSuite with DogFood {
     "the framework reports exceptions occurring during suite initialisation") {
     runSuite("weaver.framework.test.Meta$CrashingSuite").map {
       case (logs, events) =>
-        val errorLogs = logs.collect { case LoggedEvent.Error(msg) => msg }
+        val errorLogs = extractLogEventAfterFailures(logs) {
+          case LoggedEvent.Error(msg) => msg
+        }
+
         exists(events.headOption) { event =>
           val name = event.fullyQualifiedName()
           expect(name == "weaver.framework.test.Meta$CrashingSuite") and
@@ -30,6 +29,24 @@ object DogFoodSuite extends SimpleIOSuite with DogFood {
           expect(log.contains("Unexpected failure")) and
           expect(log.contains("Boom"))
         }
+    }
+  }
+
+  simpleTest(
+    "test suite outputs failed test names alongside successes in status report") {
+    runSuite(Meta.FailingTestStatusReporting).map {
+      case (logs, _) =>
+        val statusReport = outputBeforeFailures(logs).mkString_("\n").trim()
+
+        val expected = """
+        |weaver.framework.test.Meta$FailingTestStatusReporting
+        |+ I succeeded
+        |- I failed
+        |+ I succeeded again
+        |
+        """.stripMargin.trim
+
+        expectEqual(expected, statusReport)
     }
   }
 
@@ -49,23 +66,20 @@ object DogFoodSuite extends SimpleIOSuite with DogFood {
             |        request -> true
             |""".stripMargin.trim
 
-        val errorEvents =
-          logs
-            .collectFirst { case LoggedEvent.Error(msg) => msg }
-            .map(TestConsole.removeASCIIColors)
-            .map(_.trim)
+        val actual = extractLogEventAfterFailures(logs) {
+          case LoggedEvent.Error(msg) => msg
+        }.get
 
-        expect(errorEvents.contains(expected))
+        expectEqual(expected, actual)
     }
   }
 
   simpleTest("test suite outputs stack traces of exception causes") {
     runSuite(Meta.ErroringWithCauses).map {
       case (logs, _) =>
-        val maybeError = logs
-          .collectFirst { case LoggedEvent.Error(msg) => msg }
-          .map(TestConsole.removeASCIIColors)
-          .map(_.trim)
+        val actual = extractLogEventAfterFailures(logs) {
+          case LoggedEvent.Error(msg) => msg
+        }.get
 
         val expected =
           """
@@ -79,120 +93,176 @@ object DogFoodSuite extends SimpleIOSuite with DogFood {
           |
           |  DogFoodTests.scala:15    my.package.MyClass#MyMethod
           |  DogFoodTests.scala:20    my.package.ClassOfDifferentLength#method$new$1
-          |  <snipped>                                   cats.effect.internals.<...>
-          |  <snipped>                                    java.util.concurrent.<...>
+          |  <snipped>                cats.effect.internals.<...>
+          |  <snipped>                java.util.concurrent.<...>
           |
           |  Caused by: weaver.framework.test.Meta$CustomException: root
           |
           |  DogFoodTests.scala:15    my.package.MyClass#MyMethod
           |  DogFoodTests.scala:20    my.package.ClassOfDifferentLength#method$new$1
-          |  <snipped>                                   cats.effect.internals.<...>
-          |  <snipped>                                    java.util.concurrent.<...>
+          |  <snipped>                cats.effect.internals.<...>
+          |  <snipped>                java.util.concurrent.<...>
           |
           |""".stripMargin.trim
 
-        expect(maybeError.contains(expected))
-    }
-  }
-}
-
-// The build tool will only detect and run top-level test suites. We can however nest objects
-// that contain failing tests, to allow for testing the framework without failing the build
-// because the framework will have ran the tests on its own.
-object Meta {
-  object MutableSuiteTest extends MutableSuiteTest
-
-  object Boom extends Error("Boom") with scala.util.control.NoStackTrace
-  object CrashingSuite extends SimpleIOSuite {
-    throw Boom
-  }
-
-  object FailingSuiteWithlogs extends SimpleIOSuite {
-    loggedTest("failure") { log =>
-      implicit val timer          = TimeCop.setTimer
-      implicit val sourceLocation = TimeCop.sourceLocation
-
-      val context = Map(
-        "a"       -> "b",
-        "token"   -> "<something>",
-        "request" -> "true"
-      )
-
-      for {
-        _ <- log.info("this test")
-        _ <- log.error("has failed")
-        _ <- log.debug("with context", context)
-      } yield failure("expected")
-    }
-
-  }
-
-  object ErroringWithCauses extends SimpleIOSuite {
-    loggedTest("erroring with causes") { log =>
-      throw CustomException(
-        "surfaced error",
-        CustomException("first cause",
-                        CustomException("root", withSnips = true),
-                        withSnips = true))
+        expectEqual(expected, actual)
     }
   }
 
-  case class CustomException(
-      str: String,
-      causedBy: Exception = null,
-      withSnips: Boolean = false)
-      extends Exception(str, causedBy) {
+  simpleTest("failures with multi-line test name are rendered correctly") {
+    runSuite(Meta.Rendering).map {
+      case (logs, _) =>
+        val actual = extractLogEventAfterFailures(logs) {
+          case LoggedEvent.Error(msg) => msg
+        }.get
 
-    val SnippedStackTrace = Array[StackTraceElement](
-      new StackTraceElement("cats.effect.internals.IORuntime",
-                            "run",
-                            "IORuntime.scala",
-                            5),
-      new StackTraceElement("java.util.concurrent.Thread",
-                            "execute",
-                            "Thread.java",
-                            45)
-    )
+        val expected = """
+        |- lots
+        |  of
+        |  multiline
+        |  (failure)
+        |  assertion failed (src/main/DogFoodTests.scala:5)
+        |
+        |  expect(1 == 2)
+        |
+        """.stripMargin.trim
 
-    val preset = Array(
-      new StackTraceElement("my.package.MyClass",
-                            "MyMethod",
-                            "DogFoodTests.scala",
-                            15),
-      new StackTraceElement("my.package.ClassOfDifferentLength",
-                            "method$new$1",
-                            "DogFoodTests.scala",
-                            20)
-    )
-
-    override def getStackTrace: Array[StackTraceElement] =
-      if (withSnips) preset ++ SnippedStackTrace else preset
-
+        expectEqual(expected, actual)
+    }
   }
 
-  object TimeCop {
-    private val setTimestamp = OffsetDateTime.now
-      .withHour(12)
-      .withMinute(54)
-      .withSecond(35)
-      .toEpochSecond * 1000
+  simpleTest("successes with multi-line test name are rendered correctly") {
+    runSuite(Meta.Rendering).map {
+      case (logs, _) =>
+        val actual =
+          extractLogEventBeforeFailures(logs) {
+            case LoggedEvent.Info(msg) if msg.contains("(success)") => msg
+          }.get
 
-    implicit val setClock = new Clock[IO] {
-      override def realTime(unit: TimeUnit): IO[Long] = IO(setTimestamp)
+        val expected = """
+        |+ lots
+        |  of
+        |  multiline
+        |  (success)
+        """.stripMargin.trim
 
-      override def monotonic(unit: TimeUnit): IO[Long] = ???
+        expectEqual(expected, actual)
     }
+  }
 
-    implicit val setTimer: Timer[IO] = new Timer[IO] {
-      override def clock: Clock[IO] = setClock
+  simpleTest("ignored tests with multi-line test name are rendered correctly") {
+    runSuite(Meta.Rendering).map {
+      case (logs, _) =>
+        val actual =
+          extractLogEventBeforeFailures(logs) {
+            case LoggedEvent.Info(msg) if msg.contains("(ignored)") => msg
+          }.get
 
-      override def sleep(duration: FiniteDuration): IO[Unit] = ???
+        val expected = """
+        |- lots
+        |  of
+        |  multiline
+        |  (ignored) !!! IGNORED !!!
+        |  Ignore me (src/main/DogFoodTests.scala:5)
+        """.stripMargin.trim
+
+        expectEqual(expected, actual)
     }
+  }
 
-    implicit val sourceLocation: SourceLocation = SourceLocation(
-      Some("DogFoodTests.scala"),
-      Some("src/main/DogFoodTests.scala"),
-      5)
+  simpleTest("cancelled tests with multi-line test name are rendered correctly") {
+    runSuite(Meta.Rendering).map {
+      case (logs, _) =>
+        val actual =
+          extractLogEventBeforeFailures(logs) {
+            case LoggedEvent.Info(msg) if msg.contains("(cancelled)") => msg
+          }.get
 
+        val expected = """
+        |- lots
+        |  of
+        |  multiline
+        |  (cancelled) !!! CANCELLED !!!
+        |  I was cancelled :( (src/main/DogFoodTests.scala:5)
+        """.stripMargin.trim
+
+        expectEqual(expected, actual)
+    }
+  }
+
+  private def multiLineComparisonReport(expectedS: String, actual: String) = {
+    val expectedLines = expectedS.split("\n").map(Option.apply).toVector
+    val actualLines   = actual.split("\n").map(Option.apply).toVector
+
+    val lines = expectedLines.size max actualLines.size
+    val maxExpectedLineLength = "<missing>".length max expectedLines
+      .map(_.map(_.length + 2).getOrElse(0))
+      .max
+    def padStr(s: String, l: Int) = s + (" " * (l - s.length))
+
+    (expectedLines
+      .padTo(lines, None))
+      .zip(actualLines.padTo(lines, None))
+      .map {
+        case (None, Some(actualLine)) =>
+          padStr("<missing>", maxExpectedLineLength) + " != " + s"'$actualLine'"
+        case (Some(expectedLine), Some(actualLine)) =>
+          val op = if (expectedLine == actualLine) "==" else "!="
+          padStr(s"'$expectedLine'", maxExpectedLineLength) + s" $op " + s"'$actualLine'"
+        case (Some(expectedLine), None) =>
+          padStr(s"'$expectedLine'", maxExpectedLineLength) + " != " + s"<missing>"
+        case (None, None) => "something impossible happened"
+      }
+      .mkString("\n")
+  }
+
+  private def expectEqual(expected: String, actual: String): Expectations = {
+    if (expected.trim != actual.trim) {
+      val report = multiLineComparisonReport(expected.trim, actual.trim)
+
+      failure(
+        s"Output is not as expected (line-by-line-comparison below): \n\n$report")
+    } else
+      Expectations.Helpers.success
+  }
+
+  private def outputBeforeFailures(logs: Chain[LoggedEvent]): Chain[String] = {
+    logs
+      .takeWhile {
+        case LoggedEvent.Info(s) if s.contains("FAILURES") => false
+        case _                                             => true
+      }
+      .collect {
+        case LoggedEvent.Info(s)  => s
+        case LoggedEvent.Debug(s) => s
+        case LoggedEvent.Warn(s)  => s
+        case LoggedEvent.Error(s) => s
+      }
+      .map(TestConsole.removeASCIIColors)
+      .map(_.trim)
+  }
+
+  private def extractLogEventBeforeFailures(logs: Chain[LoggedEvent])(
+      pf: PartialFunction[LoggedEvent, String]): Option[String] = {
+    logs
+      .takeWhile {
+        case LoggedEvent.Info(s) if s.contains("FAILURES") => false
+        case _                                             => true
+      }
+      .collectFirst(pf)
+      .map(TestConsole.removeASCIIColors)
+      .map(_.trim)
+  }
+
+  private def extractLogEventAfterFailures(logs: Chain[LoggedEvent])(
+      pf: PartialFunction[LoggedEvent, String]): Option[String] = {
+    logs
+      .dropWhile {
+        case LoggedEvent.Info(s) if s.contains("FAILURES") => false
+        case _                                             => true
+      }
+      .collectFirst(pf)
+      .map(TestConsole.removeASCIIColors)
+      .map(_.trim)
   }
 }

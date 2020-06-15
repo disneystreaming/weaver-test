@@ -1,14 +1,16 @@
 package weaver
 
-import cats.~>
-import cats.implicits._
-import cats.effect.{ ContextShift, Effect, Timer, IO, Resource }
+import cats.syntax.applicative._
+import cats.syntax.applicativeError._
+import cats.effect.{ ContextShift, Effect, IO, Resource, Timer }
+import cats.effect.implicits._
 import fs2.Stream
 
-import scala.scalajs.reflect.annotation.EnableReflectiveInstantiation
+import org.portablescala.reflect.annotation.EnableReflectiveInstantiation
 import cats.effect.ConcurrentEffect
 
 // Just a non-parameterized marker trait to help SBT's test detection logic.
+@EnableReflectiveInstantiation
 trait BaseSuiteClass {}
 
 trait Suite[F[_]] extends BaseSuiteClass {
@@ -17,7 +19,6 @@ trait Suite[F[_]] extends BaseSuiteClass {
 }
 
 // format: off
-@EnableReflectiveInstantiation
 trait EffectSuite[F[_]] extends Suite[F] with Expectations.Helpers { self =>
 
   implicit def effect : Effect[F]
@@ -25,13 +26,13 @@ trait EffectSuite[F[_]] extends Suite[F] with Expectations.Helpers { self =>
   /**
    * Raise an error that leads to the running test being tagged as "cancelled".
    */
-  def cancel(reason: String)(pos: SourceLocation): F[Unit] =
+  def cancel(reason: String)(implicit pos: SourceLocation): F[Nothing] =
     effect.raiseError(new CanceledException(Some(reason), pos))
 
   /**
    * Raises an error that leads to the running test being tagged as "ignored"
    */
-  def ignore(reason: String)(pos: SourceLocation): F[Unit] =
+  def ignore(reason: String)(implicit pos: SourceLocation): F[Nothing] =
     effect.raiseError(new IgnoredException(Some(reason), pos))
 
   /**
@@ -42,10 +43,16 @@ trait EffectSuite[F[_]] extends Suite[F] with Expectations.Helpers { self =>
 
   override def name : String = self.getClass.getName.replace("$", "")
 
-   val toIOK : F ~> IO = new (F ~> IO){
-    def apply[A](fa : F[A]) : IO[A] = effect.toIO(fa)
-  }
-  private[weaver] def ioSpec(args : List[String]) : fs2.Stream[IO, TestOutcome] = spec(args).translate(toIOK)
+  protected def adaptRunError: PartialFunction[Throwable, Throwable] = PartialFunction.empty
+
+  def run(args : List[String])(report : TestOutcome => IO[Unit]) : IO[Unit] =
+    spec(args).evalMap(testOutcome => effect.liftIO(report(testOutcome))).compile.drain.toIO.adaptErr(adaptRunError)
+
+  implicit def singleExpectationConversion(e: SingleExpectation)(implicit loc: SourceLocation): F[Expectations] =
+    Expectations.fromSingle(e).pure[F]
+
+  implicit def expectationsConversion(e: Expectations): F[Expectations] =
+    e.pure[F]
 }
 
 trait ConcurrentEffectSuite[F[_]] extends EffectSuite[F] {
@@ -61,10 +68,9 @@ trait BaseIOSuite { self : ConcurrentEffectSuite[IO] =>
 
 trait PureIOSuite extends ConcurrentEffectSuite[IO] with BaseIOSuite {
 
-
-  def pureTest(name: String)(run : => Expectations) : IO[TestOutcome] = Test[IO](name)(_ => IO(run)).compile
-  def simpleTest(name:  String)(run : IO[Expectations]) : IO[TestOutcome] = Test[IO](name)(_ => run).compile
-  def loggedTest(name: String)(run : Log[IO] => IO[Expectations]) : IO[TestOutcome] = Test[IO](name)(run).compile
+  def pureTest(name: String)(run : => Expectations) : IO[TestOutcome] = Test[IO](name, IO(run))
+  def simpleTest(name:  String)(run : IO[Expectations]) : IO[TestOutcome] = Test[IO](name, run)
+  def loggedTest(name: String)(run : Log[IO] => IO[Expectations]) : IO[TestOutcome] = Test[IO](name, run)
 
 }
 
@@ -76,29 +82,22 @@ trait MutableFSuite[F[_]] extends ConcurrentEffectSuite[F]  {
   def maxParallelism : Int = 10000
   implicit def timer: Timer[F]
 
-  def registerTest(name: String)(f: Res => Log[F] => F[Expectations]): Unit =
+  protected def registerTest(name: String)(f: Res => F[TestOutcome]): Unit =
     synchronized {
       if (isInitialized) throw initError()
-      val test = (res : Res) => Test[F](name)(f(res))
-      testSeq = testSeq :+ (name -> test)
+      testSeq = testSeq :+ (name -> f)
     }
 
-  def pureTest(name: String)(run : => Expectations) :  Unit = registerTest(name)(_ => _ => effect.delay(run))
-  def simpleTest(name:  String)(run: => F[Expectations]) : Unit = registerTest(name)(_ => _ => effect.suspend(run))
-  def loggedTest(name: String)(run: Log[F] => F[Expectations]) : Unit = registerTest(name)(_ => log => run(log))
+  def pureTest(name: String)(run : => Expectations) :  Unit = registerTest(name)(_ => Test(name, effect.delay(run)))
+  def simpleTest(name:  String)(run: => F[Expectations]) : Unit = registerTest(name)(_ => Test(name, effect.suspend(run)))
+  def loggedTest(name: String)(run: Log[F] => F[Expectations]) : Unit = registerTest(name)(_ => Test(name, log => run(log)))
   def test(name: String) : PartiallyAppliedTest = new PartiallyAppliedTest(name)
 
   class PartiallyAppliedTest(name : String) {
-    def apply(run: => F[Expectations]) : Unit = registerTest(name)(_ => _ => effect.suspend(run))
-    def apply(run : Res => F[Expectations]) : Unit = registerTest(name)(res => _ => run(res))
-    def apply(run : (Res, Log[F]) => F[Expectations]) : Unit = registerTest(name)(run.curried)
+    def apply(run: => F[Expectations]) : Unit = registerTest(name)(_ => Test(name, run))
+    def apply(run : Res => F[Expectations]) : Unit = registerTest(name)(res => Test(name, run(res)))
+    def apply(run : (Res, Log[F]) => F[Expectations]) : Unit = registerTest(name)(res => Test(name, log => run(res, log)))
   }
-
-  implicit def singleExpectationConversion(e: SingleExpectation)(implicit loc: SourceLocation): F[Expectations] =
-    Expectations.fromSingle(e).pure[F]
-
-  implicit def expectationsConversion(e: Expectations): F[Expectations] =
-    e.pure[F]
 
   override def spec(args: List[String]) : Stream[F, TestOutcome] =
     synchronized {
@@ -111,12 +110,12 @@ trait MutableFSuite[F[_]] extends ConcurrentEffectSuite[F]  {
         resource <- Stream.resource(sharedResource)
         tests = filteredTests.map(_.apply(resource))
         testStream = Stream.emits(tests).lift[F]
-        result <- if (parallism > 1 ) testStream.parEvalMap(parallism)(_.compile)
-                  else testStream.evalMap(_.compile)
+        result <- if (parallism > 1 ) testStream.parEvalMap(parallism)(identity)
+                  else testStream.evalMap(identity)
       } yield result
     }
 
-  private[this] var testSeq = Seq.empty[(String, Res => Test[F])]
+  private[this] var testSeq = Seq.empty[(String, Res => F[TestOutcome])]
   private[this] var isInitialized = false
 
   private[this] def initError() =

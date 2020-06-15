@@ -5,47 +5,33 @@ import sbt.testing.{
   Fingerprint,
   OptionalThrowable,
   Selector,
-  Status,
   TestSelector,
-  Event => BaseEvent,
-  Task => BaseTask
+  Event => SbtEvent,
+  Task => SbtTask,
+  Status => SbtStatus
 }
 
-trait WeaverTask extends BaseTask {
+trait WeaverTask extends SbtTask {
 
-  def sbtEvent(event: Event): BaseEvent = new BaseEvent {
+  def sbtEvent(event: Event): SbtEvent = new SbtEvent {
 
     private val task = taskDef()
-
-    import event._
 
     def fullyQualifiedName(): String =
       task.fullyQualifiedName()
 
-    def throwable(): OptionalThrowable =
-      result match {
-        case Result.Exception(cause, _) =>
-          new OptionalThrowable(cause)
-        case Result.Failure(_, Some(cause), _) =>
-          new OptionalThrowable(cause)
-        case _ =>
-          new OptionalThrowable()
-      }
+    def throwable(): OptionalThrowable = event.cause match {
+      case Some(value) => new OptionalThrowable(value)
+      case None        => new OptionalThrowable()
+    }
 
-    def status(): Status =
-      result match {
-        case Result.Exception(_, _) =>
-          Status.Error
-        case Result.Failure(_, _, _) =>
-          Status.Failure
-        case Result.Failures(_) =>
-          Status.Failure
-        case Result.Success =>
-          Status.Success
-        case Result.Ignored(_, _) =>
-          Status.Ignored
-        case Result.Cancelled(_, _) =>
-          Status.Canceled
+    def status(): SbtStatus =
+      event.status match {
+        case TestStatus.Exception => SbtStatus.Error
+        case TestStatus.Failure   => SbtStatus.Failure
+        case TestStatus.Success   => SbtStatus.Success
+        case TestStatus.Ignored   => SbtStatus.Ignored
+        case TestStatus.Cancelled => SbtStatus.Canceled
       }
 
     def selector(): Selector = {

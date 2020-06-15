@@ -1,7 +1,7 @@
 {
   "docs": {
     "Overview": ["installation", "motivation"],
-    "Usage": ["common_usage", "expectations", "resources", "logging"],
+    "Usage": ["common_usage", "expectations", "resources", "logging", "scalacheck", "zio"],
     "Sample reports": ["multiple_suites_success", "multiple_suites_failures", "multiple_suites_logging"]
   }
 }

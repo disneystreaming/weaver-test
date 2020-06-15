@@ -30,16 +30,15 @@ final class Runner(
       ref       <- Ref[IO].of(Chain.empty: Chain[(String, TestOutcome)])
     } yield {
 
-      val next: IO[BaseTask] = IO(
+      val next: BaseTask =
         new ReportTask((f: Chain[(String, TestOutcome)] => IO[Unit]) =>
           for {
             acquired <- semaphore.tryAcquireN(N)
             log      <- ref.get
             _        <- if (acquired) f(log) else IO.unit
           } yield ())
-      )
 
-      val loggedBracket: Resource[IO, DeferredLogger] =
+      val loggerResource: Resource[IO, DeferredLogger] =
         Resource.make(IO.pure[DeferredLogger]((str, event) =>
           ref.update(cat => cat.append(str -> event)))) { _ =>
           semaphore.release
@@ -50,8 +49,8 @@ final class Runner(
           taskDef,
           args.toList,
           classLoader,
-          loggedBracket.some,
-          next.map(_.some)
+          loggerResource.some,
+          next.some
         ): BaseTask
       }
     }
@@ -66,6 +65,9 @@ final class Runner(
   def serializeTask(task: BaseTask, serializer: TaskDef => String): String =
     serializer(task.taskDef())
 
-  def deserializeTask(task: String, deserializer: String => TaskDef): BaseTask =
-    new Task(deserializer(task), args.toList, classLoader, None, IO.pure(None))
+  def deserializeTask(
+      task: String,
+      deserializer: String => TaskDef): BaseTask = {
+    new Task(deserializer(task), args.toList, classLoader, None, None)
+  }
 }

@@ -6,6 +6,8 @@ import cats.implicits._
 import cats.effect._
 import cats.effect.concurrent.{ MVar, Ref }
 
+import TestOutcome.{ Summary, Verbose }
+
 class Runner[F[_]: Concurrent](args: List[String], maxConcurrentSuites: Int)(
     printLine: String => F[Unit]) {
 
@@ -49,19 +51,20 @@ class Runner[F[_]: Concurrent](args: List[String], maxConcurrentSuites: Int)(
 
     val stars = "*************"
 
-    def newLine                      = printLine("")
-    def printTestEvent(event: Event) = printLine(event.formatted)
+    def newLine = printLine("")
+    def printTestEvent(mode: TestOutcome.Mode)(event: Event) =
+      printLine(event.formatted(mode))
     def handle(specEvent: SpecEvent): F[Outcome] = {
       val (successes, failures, outcome) =
         specEvent.events.foldMap[(List[Event], List[Event], Outcome)] {
-          case ev if ev.isFailed =>
+          case ev if ev.status.isFailed =>
             (List.empty, List(ev), Outcome.fromEvent(ev))
           case ev => (List(ev), List.empty, Outcome.fromEvent(ev))
         }
 
       for {
         _ <- printLine(cyan(specEvent.name))
-        _ <- successes.traverse(printTestEvent)
+        _ <- (successes ++ failures).traverse(printTestEvent(Summary))
         _ <- newLine
         _ <- buffer
           .update(_.append(specEvent.copy(events = failures)))
@@ -85,7 +88,7 @@ class Runner[F[_]: Concurrent](args: List[String], maxConcurrentSuites: Int)(
           _ <- (printLine(red(stars) + "FAILURES" + red(stars)) *> failures
             .traverse[F, Unit] { specEvent =>
               printLine(cyan(specEvent.name)) *>
-              specEvent.events.traverse(printTestEvent) *>
+              specEvent.events.traverse(printTestEvent(Verbose)) *>
               newLine
             }
             .void).whenA(failures.nonEmpty)
@@ -116,16 +119,16 @@ object Runner {
   object Outcome {
     val empty = Outcome(0, 0, 0, 0)
 
-    def fromEvent(event: Event): Outcome = event.result match {
-      case Result.Exception(_, _) =>
+    def fromEvent(event: Event): Outcome = event.status match {
+      case TestStatus.Exception =>
         Outcome(0, 0, 0, failures = 1)
-      case Result.Failure(_, _, _) | Result.Failures(_) =>
+      case TestStatus.Failure =>
         Outcome(0, 0, 0, failures = 1)
-      case Result.Success =>
+      case TestStatus.Success =>
         Outcome(successes = 1, 0, 0, 0)
-      case Result.Ignored(_, _) =>
+      case TestStatus.Ignored =>
         Outcome(0, ignored = 1, 0, 0)
-      case Result.Cancelled(_, _) =>
+      case TestStatus.Cancelled =>
         Outcome(0, 0, cancelled = 1, 0)
     }
 

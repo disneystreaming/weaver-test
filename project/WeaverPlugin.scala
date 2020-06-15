@@ -1,11 +1,13 @@
 // For getting Scoverage out of the generated POM
 import scala.xml.Elem
 import scala.xml.transform.{ RewriteRule, RuleTransformer }
+import sbtcrossproject.CrossPlugin.autoImport.{ JVMPlatform, crossProjectPlatform }
 import xerial.sbt.Sonatype.SonatypeKeys._
 
 import sbt._
 import sbt.Keys._
 import com.jsuereth.sbtpgp.PgpKeys._
+import scalajscrossproject.JSPlatform
 
 /**
  * Common project settings.
@@ -15,7 +17,7 @@ object WeaverPlugin extends AutoPlugin {
   override def requires = plugins.JvmPlugin
   override def trigger  = allRequirements
 
-  lazy val scala212               = "2.12.10"
+  lazy val scala212               = "2.12.11"
   lazy val scala213               = "2.13.1"
   lazy val supportedScalaVersions = List(scala212, scala213)
 
@@ -95,7 +97,6 @@ object WeaverPlugin extends AutoPlugin {
     "-Ywarn-unused:implicits",       // Warn if an implicit parameter is unused.
     "-Ywarn-unused:imports",         // Warn if an import selector is not referenced.
     "-Ywarn-unused:locals",          // Warn if a local definition is unused.
-    "-Ywarn-unused:params",          // Warn if a value parameter is unused.
     "-Ywarn-unused:patvars",         // Warn if a variable bound in a pattern is unused.
     "-Ywarn-unused:privates",        // Warn if a private member is unused.
     "-Ywarn-value-discard",          // Warn when non-Unit expression results are unused.
@@ -149,9 +150,14 @@ object WeaverPlugin extends AutoPlugin {
 
   // Mill-like simple layout
   val simpleLayout: Seq[Setting[_]] = Seq(
-    unmanagedSourceDirectories in Compile := Seq(
-      baseDirectory.value.getParentFile / "src"
-    ),
+    unmanagedSourceDirectories in Compile := Seq(baseDirectory.value.getParentFile / "src") ++ {
+      if (crossProjectPlatform.value == JVMPlatform)
+        Seq(baseDirectory.value.getParentFile / "src-jvm")
+      else if (crossProjectPlatform.value == JSPlatform)
+        Seq(baseDirectory.value.getParentFile / "src-js")
+      else
+        Seq.empty
+    },
     unmanagedSourceDirectories in Test := Seq(
       baseDirectory.value.getParentFile / "test" / "src"
     )
@@ -169,8 +175,8 @@ object WeaverPlugin extends AutoPlugin {
     homepage := Some(url("https://github.com/disneystreaming")),
     scmInfo := Some(
       ScmInfo(
-        url("https://github.bamtech.co/OSS/weaver-test"),
-        "scm:git@github.bamtech.co:OSS/weaver-test.git"
+        url("https://github.com/disneystreaming/weaver-test"),
+        "scm:git@github.com:disneystreaming/weaver-test.git"
       )
     ),
     developers := List(

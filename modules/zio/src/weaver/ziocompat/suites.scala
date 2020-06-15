@@ -1,43 +1,38 @@
 package weaver
 package ziocompat
 
-import weaver.EffectSuite
-import weaver.Expectations
-import weaver.TestOutcome
-
-import zio._
-import zio.clock.Clock
-import zio.console.Console
-import zio.system.System
-import zio.random.Random
-
+import cats.effect.ConcurrentEffect
 import fs2._
-import cats.effect.ExitCase
+import zio._
+import zio.interop.catz._
 
-trait MutableZIOSuite extends EffectSuite[Task] {
+import scala.util.Try
 
-  type Res
-  def sharedResource: Managed[Throwable, Res]
+abstract class MutableZIOSuite[Res <: Has[_]](implicit tag: Tag[Res])
+    extends EffectSuite[Task] {
+
+  val sharedLayer: ZLayer[ZEnv, Throwable, Res]
+
   def maxParallelism: Int = 10000
 
-  val ec = scala.concurrent.ExecutionContext.global
-  implicit val runtime: Runtime[BaseEnv] =
-    new DefaultRuntime {}
-  implicit def effect = zio.interop.catz.taskEffectInstance
+  implicit val runtime: Runtime[ZEnv] = zio.Runtime.default
+  implicit def effect: ConcurrentEffect[Task] =
+    zio.interop.catz.taskEffectInstance
 
-  def registerTest[D >: LogModule with Env[Res]](name: String)(
-      run: ZIO[D, Throwable, Expectations]): Unit =
+  private[this] type Test = ZIO[Env[Res], Nothing, TestOutcome]
+
+  protected def registerTest(name: String)(test: Test): Unit =
     synchronized {
       if (isInitialized) throw initError()
-      testSeq = testSeq :+ name -> Test[Res](name)(run)
+      testSeq = testSeq :+ (name -> test)
     }
 
   def pureTest(name: String)(run: => Expectations): Unit =
-    registerTest(name)(ZIO(run))
+    registerTest(name)(Test(name, ZIO(run)))
 
-  def test[D >: LogModule with Env[Res]](name: String)(
-      run: ZIO[D, Throwable, Expectations]): Unit =
-    registerTest(name)(run)
+  def test(name: String)(
+      run: => ZIO[PerTestEnv[Res], Throwable, Expectations]): Unit =
+    registerTest(name)(Test(name, ZIO.fromTry(Try { run }).flatten))
 
   override def spec(args: List[String]): Stream[Task, TestOutcome] =
     synchronized {
@@ -47,23 +42,20 @@ trait MutableZIOSuite extends EffectSuite[Task] {
         case (name, test) if argsFilter(name) => test
       }
       if (filteredTests.isEmpty) Stream.empty // no need to allocate resources
-      else
+      else {
+        val baseEnv    = ZLayer.succeedMany(runtime.environment)
+        val suiteLayer = baseEnv >>> sharedLayer.passthrough
         for {
-          reservation <- Stream.eval(sharedResource.reserve)
-          resource <- Stream.bracketCase(reservation.acquire)((_, exitCase) =>
-            reservation.release(fromCats(exitCase)).unit)
+          resource <- Stream.resource(suiteLayer.build.toResourceZIO)
           result <- Stream
             .emits(filteredTests)
             .lift[Task]
-            .parEvalMap(math.max(1, maxParallelism))(
-              _.compile.provide(new Clock.Live with Console.Live
-              with System.Live with Random.Live with SharedResourceModule[Res] {
-                val sharedResource = resource
-              }))
+            .parEvalMap(math.max(1, maxParallelism))(_.provide(resource))
         } yield result
+      }
     }
 
-  private[this] var testSeq       = Seq.empty[(String, Test[Res])]
+  private[this] var testSeq       = Seq.empty[(String, Test)]
   private[this] var isInitialized = false
 
   private[this] def initError() =
@@ -71,16 +63,12 @@ trait MutableZIOSuite extends EffectSuite[Task] {
       "Cannot define new tests after TestSuite was initialized"
     )
 
-  private def fromCats[A](exitCase: ExitCase[Throwable]): Exit[Throwable, _] =
-    exitCase match {
-      case ExitCase.Canceled  => Exit.interrupt(Fiber.Id.None)
-      case ExitCase.Completed => Exit.succeed(())
-      case ExitCase.Error(e)  => Exit.fail(e)
-    }
-
+  override protected def adaptRunError: PartialFunction[Throwable, Throwable] = {
+    case FiberFailure(cause) => cause.asInstanceOf[Cause[Throwable]].squash
+  }
 }
 
-trait SimpleMutableZIOSuite extends MutableZIOSuite {
-  type Res = Unit
-  def sharedResource: zio.Managed[Throwable, Unit] = zio.Managed.unit
+trait SimpleMutableZIOSuite extends MutableZIOSuite[Has[Unit]] {
+  override val sharedLayer: zio.ZLayer[ZEnv, Throwable, Has[Unit]] =
+    ZLayer.fromEffect(UIO.unit)
 }

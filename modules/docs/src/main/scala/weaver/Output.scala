@@ -12,12 +12,12 @@ object Output {
 
   def removeASCIIColors(str: String) =
     ansiColorRgx.replaceAllIn(str, "")
-  
+
   def format(s: String) =
     removeTrailingNewLine(removeASCIIColors(s.replace("repl.SessionApp", "")))
-  
+
   def removeTrailingNewLine(s: String) = {
-    if(s.endsWith("\n")) s.substring(0, s.length - 2) else s
+    if (s.endsWith("\n")) s.substring(0, s.length - 2) else s
   }
 
   def runSuites(s: Suite[IO]*): IO[String] = {
