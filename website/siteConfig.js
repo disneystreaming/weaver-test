@@ -1,16 +1,16 @@
 // See https://docusaurus.io/docs/site-config for all the possible
 // site configuration options.
 
-const repoUrl = 'https://github.bamtech.co/OSS/weaver-test';
+const repoUrl = 'https://github.com/disneystreaming/weaver-test';
 
 const siteConfig = {
   title: 'Weaver Test',
   tagline: 'A lean test-framework built on top of cats-effect and fs2',
-  url: 'https://github.bamtech.co/pages/OSS',
-  baseUrl: '/pages/OSS/weaver-test/',
+  url: 'http(s)://disneystreaming.github.io/',
+  baseUrl: '/weaver-test/',
   projectName: 'weaver-test',
   organizationName: 'OSS',
-  githubHost: 'github.bamtech.co',
+  githubHost: 'github.com',
   repoUrl: repoUrl,
   // For no header links in the top nav bar -> headerLinks: [],
   separateCss: ["api"],
@@ -22,7 +22,6 @@ const siteConfig = {
   headerIcon: 'img/dss-profile-white-transparent.svg',
   favicon: 'img/dss-profile-white-transparent.svg',
 
-  // From brand guidelines https://wiki.bamtechmedia.com/x/OzQBAw
   colors: {
     primaryColor: '#336699',
     secondaryColor: '#F1034A',

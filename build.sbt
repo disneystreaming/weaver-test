@@ -1,11 +1,10 @@
 // shadow sbt-scalajs' crossProject and CrossType from Scala.js 0.6.x
 import sbtcrossproject.CrossPlugin.autoImport.{ crossProject, CrossType }
 
-addCommandAlias(
-  "ci",
-  ";project root ;versionDump; scalafmtCheckAll ;+clean ;+test:compile ;+test")
+addCommandAlias("ci",
+                ";project root ;versionDump; scalafmtCheckAll ;+clean ;+test:compile ;+test; docs/docusaurusCreateSite")
 
-addCommandAlias("release", ";project root ;+publish")
+addCommandAlias("release", ";project root ; +publishSigned; sonatypeReleaseAll")
 
 scalaVersion in ThisBuild := WeaverPlugin.scala213
 

@@ -3,9 +3,18 @@ name: default
 
 steps:
 
+- name: build docker image
+  image: docker
+  volumes:
+  - name: dockersock
+    path: /var/run/docker.sock
+  commands:
+  - docker build -t weaver-scala-sbt-yarn:latest docker/
+
   # Compile the code/run tests
 - name: build
-  image: hseeberger/scala-sbt:8u252_1.3.10_2.12.11
+  image: weaver-scala-sbt-yarn:latest
+  pull: if-not-exists
   commands:
   - apt install nodejs -y
   - sbt ci
@@ -16,39 +25,39 @@ steps:
     - name: sbt-cache
       path: /root/.sbt
 
-- name: build docker image
-  image: docker
-  volumes:
-  - name: dockersock
-    path: /var/run/docker.sock
-  commands:
-  - docker build -t weaver-scala-sbt-yarn:latest docker/
 
-- name: build-site
+
+# Compile the code/run tests
+- name: build
   image: weaver-scala-sbt-yarn:latest
   pull: if-not-exists
   commands:
-  - sbt 'docs/docusaurusCreateSite'
+  - sbt ci
+  - echo Built $(cat version)
   environment:
     COURSIER_CACHE: .cache/coursier
   volumes:
     - name: sbt-cache
       path: /root/.sbt
 
-  # Publish maven artifacts (on tag push)
-- name: publish-to-artifactory
-  image: hseeberger/scala-sbt:8u252_1.3.10_2.12.11
+# Publish maven artifacts (on tag push)
+- name: publish-to-sonatype
+  image: weaver-scala-sbt-yarn:latest
+  pull: if-not-exists
   commands:
-  - apt install nodejs -y
-  - echo Publishing version $(cat version)
+  - echo $PGP_SECRET | base64 --decode | gpg --import --no-tty --batch --yes
+  - echo Releasing version $(cat version)
   - sbt release
-  - echo done !
   environment:
     COURSIER_CACHE: .cache/coursier
-    ART_USER:
-      from_secret: username
-    ART_PASSWORD:
-      from_secret: password
+    SONATYPE_USER:
+      from_secret: sonatype_username
+    SONATYPE_PASSWORD:
+      from_secret: sonatype_password
+    PGP_SECRET:
+      from_secret: pgp_secret
+    PGP_PASSPHRASE:
+      from_secret: pgp_passphrase
   when:
     ref:
       - refs/tags/v*
@@ -61,8 +70,9 @@ steps:
   pull: if-not-exists
   commands:
   - mkdir -p $HOME/.ssh
-  - ssh-keyscan -t rsa github.bamtech.co >> $HOME/.ssh/known_hosts
+  - ssh-keyscan -t rsa github.com >> $HOME/.ssh/known_hosts
   - sbt 'docs/docusaurusPublishGhpages'
+  - echo done publishing website
   environment:
     COURSIER_CACHE: .cache/coursier
     GIT_USER: $DRONE_COMMIT_AUTHOR
@@ -84,10 +94,13 @@ volumes:
 
 ---
 kind: secret
-name: username
-data: epM48/FMMsOolVdGDs0z3oQeAMyPioOmshPfBRnmrtfNRag67Q==
+name: sonatype_username
+data: zwYme1IjiRRozAUUdVQwjlBJFfKpfRqQpZI/cp7AdgnavGSd
 ---
 kind: secret
-name: password
-data: krBDYD3HhDKTls34m7vad5oLDsk7PkLgmx3u10B3nCIpbYwWc+mq
-
+name: sonatype_password
+data: ZZMmOIfeOdqSZfMkQbdCkamaOIO/HebT7aadI37GVYvoBtod+2lQXy39eGnKUQPCYPtNHMqIcgmiedv8ZGUVnRxn8JNQ7DTK
+---
+kind: secret
+name: pgp_passphrase
+data: b230qO9iNBwetch1kZafgydRC/LNfJGFgAj/GiOyBKEJYglBACXv3sTfbKBDbuntIWSCAVHM

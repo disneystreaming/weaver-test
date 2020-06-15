@@ -1,5 +1,3 @@
-[![Build Status](https://oss-drone.bamgrid.com/api/badges/OSS/weaver-test/status.svg)](https://oss-drone.bamgrid.com/OSS/weaver-test)
-
 # Weaver-test
 
 A test-framework built on [cats-effect](https://github.com/typelevel/cats-effect) and
@@ -11,19 +9,17 @@ Weaver-test is currently published for **Scala 2.12 and 2.13**
 
 ### SBT
 
-Refer yourself to the [releases](https://github.bamtech.co/OSS/weaver-test/releases) page to know the latest released version, and add the following (or scoped equivalent) to your `build.sbt` file.
+Refer yourself to the [releases](https://github.com/disneystreaming/weaver-test/releases) page to know the latest released version, and add the following (or scoped equivalent) to your `build.sbt` file.
 
 ```scala
-resolvers += "dss oss" at "https://artifactory.us-east-1.bamgrid.net/artifactory/oss-maven"
-
-libraryDependencies += "com.disneystreaming.oss" %% "weaver-framework" % "x.y.z" % Test
+libraryDependencies += "com.disneystreaming" %% "weaver-framework" % "x.y.z" % Test
 testFrameworks += new TestFramework("weaver.framework.TestFramework")
 
 // optionally (for ZIO usage)
-libraryDependencies +=  "com.disneystreaming.oss" %% "weaver-zio" % "x.y.z" % Test
+libraryDependencies +=  "com.disneystreaming" %% "weaver-zio" % "x.y.z" % Test
 
 // optionally (for Scalacheck usage)
-libraryDependencies +=  "com.disneystreaming.oss" %% "weaver-scalacheck" % "x.y.z" % Test
+libraryDependencies +=  "com.disneystreaming" %% "weaver-scalacheck" % "x.y.z" % Test
 
 ```
 
