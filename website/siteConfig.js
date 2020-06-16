@@ -9,7 +9,7 @@ const siteConfig = {
   url: 'http(s)://disneystreaming.github.io/',
   baseUrl: '/weaver-test/',
   projectName: 'weaver-test',
-  organizationName: 'OSS',
+  organizationName: 'disneystreaming',
   githubHost: 'github.com',
   repoUrl: repoUrl,
   // For no header links in the top nav bar -> headerLinks: [],
