@@ -92,11 +92,11 @@ alongside the logging message.</p>
 }
 </code></pre>
 <p>The report would look something like this:</p>
-<pre><code class="hljs css language-text">MySuite
-+ logging for success
-
-MyAnotherSuite
+<pre><code class="hljs css language-text">MyAnotherSuite
 - failure should print logs
+
+MySuite
++ logging for success
 
 *************FAILURES*************
 MyAnotherSuite
@@ -106,12 +106,12 @@ MyAnotherSuite
   } yield expect(x.length > 20)
                  | |      |
                  | 10     false
-                 더ঋ켑᧝ⷕ甓췺뒛ᩧ疏
+                 㜕◕ᰗ邼敖苑ẟẜ⠏焭
 
-    [INFO]  12:34:43  Starting the test...
-        time    -> 1592303683
+    [INFO]  10:52:02  Starting the test...
+        time    -> 1592304722
         purpose -> docs
-    [DEBUG] 12:34:43  Generated random string: 더ঋ켑᧝ⷕ甓췺뒛ᩧ疏
+    [DEBUG] 10:52:02  Generated random string: 㜕◕ᰗ邼敖苑ẟẜ⠏焭
 
 Total 2, Failed 1, Passed 1, Ignored 0, Cancelled 0
 </code></pre>

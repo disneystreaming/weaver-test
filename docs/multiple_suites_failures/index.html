@@ -77,13 +77,19 @@
 }
 </code></pre>
 <p>The report would look something like this:</p>
-<pre><code class="hljs css language-text">MyAnotherSuite
-- failing test 2
-
-MySuite
+<pre><code class="hljs css language-text">MySuite
 - failing test 1
 
+MyAnotherSuite
+- failing test 2
+
 *************FAILURES*************
+MySuite
+- failing test 1
+  assertion failed (none:18)
+
+  expect(1 >= 2)
+
 MyAnotherSuite
 - failing test 2
   assertion failed (none:29)
@@ -91,13 +97,7 @@ MyAnotherSuite
   } yield expect(x.length > 10)
                  | |      |
                  | 10     false
-                 䎃䠅뱗㩝㺟렊홫闔킑턲
-
-MySuite
-- failing test 1
-  assertion failed (none:18)
-
-  expect(1 >= 2)
+                 㑦㭴胜咷揕酻ꐖ䴚壊ᄣ
 
 Total 2, Failed 2, Passed 0, Ignored 0, Cancelled 0
 </code></pre>
