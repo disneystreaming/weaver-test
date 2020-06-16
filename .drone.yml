@@ -3,34 +3,9 @@ name: default
 
 steps:
 
-- name: build docker image
-  image: docker
-  volumes:
-  - name: dockersock
-    path: /var/run/docker.sock
-  commands:
-  - docker build -t weaver-scala-sbt-yarn:latest docker/
-
-  # Compile the code/run tests
-- name: build
-  image: weaver-scala-sbt-yarn:latest
-  pull: if-not-exists
-  commands:
-  - apt install nodejs -y
-  - sbt ci
-  - echo Built $(cat version)
-  environment:
-    COURSIER_CACHE: .cache/coursier
-  volumes:
-    - name: sbt-cache
-      path: /root/.sbt
-
-
-
 # Compile the code/run tests
 - name: build
-  image: weaver-scala-sbt-yarn:latest
-  pull: if-not-exists
+  image: keynmol/weaver-scala-sbt-yarn:latest
   commands:
   - sbt ci
   - echo Built $(cat version)
@@ -42,8 +17,7 @@ steps:
 
 # Publish maven artifacts (on tag push)
 - name: publish-to-sonatype
-  image: weaver-scala-sbt-yarn:latest
-  pull: if-not-exists
+  image: keynmol/weaver-scala-sbt-yarn:latest
   commands:
   - echo $PGP_SECRET | base64 --decode | gpg --import --no-tty --batch --yes
   - echo Releasing version $(cat version)
@@ -66,8 +40,7 @@ steps:
     path: /root/.sbt
 
 - name: publish-site
-  image: weaver-scala-sbt-yarn:latest
-  pull: if-not-exists
+  image: keynmol/weaver-scala-sbt-yarn:latest
   commands:
   - mkdir -p $HOME/.ssh
   - ssh-keyscan -t rsa github.com >> $HOME/.ssh/known_hosts
@@ -77,7 +50,7 @@ steps:
     COURSIER_CACHE: .cache/coursier
     GIT_USER: $DRONE_COMMIT_AUTHOR
     GITHUB_DEPLOY_KEY:
-      from_secret: github_deploy_public_key
+      from_secret: github_deploy_key
   when:
     ref:
       - refs/tags/v*
@@ -88,19 +61,3 @@ steps:
 volumes:
 - name: sbt-cache
   temp: {}
-- name: dockersock
-  host:
-    path: /var/run/docker.sock
-
----
-kind: secret
-name: sonatype_username
-data: zwYme1IjiRRozAUUdVQwjlBJFfKpfRqQpZI/cp7AdgnavGSd
----
-kind: secret
-name: sonatype_password
-data: ZZMmOIfeOdqSZfMkQbdCkamaOIO/HebT7aadI37GVYvoBtod+2lQXy39eGnKUQPCYPtNHMqIcgmiedv8ZGUVnRxn8JNQ7DTK
----
-kind: secret
-name: pgp_passphrase
-data: b230qO9iNBwetch1kZafgydRC/LNfJGFgAj/GiOyBKEJYglBACXv3sTfbKBDbuntIWSCAVHM

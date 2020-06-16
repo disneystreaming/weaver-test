@@ -1,3 +1,5 @@
+[![Build Status](https://cloud.drone.io/api/badges/disneystreaming/weaver-test/status.svg)](https://cloud.drone.io/disneystreaming/weaver-test)
+
 # Weaver-test
 
 A test-framework built on [cats-effect](https://github.com/typelevel/cats-effect) and
@@ -106,7 +108,7 @@ object MySuite extends IOSuite {
 
 The various `test` functions have in common that they expect the developer to return a value of type `Expectations`, which is just a basic case class wrapping a `cats.data.Validated` value.
 
-The most convenient way to build `Expectations` is to use the `expect` function. It captures the boolean expression at compile time and provides useful feedback on what goes wrong when it does :
+The most convenient way to build `Expectations` is to use the `expect` function. Based on [Eugene Yokota's](http://eed3si9n.com/about) excellent [expecty](https://github.com/eed3si9n/expecty), it captures the boolean expression at compile time and provides useful feedback on what goes wrong when it does :
 
 ![Oops](docs/assets/oops.png)
 
