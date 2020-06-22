@@ -8,7 +8,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 object Output {
   implicit val cs          = IO.contextShift(global)
-  private val ansiColorRgx = """\u001b\[([;\d]*)m""".r
+  private val ansiColorRgx = "\u001b\\[([;\\d]*)m".r
 
   def removeASCIIColors(str: String) =
     ansiColorRgx.replaceAllIn(str, "")
