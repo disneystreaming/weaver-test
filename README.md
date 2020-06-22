@@ -175,6 +175,15 @@ object ForallExamples extends SimpleIOSuite with IOCheckers {
 
 Contributions are most welcome !
 
+### Development requirements
+
+This repository uses [Git LFS](https://git-lfs.github.com/). To install for Mac using `brew`:
+
+```bash
+brew install git-lfs
+git lfs install
+```
+
 ## Inspiration
 
 A **HUGE** thank you to Alexandru Nedelcu, author of [Monix](https://github.com/monix/monix) and contributor to
