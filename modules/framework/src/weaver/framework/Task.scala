@@ -8,7 +8,6 @@ import cats.syntax.foldable._
 import cats.instances.vector._
 import cats.data.Chain
 
-import org.portablescala.reflect._
 import sbt.testing.{ Logger => BaseLogger, Task => BaseTask, _ }
 
 import scala.concurrent.duration._
@@ -55,16 +54,8 @@ final class Task(
     executeWrapper(eventHandler, loggers).unsafeRunSync()
   }
 
-  def loadSuite(name: String, loader: ClassLoader): IO[EffectSuite[Any]] = {
-    val moduleName = name + "$"
-    IO(Reflect.lookupLoadableModuleClass(moduleName))
-      .flatMap {
-        case None =>
-          IO.raiseError(
-            new Exception(s"Could not load class $moduleName") with NoStackTrace
-          )
-        case Some(cls) => IO(cls.loadModule())
-      }
+  def loadSuite(loader: ClassLoader): IO[EffectSuite[Any]] = {
+    loadModule(task.fullyQualifiedName(), loader)
       .flatMap {
         case ref: EffectSuite[_] => IO.pure(ref)
         case other =>
@@ -107,7 +98,7 @@ final class Task(
       }
       // format: on
 
-      loadSuite(task.fullyQualifiedName(), cl)
+      loadSuite(cl)
         .flatMap { suite =>
           loggers.foreach(_.info(cyan(task.fullyQualifiedName())))
           suite
