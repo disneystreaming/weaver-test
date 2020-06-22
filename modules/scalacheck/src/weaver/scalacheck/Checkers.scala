@@ -7,10 +7,6 @@ import org.scalacheck.Gen
 import cats.effect.IO
 import org.scalacheck.rng.Seed
 import cats.Show
-import cats.implicits._
-
-import org.scalacheck.Gen
-import cats.effect.IO
 import org.scalacheck.Arbitrary
 import cats.effect.concurrent.Ref
 
