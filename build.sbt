@@ -118,7 +118,7 @@ lazy val zio = crossProject(JSPlatform, JVMPlatform)
   .settings(WeaverPlugin.simpleLayout)
   .settings(
     libraryDependencies ++= Seq(
-      "dev.zio"           %%% "zio-interop-cats" % "2.1.3.0-RC15",
+      "dev.zio"           %%% "zio-interop-cats" % "2.1.3.0-RC16",
       "io.github.cquiroz" %%% "scala-java-time"  % "2.0.0"
     ),
     scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) }
