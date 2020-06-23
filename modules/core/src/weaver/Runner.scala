@@ -88,8 +88,8 @@ class Runner[F[_]: Concurrent](args: List[String], maxConcurrentSuites: Int)(
           _ <- (printLine(red(stars) + "FAILURES" + red(stars)) *> failures
             .traverse[F, Unit] { specEvent =>
               printLine(cyan(specEvent.name)) *>
-              specEvent.events.traverse(printTestEvent(Verbose)) *>
-              newLine
+                specEvent.events.traverse(printTestEvent(Verbose)) *>
+                newLine
             }
             .void).whenA(failures.nonEmpty)
           _ <- printLine(outcome.formatted)

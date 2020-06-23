@@ -24,10 +24,10 @@ object DogFoodSuite extends SimpleIOSuite with DogFood {
         exists(events.headOption) { event =>
           val name = event.fullyQualifiedName()
           expect(name == "weaver.framework.test.Meta$CrashingSuite") and
-          expect(event.status() == Status.Error)
+            expect(event.status() == Status.Error)
         } and exists(errorLogs) { log =>
           expect(log.contains("Unexpected failure")) and
-          expect(log.contains("Boom"))
+            expect(log.contains("Boom"))
         }
     }
   }
@@ -170,7 +170,8 @@ object DogFoodSuite extends SimpleIOSuite with DogFood {
     }
   }
 
-  simpleTest("cancelled tests with multi-line test name are rendered correctly") {
+  simpleTest(
+    "cancelled tests with multi-line test name are rendered correctly") {
     runSuite(Meta.Rendering).map {
       case (logs, _) =>
         val actual =
@@ -208,9 +209,11 @@ object DogFoodSuite extends SimpleIOSuite with DogFood {
           padStr("<missing>", maxExpectedLineLength) + " != " + s"'$actualLine'"
         case (Some(expectedLine), Some(actualLine)) =>
           val op = if (expectedLine == actualLine) "==" else "!="
-          padStr(s"'$expectedLine'", maxExpectedLineLength) + s" $op " + s"'$actualLine'"
+          padStr(s"'$expectedLine'",
+                 maxExpectedLineLength) + s" $op " + s"'$actualLine'"
         case (Some(expectedLine), None) =>
-          padStr(s"'$expectedLine'", maxExpectedLineLength) + " != " + s"<missing>"
+          padStr(s"'$expectedLine'",
+                 maxExpectedLineLength) + " != " + s"<missing>"
         case (None, None) => "something impossible happened"
       }
       .mkString("\n")

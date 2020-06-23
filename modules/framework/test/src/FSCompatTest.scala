@@ -18,7 +18,8 @@ abstract class FSCompatTest extends SimpleIOSuite {
     expect(result == relativePath.some)
   }
 
-  test("best effort path of an absolute subpath of current path is the subpath") {
+  test(
+    "best effort path of an absolute subpath of current path is the subpath") {
     val result = FSCompat.bestEffortPath(fileName.some, absolutePath.some)
     expect(result == relativePath.some)
   }

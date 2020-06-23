@@ -13,7 +13,8 @@ object Test {
 
   def apply[R <: Has[_]](
       name: String,
-      f: ZIO[PerTestEnv[R], Throwable, Expectations]): ZIO[Env[R], Nothing, TestOutcome] =
+      f: ZIO[PerTestEnv[R], Throwable, Expectations]
+  ): ZIO[Env[R], Nothing, TestOutcome] =
     for {
       ref   <- Ref.make(Chain.empty[Log.Entry])
       start <- zio.clock.currentTime(TimeUnit.MILLISECONDS)

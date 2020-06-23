@@ -90,9 +90,8 @@ final class Task(
       }
 
     val defaultLoggedBracket: Resource[IO, DeferredLogger] =
-      Resource.pure[IO, DeferredLogger](
-        (_, event) => doLog(event) *> handle(event)
-      )
+      Resource.pure[IO, DeferredLogger]((_, event) =>
+        doLog(event) *> handle(event))
 
     val loggerResource = maybeDeferredLogger.getOrElse(defaultLoggedBracket)
 

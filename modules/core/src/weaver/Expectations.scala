@@ -42,7 +42,6 @@ object Expectations {
 
   /**
    * Trick to convert from multiplicative assertion to additive assertion
-   *
    */
   abstract class NewType { self =>
     type Base
@@ -118,19 +117,16 @@ object Expectations {
         implicit L: Foldable[L]): Expectations = forall(la)(f)
 
     def verify(condition: Boolean, hint: String)(
-        implicit
-        pos: SourceLocation): Expectations =
+        implicit pos: SourceLocation): Expectations =
       if (condition) success
       else failure(hint)
 
     def verify(condition: Boolean)(
-        implicit
-        pos: SourceLocation): Expectations =
+        implicit pos: SourceLocation): Expectations =
       verify(condition, "assertion failed!")
 
     def not(assertion: Expectations)(
-        implicit
-        pos: SourceLocation): Expectations = assertion.run match {
+        implicit pos: SourceLocation): Expectations = assertion.run match {
       case Valid(_)   => failure("Assertion was true")
       case Invalid(_) => success
     }

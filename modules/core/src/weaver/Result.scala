@@ -125,7 +125,7 @@ object Result {
       val causes = traverseCauses(ex)
       val causeStackTraceLines = causes.flatMap { cause =>
         Vector(EOL + "Caused by: " + cause.toString + EOL) ++
-        TestErrorFormatter.formatStackTrace(cause, traceLimit)
+          TestErrorFormatter.formatStackTrace(cause, traceLimit)
       }
 
       val errorOutputLines = stackTraceLines ++ causeStackTraceLines
@@ -159,8 +159,8 @@ object Result {
       case (line, index) =>
         if (index == 0)
           color + prefix + line +
-          location.fold("")(l =>
-            s" (${l.bestEffortPath.getOrElse("none")}:${l.line})")
+            location.fold("")(l =>
+              s" (${l.bestEffortPath.getOrElse("none")}:${l.line})")
         else
           color + prefix + line
     }
@@ -179,8 +179,8 @@ object Result {
         val prefix = if (line.trim == "") "" else width.prefix
         if (index == 0)
           color + prefix + line +
-          location.fold("")(l =>
-            s" (${l.bestEffortPath.getOrElse("none")}:${l.line})")
+            location.fold("")(l =>
+              s" (${l.bestEffortPath.getOrElse("none")}:${l.line})")
         else
           color + prefix + line
     }
