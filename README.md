@@ -1,7 +1,7 @@
 [![Build Status](https://cloud.drone.io/api/badges/disneystreaming/weaver-test/status.svg)](https://cloud.drone.io/disneystreaming/weaver-test)
 [![Latest version](https://index.scala-lang.org/disneystreaming/weaver-test/weaver-core/latest.svg?color=orange)](https://index.scala-lang.org/disneystreaming/weaver-test/weaver-core)
 
-
+![logo](./website/static/img/logo.png)
 # Weaver-test
 
 A test-framework built on [cats-effect](https://github.com/typelevel/cats-effect) and
