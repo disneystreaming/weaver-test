@@ -22,15 +22,15 @@ trait Checkers[F[_]] {
   // Configuration for property-based tests
   def checkConfig: CheckConfig = CheckConfig.default
 
-  def forall[A1: Arbitrary: Show, P](f: A1 => Prop)(
+  def forall[A1: Arbitrary: Show](f: A1 => Prop)(
       implicit loc: SourceLocation): F[Expectations] =
     forall(implicitly[Arbitrary[A1]].arbitrary)(f)
 
-  def forall[A1: Arbitrary: Show, A2: Arbitrary: Show, P](f: (A1, A2) => Prop)(
+  def forall[A1: Arbitrary: Show, A2: Arbitrary: Show](f: (A1, A2) => Prop)(
       implicit loc: SourceLocation): F[Expectations] =
     forall(implicitly[Arbitrary[(A1, A2)]].arbitrary)(f.tupled)
 
-  def forall[A1: Arbitrary: Show, A2: Arbitrary: Show, A3: Arbitrary: Show, P](
+  def forall[A1: Arbitrary: Show, A2: Arbitrary: Show, A3: Arbitrary: Show](
       f: (A1, A2, A3) => Prop)(
       implicit loc: SourceLocation): F[Expectations] = {
     implicit val tuple3Show: Show[(A1, A2, A3)] = {
@@ -43,8 +43,8 @@ trait Checkers[F[_]] {
       A1: Arbitrary: Show,
       A2: Arbitrary: Show,
       A3: Arbitrary: Show,
-      A4: Arbitrary: Show,
-      P](f: (A1, A2, A3, A4) => Prop)(
+      A4: Arbitrary: Show
+  ](f: (A1, A2, A3, A4) => Prop)(
       implicit loc: SourceLocation): F[Expectations] = {
     implicit val tuple3Show: Show[(A1, A2, A3, A4)] = {
       case (a1, a2, a3, a4) => s"(${a1.show},${a2.show},${a3.show},${a4.show})"
@@ -57,8 +57,8 @@ trait Checkers[F[_]] {
       A2: Arbitrary: Show,
       A3: Arbitrary: Show,
       A4: Arbitrary: Show,
-      A5: Arbitrary: Show,
-      P](f: (A1, A2, A3, A4, A5) => Prop)(
+      A5: Arbitrary: Show
+  ](f: (A1, A2, A3, A4, A5) => Prop)(
       implicit loc: SourceLocation): F[Expectations] = {
     implicit val tuple3Show: Show[(A1, A2, A3, A4, A5)] = {
       case (a1, a2, a3, a4, a5) =>
@@ -73,8 +73,8 @@ trait Checkers[F[_]] {
       A3: Arbitrary: Show,
       A4: Arbitrary: Show,
       A5: Arbitrary: Show,
-      A6: Arbitrary: Show,
-      P](f: (A1, A2, A3, A4, A5, A6) => Prop)(
+      A6: Arbitrary: Show
+  ](f: (A1, A2, A3, A4, A5, A6) => Prop)(
       implicit loc: SourceLocation): F[Expectations] = {
     implicit val tuple3Show: Show[(A1, A2, A3, A4, A5, A6)] = {
       case (a1, a2, a3, a4, a5, a6) =>
@@ -86,7 +86,7 @@ trait Checkers[F[_]] {
   /** ScalaCheck test parameters instance. */
   val numbers = fs2.Stream.iterate(1)(_ + 1)
 
-  def forall[A: Show, P](gen: Gen[A])(f: A => Prop)(
+  def forall[A: Show](gen: Gen[A])(f: A => Prop)(
       implicit loc: SourceLocation): F[Expectations] =
     Ref[F].of(Status.start[A]).flatMap(forall_(gen, f))
 
