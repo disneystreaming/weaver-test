@@ -46,7 +46,7 @@ object ZIOSuiteTest extends ZIOSuite[KVStore] {
       } yield {
         val event = events.headOption.get
         expect(event.status == Status.Error) and
-        expect(event.throwable().get().getMessage == "oh no")
+          expect(event.throwable().get().getMessage == "oh no")
       }
     }
   }
