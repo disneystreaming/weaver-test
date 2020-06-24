@@ -20,7 +20,7 @@ object MySuite extends SimpleIOSuite {
 object MyAnotherSuite extends SimpleIOSuite {
   val randomString = IO(scala.util.Random.nextString(10))
 
-  simpleTest("failing test 2") { 
+  simpleTest("failing test 2") {
     for {
       x <- randomString
     } yield expect(x.length > 10)
@@ -28,7 +28,7 @@ object MyAnotherSuite extends SimpleIOSuite {
 }
 ```
 
-The report would look something like this:
+The report looks like this:
 
 ```scala mdoc:passthrough
 println(weaver.docs.Output.runSuites(MySuite, MyAnotherSuite).unsafeRunSync())

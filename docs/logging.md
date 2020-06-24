@@ -3,7 +3,7 @@ id: logging
 title: Logging information
 ---
 
-Weaver allows provides with per-test lazy-loggers. The log statements are only ever reported if the test was unsuccessful. Because tests in weaver run in parallel by default, this makes it easier to tie printed information to the test they originated from.
+Weaver provides each individual test with a lazy-logger. The log statements only get reported if the test is unsuccessful. Because tests in weaver run in parallel by default, this makes it easier to tie printed information to the test it originated from.
 
 ```scala mdoc
 import weaver._

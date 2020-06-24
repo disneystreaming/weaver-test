@@ -9,7 +9,8 @@ Start with importing the following :
 import weaver._
 ```
 
-The most basic usage is to extend `SimpleIOSuite`. Tests are registered imperatively, very much like in scalatest's `FunSuite` or in `utest`, but
+The most basic usage is to extend `SimpleIOSuite`. Tests are registered imperatively, very much like in scalatest's `FunSuite` or in `utest`, but their bodies are "weaved" together in a single `IO` that the framework executes when the build tool asks for it.
+
 
 ```scala mdoc
 import cats.effect._
