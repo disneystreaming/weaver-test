@@ -69,35 +69,35 @@
 <span class="hljs-class"><span class="hljs-keyword">object</span> <span class="hljs-title">MyAnotherSuite</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">SimpleIOSuite</span> </span>{
   <span class="hljs-keyword">val</span> randomString = <span class="hljs-type">IO</span>(scala.util.<span class="hljs-type">Random</span>.nextString(<span class="hljs-number">10</span>))
 
-  simpleTest(<span class="hljs-string">"failing test 2"</span>) { 
+  simpleTest(<span class="hljs-string">"failing test 2"</span>) {
     <span class="hljs-keyword">for</span> {
       x &lt;- randomString
     } <span class="hljs-keyword">yield</span> expect(x.length &gt; <span class="hljs-number">10</span>)
   }
 }
 </code></pre>
-<p>The report would look something like this:</p>
-<pre><code class="hljs css language-text">MySuite
+<p>The report looks like this:</p>
+<pre><code class="hljs css language-text">repl.MdocSessionAppMySuite
 - failing test 1
 
-MyAnotherSuite
+repl.MdocSessionAppMyAnotherSuite
 - failing test 2
 
 *************FAILURES*************
-MySuite
+repl.MdocSessionAppMySuite
 - failing test 1
   assertion failed (none:18)
 
   expect(1 >= 2)
 
-MyAnotherSuite
+repl.MdocSessionAppMyAnotherSuite
 - failing test 2
   assertion failed (none:29)
 
   } yield expect(x.length > 10)
                  | |      |
                  | 10     false
-                 㑦㭴胜咷揕酻ꐖ䴚壊ᄣ
+                 뵡衫蔾걬ၹ鐸⇣모☖杩
 
 Total 2, Failed 2, Passed 0, Ignored 0, Cancelled 0
 </code></pre>

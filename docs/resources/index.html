@@ -55,7 +55,7 @@
               }
             });
         </script></nav></div><div class="container mainContainer docsContainer"><div class="wrapper"><div class="post"><header class="postHeader"><h1 id="__docusaurus" class="postHeaderTitle">Sharing resources</h1></header><article><div><span><p>Resources can be shared across tests, this is done by implementing a method that returns <a href="https://typelevel.org/cats-effect/datatypes/resource.html">cats.effect.Resource</a>.</p>
-<p>This is also how you would translate what is usually exposed via <code>beforeAll</code> and <code>afterAll</code> method, as the resource is instantiated before tests are run, and cleaned-up after tests finish.</p>
+<p>This is also how you would translate the traditional <code>beforeAll</code> and <code>afterAll</code> methods, as the resources are acquired before tests are run, and cleaned-up after they finish.</p>
 <pre><code class="hljs css language-scala"><span class="hljs-keyword">import</span> weaver._
 <span class="hljs-keyword">import</span> cats.effect._
 
