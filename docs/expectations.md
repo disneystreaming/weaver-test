@@ -3,9 +3,9 @@ id: expectations
 title: Expectations (assertions)
 ---
 
-Expectations are pure, composable values. This forces developers to separate the scenario of a test from the checks it performs, which generally makes for cleaner/clearer code.
+Expectations are pure, composable values. This forces developers to separate the test's checks from the scenario, which is generally cleaner/clearer.
 
-The easiest way to construct them is to call the `expect` macro, which is built using the [expecty](https://github.com/eed3si9n/expecty/) library.
+The easiest way to construct expectactions is to call the `expect` macro, which is built using the [expecty](https://github.com/eed3si9n/expecty/) library.
 
 ```scala mdoc
 import weaver._

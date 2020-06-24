@@ -5,7 +5,7 @@ title: Sharing resources
 
 Resources can be shared across tests, this is done by implementing a method that returns [cats.effect.Resource](https://typelevel.org/cats-effect/datatypes/resource.html).
 
-This is also how you would translate what is usually exposed via `beforeAll` and `afterAll` method, as the resource is instantiated before tests are run, and cleaned-up after tests finish.
+This is also how you would translate the traditional `beforeAll` and `afterAll` methods, as the resources are acquired before tests are run, and cleaned-up after they finish.
 
 
 ```scala mdoc

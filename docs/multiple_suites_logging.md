@@ -3,11 +3,9 @@ id: multiple_suites_logging
 title: Logging
 ---
 
-Weaver only outputs the logs for tests that failed - the logs are neatly collected alongside the
-failure information and reported after all the tests have run.
+Weaver only outputs the logs for tests that failed - the logs are neatly collected alongside the failure information and reported after all the tests have run.
 
-Additionally, each logging message can have a context associated with it - which will be printed 
-alongside the logging message.
+Additionally, each log can have a context associated with it - which gets printed alongside the message.
 
 ```scala mdoc
 import weaver._

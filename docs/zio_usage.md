@@ -56,7 +56,7 @@ import zio.interop.catz._
 
 // ZIOSuite requires the type of the shared layer to be defined as a type
 // parameter. That is because zio needs to implicitly derive some type-tag
-// instance for ts built-in dependency injection to work.
+// instance for its built-in dependency injection mechanism to work.
 //
 // NB, the default environment ZEnv is provided by default.
 //
