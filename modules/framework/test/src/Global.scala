@@ -18,7 +18,7 @@ class ResourceSharingSuite(globalResources: GlobalResources) extends IOSuite {
     globalResources.in[IO].getOrFailR[String]()
 
   test("a stranger, from the outside ! ooooh") { sharedString =>
-    IO(expect(sharedString == "hello world!!"))
+    IO(expect(sharedString == "hello world!"))
   }
 }
 
