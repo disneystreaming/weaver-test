@@ -33,8 +33,6 @@ trait GlobalResources {
 
 object GlobalResources {
 
-  /**
-   */
   trait Write[F[_]] {
     def put[A](value: A, label: Option[String] = None)(
         implicit rt: ResourceTag[A]): F[Unit]
@@ -68,7 +66,7 @@ object GlobalResources {
 
   }
 
-  protected[weaver] val createMap: IO[Read[IO] with Write[IO]] =
+  protected[weaver] val createMap: IO[GlobalResources with Write[IO]] =
     Ref[IO]
       .of(Map.empty[(Option[String], ResourceTag[_]), Any])
       .map(new ResourceMap(_))
@@ -76,7 +74,9 @@ object GlobalResources {
   private class ResourceMap(
       ref: Ref[IO, Map[(Option[String], ResourceTag[_]), Any]])
       extends Read[IO]
-      with Write[IO] {
+      with Write[IO]
+      with GlobalResources { self =>
+
     def put[A](value: A, label: Option[String])(
         implicit rt: ResourceTag[A]): IO[Unit] =
       ref.update(_ + ((label, rt) -> value))
@@ -84,6 +84,12 @@ object GlobalResources {
     def get[A](label: Option[String])(
         implicit rt: ResourceTag[A]): IO[Option[A]] =
       ref.get.map(_.get(label -> rt).flatMap(rt.cast))
+
+    def in[F[_]: LiftIO]: Read[F] = new Read[F] {
+      def get[A](label: Option[String])(implicit
+      rt: ResourceTag[A]): F[Option[A]] =
+        LiftIO[F].liftIO(self.get[A](label))
+    }
   }
 
   case class ResourceNotFound(label: Option[String], typeDesc: String)

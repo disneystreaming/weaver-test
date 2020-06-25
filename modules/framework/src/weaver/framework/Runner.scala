@@ -1,10 +1,7 @@
 package weaver
 package framework
 
-import weaver.framework.TestFramework.{
-  ModuleFingerprint,
-  GlobalResourcesFingerprint
-}
+import TestFramework._
 
 import cats.implicits._
 import cats.effect.{ ContextShift, IO, Timer }
@@ -29,7 +26,7 @@ final class Runner(
   def tasks(list: Array[TaskDef]): Array[BaseTask] = {
     val globalResourceModules: IO[List[GlobalResourcesInit]] = list
       .collect {
-        case taskDef if taskDef.fingerprint() == GlobalResourcesFingerprint =>
+        case GlobalResourcesFingerprint(taskDef) =>
           loadModule(taskDef.fullyQualifiedName(), classLoader).flatMap {
             case g: GlobalResourcesInit => IO.pure(g)
             case other =>
@@ -47,7 +44,10 @@ final class Runner(
         .flatMap(_.traverse(gr => gr.sharedResources(rw)).void.allocated)
         .map(_._2)
 
-    val N = list.count(_.fingerprint() == ModuleFingerprint).toLong
+    val N = list.count {
+      case ModuleFingerprint(_) | GlobalResourcesSharingFingerprint(_) => true
+      case _                                                           => false
+    }.toLong
 
     val prep = for {
       resourceMap <- GlobalResources.createMap
@@ -71,16 +71,27 @@ final class Runner(
         }
 
       list.collect {
-        case taskDef
-            if taskDef.fingerprint() == TestFramework.ModuleFingerprint =>
+        case ModuleFingerprint(taskDef) =>
           new Task(
             taskDef,
             args.toList,
-            classLoader,
+            suiteFromModule(taskDef.fullyQualifiedName(), classLoader),
+            loggerResource.some,
+            next.some
+          ): BaseTask
+        case GlobalResourcesSharingFingerprint(taskDef) =>
+          new Task(
+            taskDef,
+            args.toList,
+            suiteFromGlobalResourcesSharingClass(
+              taskDef.fullyQualifiedName(),
+              resourceMap,
+              classLoader),
             loggerResource.some,
             next.some
           ): BaseTask
       }
+
     }
     prep.unsafeRunSync()
   }
@@ -96,6 +107,11 @@ final class Runner(
   def deserializeTask(
       task: String,
       deserializer: String => TaskDef): BaseTask = {
-    new Task(deserializer(task), args.toList, classLoader, None, None)
+    val taskDef = deserializer(task)
+    new Task(deserializer(task),
+             args.toList,
+             suiteFromModule(taskDef.fullyQualifiedName(), classLoader),
+             None,
+             None)
   }
 }

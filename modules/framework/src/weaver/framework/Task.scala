@@ -12,13 +12,12 @@ import sbt.testing.{ Logger => BaseLogger, Task => BaseTask, _ }
 
 import scala.concurrent.duration._
 import scala.util.control.NonFatal
-import scala.util.control.NoStackTrace
 import cats.effect.Resource
 
 final class Task(
     val task: TaskDef,
     args: List[String],
-    cl: ClassLoader,
+    loadSuite: IO[EffectSuite[Any]],
     maybeDeferredLogger: Option[Resource[IO, DeferredLogger]],
     maybeNext: Option[BaseTask])
     extends WeaverTask {
@@ -54,17 +53,6 @@ final class Task(
     executeWrapper(eventHandler, loggers).unsafeRunSync()
   }
 
-  def loadSuite(loader: ClassLoader): IO[EffectSuite[Any]] = {
-    loadModule(task.fullyQualifiedName(), loader)
-      .flatMap {
-        case ref: EffectSuite[_] => IO.pure(ref)
-        case other =>
-          IO.raiseError {
-            new Exception(s"$other is not an effect suite") with NoStackTrace
-          }
-      }
-  }
-
   private def executeWrapper(
       eventHandler: EventHandler,
       loggers: Array[BaseLogger]): IO[Array[BaseTask]] = {
@@ -98,7 +86,7 @@ final class Task(
       }
       // format: on
 
-      loadSuite(cl)
+      loadSuite
         .flatMap { suite =>
           loggers.foreach(_.info(cyan(task.fullyQualifiedName())))
           suite
