@@ -1,10 +1,12 @@
 // shadow sbt-scalajs' crossProject and CrossType from Scala.js 0.6.x
 import sbtcrossproject.CrossPlugin.autoImport.{ crossProject, CrossType }
 
-addCommandAlias("ci",
-                ";project root ;versionDump; scalafmtCheckAll ;+clean ;+test:compile ;+test; docs/docusaurusCreateSite")
+addCommandAlias(
+  "ci",
+  ";project root ;versionDump; scalafmtCheckAll ;+clean ;+test:compile ;+test; docs/docusaurusCreateSite")
 
-addCommandAlias("release", ";project root ; +publishSigned; sonatypeBundleRelease")
+addCommandAlias("release",
+                ";project root ; +publishSigned; sonatypeBundleRelease")
 
 scalaVersion in ThisBuild := WeaverPlugin.scala213
 
@@ -50,7 +52,7 @@ lazy val coreJS  = core.js
 lazy val docs = project
   .in(file("modules/docs"))
   .enablePlugins(DocusaurusPlugin, MdocPlugin)
-  .dependsOn(coreJVM, scalacheckJVM, zioJVM)
+  .dependsOn(coreJVM, frameworkJVM, scalacheckJVM, zioJVM)
   .settings(
     moduleName := "docs",
     watchSources += (ThisBuild / baseDirectory).value / "docs",
@@ -72,7 +74,7 @@ lazy val framework = crossProject(JSPlatform, JVMPlatform)
   .settings(WeaverPlugin.simpleLayout)
   .settings(
     libraryDependencies ++= Seq(
-      "io.github.cquiroz" %%% "scala-java-time" % "2.0.0" % Test,
+      "io.github.cquiroz" %%% "scala-java-time"      % "2.0.0" % Test,
       "io.github.cquiroz" %%% "scala-java-time-tzdb" % "2.0.0" % Test
     ),
     scalacOptions in Test ~= (_ filterNot (_ == "-Xfatal-warnings")),
@@ -80,8 +82,8 @@ lazy val framework = crossProject(JSPlatform, JVMPlatform)
   )
   .jvmSettings(
     libraryDependencies ++= Seq(
-      "org.scala-sbt" % "test-interface"  % "1.0",
-      "org.scala-js"  %%% "scalajs-stubs" % "1.0.0" % "provided"
+      "org.scala-sbt"  % "test-interface" % "1.0",
+      "org.scala-js" %%% "scalajs-stubs"  % "1.0.0" % "provided"
     )
   )
   .jsSettings(

@@ -3,6 +3,7 @@ package framework
 package test
 
 import cats.effect._
+
 import scala.concurrent.duration.{ TimeUnit, FiniteDuration }
 import java.time.OffsetDateTime
 
@@ -137,6 +138,6 @@ object Meta {
       Some("DogFoodTests.scala"),
       Some("src/main/DogFoodTests.scala"),
       5)
-
   }
+
 }

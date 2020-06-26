@@ -1,6 +1,8 @@
 package weaver
 package framework
 
+import TestFramework._
+
 import cats.implicits._
 import cats.effect.{ ContextShift, IO, Timer }
 import cats.effect.concurrent.{ Ref, Semaphore }
@@ -22,20 +24,44 @@ final class Runner(
   implicit val contextShift: ContextShift[IO] = IO.contextShift(ec)
 
   def tasks(list: Array[TaskDef]): Array[BaseTask] = {
-    val N = list.length.toLong
+    val globalResourceModules: IO[List[GlobalResourcesInit]] = list
+      .collect {
+        case GlobalResourcesFingerprint(taskDef) =>
+          loadModule(taskDef.fullyQualifiedName(), classLoader).flatMap {
+            case g: GlobalResourcesInit => IO.pure(g)
+            case other =>
+              IO.raiseError {
+                new Exception(s"$other is not an global resource initialiser")
+                  with scala.util.control.NoStackTrace
+              }
+          }
+      }
+      .toList
+      .traverse(identity)
+
+    def globalAllocation(rw: GlobalResources.Write[IO]): IO[IO[Unit]] =
+      globalResourceModules
+        .flatMap(_.traverse(gr => gr.sharedResources(rw)).void.allocated)
+        .map(_._2)
+
+    val N = list.count {
+      case ModuleFingerprint(_) | GlobalResourcesSharingFingerprint(_) => true
+      case _                                                           => false
+    }.toLong
 
     val prep = for {
-      semaphore <- Semaphore[IO](N)
-      _         <- semaphore.acquireN(N)
-      ref       <- Ref[IO].of(Chain.empty: Chain[(String, TestOutcome)])
+      resourceMap <- GlobalResources.createMap
+      semaphore   <- Semaphore[IO](N)
+      _           <- semaphore.acquireN(N)
+      cleanup     <- globalAllocation(resourceMap)
+      ref         <- Ref[IO].of(Chain.empty: Chain[(String, TestOutcome)])
     } yield {
 
       val next: BaseTask =
         new ReportTask((f: Chain[(String, TestOutcome)] => IO[Unit]) =>
           for {
             acquired <- semaphore.tryAcquireN(N)
-            log      <- ref.get
-            _        <- if (acquired) f(log) else IO.unit
+            _        <- if (acquired) cleanup >> ref.get.flatMap(f) else IO.unit
           } yield ())
 
       val loggerResource: Resource[IO, DeferredLogger] =
@@ -44,15 +70,28 @@ final class Runner(
           semaphore.release
         }
 
-      list.map { taskDef =>
-        new Task(
-          taskDef,
-          args.toList,
-          classLoader,
-          loggerResource.some,
-          next.some
-        ): BaseTask
+      list.collect {
+        case ModuleFingerprint(taskDef) =>
+          new Task(
+            taskDef,
+            args.toList,
+            suiteFromModule(taskDef.fullyQualifiedName(), classLoader),
+            loggerResource.some,
+            next.some
+          ): BaseTask
+        case GlobalResourcesSharingFingerprint(taskDef) =>
+          new Task(
+            taskDef,
+            args.toList,
+            suiteFromGlobalResourcesSharingClass(
+              taskDef.fullyQualifiedName(),
+              resourceMap,
+              classLoader),
+            loggerResource.some,
+            next.some
+          ): BaseTask
       }
+
     }
     prep.unsafeRunSync()
   }
@@ -68,6 +107,11 @@ final class Runner(
   def deserializeTask(
       task: String,
       deserializer: String => TaskDef): BaseTask = {
-    new Task(deserializer(task), args.toList, classLoader, None, None)
+    val taskDef = deserializer(task)
+    new Task(deserializer(task),
+             args.toList,
+             suiteFromModule(taskDef.fullyQualifiedName(), classLoader),
+             None,
+             None)
   }
 }

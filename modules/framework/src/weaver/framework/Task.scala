@@ -8,18 +8,16 @@ import cats.syntax.foldable._
 import cats.instances.vector._
 import cats.data.Chain
 
-import org.portablescala.reflect._
 import sbt.testing.{ Logger => BaseLogger, Task => BaseTask, _ }
 
 import scala.concurrent.duration._
 import scala.util.control.NonFatal
-import scala.util.control.NoStackTrace
 import cats.effect.Resource
 
 final class Task(
     val task: TaskDef,
     args: List[String],
-    cl: ClassLoader,
+    loadSuite: IO[EffectSuite[Any]],
     maybeDeferredLogger: Option[Resource[IO, DeferredLogger]],
     maybeNext: Option[BaseTask])
     extends WeaverTask {
@@ -55,25 +53,6 @@ final class Task(
     executeWrapper(eventHandler, loggers).unsafeRunSync()
   }
 
-  def loadSuite(name: String, loader: ClassLoader): IO[EffectSuite[Any]] = {
-    val moduleName = name + "$"
-    IO(Reflect.lookupLoadableModuleClass(moduleName))
-      .flatMap {
-        case None =>
-          IO.raiseError(
-            new Exception(s"Could not load class $moduleName") with NoStackTrace
-          )
-        case Some(cls) => IO(cls.loadModule())
-      }
-      .flatMap {
-        case ref: EffectSuite[_] => IO.pure(ref)
-        case other =>
-          IO.raiseError {
-            new Exception(s"$other is not an effect suite") with NoStackTrace
-          }
-      }
-  }
-
   private def executeWrapper(
       eventHandler: EventHandler,
       loggers: Array[BaseLogger]): IO[Array[BaseTask]] = {
@@ -107,7 +86,7 @@ final class Task(
       }
       // format: on
 
-      loadSuite(task.fullyQualifiedName(), cl)
+      loadSuite
         .flatMap { suite =>
           loggers.foreach(_.info(cyan(task.fullyQualifiedName())))
           suite

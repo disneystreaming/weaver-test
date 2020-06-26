@@ -1,7 +1,10 @@
 // For getting Scoverage out of the generated POM
 import scala.xml.Elem
 import scala.xml.transform.{ RewriteRule, RuleTransformer }
-import sbtcrossproject.CrossPlugin.autoImport.{ JVMPlatform, crossProjectPlatform }
+import sbtcrossproject.CrossPlugin.autoImport.{
+  JVMPlatform,
+  crossProjectPlatform
+}
 import xerial.sbt.Sonatype.SonatypeKeys._
 
 import sbt._
@@ -150,7 +153,8 @@ object WeaverPlugin extends AutoPlugin {
 
   // Mill-like simple layout
   val simpleLayout: Seq[Setting[_]] = Seq(
-    unmanagedSourceDirectories in Compile := Seq(baseDirectory.value.getParentFile / "src") ++ {
+    unmanagedSourceDirectories in Compile := Seq(
+      baseDirectory.value.getParentFile / "src") ++ {
       if (crossProjectPlatform.value == JVMPlatform)
         Seq(baseDirectory.value.getParentFile / "src-jvm")
       else if (crossProjectPlatform.value == JSPlatform)
@@ -160,7 +164,14 @@ object WeaverPlugin extends AutoPlugin {
     },
     unmanagedSourceDirectories in Test := Seq(
       baseDirectory.value.getParentFile / "test" / "src"
-    )
+    ) ++ {
+      if (crossProjectPlatform.value == JVMPlatform)
+        Seq(baseDirectory.value.getParentFile / "test" / "src-jvm")
+      else if (crossProjectPlatform.value == JSPlatform)
+        Seq(baseDirectory.value.getParentFile / "test" / "src-js")
+      else
+        Seq.empty
+    }
   )
 
   lazy val publishSettings = Seq(

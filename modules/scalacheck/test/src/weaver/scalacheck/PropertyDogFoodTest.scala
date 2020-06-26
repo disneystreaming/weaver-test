@@ -6,7 +6,7 @@ import cats.implicits._
 import scala.concurrent.duration._
 import cats.effect.IO
 
-object PropertyDoFoodTest extends SimpleIOSuite with DogFood {
+object PropertyDogFoodTest extends SimpleIOSuite with DogFood {
 
   test("Failed property tests get reported properly") {
     for {
@@ -28,7 +28,7 @@ object PropertyDoFoodTest extends SimpleIOSuite with DogFood {
       (_, events) <- runSuite(Meta.ParallelChecks)
       _           <- expect(events.size == 1).failFast
     } yield {
-      expect(events.headOption.get.duration() < 5000)
+      expect(events.headOption.get.duration() < 10000)
     }
   }
 

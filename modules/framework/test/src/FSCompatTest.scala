@@ -12,7 +12,6 @@ abstract class FSCompatTest extends SimpleIOSuite {
   val absolutePath      = s"${pwd}/${relativePath}"
   val wrongAbsolutePath = s"/invalid/subpath/${fileName}"
 
-  println(s"wd: ${pwd}")
   test("best effort path of a relative path is that path") {
     val result = FSCompat.bestEffortPath(fileName.some, relativePath.some)
     expect(result == relativePath.some)
