@@ -33,7 +33,8 @@ package object framework {
       .flatMap {
         case None =>
           IO.raiseError(
-            new Exception(s"Could not load class $moduleName") with NoStackTrace
+            new Exception(s"Could not load object $moduleName")
+              with NoStackTrace
           )
         case Some(cls) => IO(cls.loadModule())
       }
@@ -43,7 +44,8 @@ package object framework {
       name: String,
       globalResources: GlobalResources,
       loader: ClassLoader): IO[Any] = {
-    IO(Reflect.lookupInstantiatableClass(name))
+    println(name)
+    IO(Reflect.lookupInstantiatableClass(name, loader))
       .flatMap {
         case None =>
           IO.raiseError(

@@ -1,5 +1,6 @@
 package weaver
 package framework
+package test
 
 import cats.effect.IO
 import cats.effect.Resource

@@ -1,6 +1,9 @@
 package weaver
 package framework
 
+import TestFramework._
+import Fingerprinted._
+
 import cats.syntax.option._
 import cats.data.Chain
 import cats.effect.{ IO, Timer }
@@ -11,9 +14,10 @@ import sbt.testing.{
   Status => SbtStatus,
   _
 }
-import weaver._, Platform._
+import Platform._
 import cats.kernel.Eq
 import scala.concurrent.duration._
+import scala.reflect.ClassTag
 
 // Functionality to test how the frameworks react to successful and failing tests/suites
 trait DogFood {
@@ -30,18 +34,22 @@ trait DogFood {
     case JVM => none
   }
 
-  // Method used to run a test-suite
-  def runSuite(suiteName: String) =
+  // Method used to run test-suites
+  def runSuites(suites: Fingerprinted*) =
     for {
       logRef   <- Ref.of[IO, Chain[LoggedEvent]](Chain[LoggedEvent]())
       eventRef <- Ref.of[IO, Chain[SbtEvent]](Chain[SbtEvent]())
       eventHandler = new DogFood.MemoryEventHandler(eventRef)
       logger       = new DogFood.MemoryLogger(logRef)
-      _      <- runTasks(eventHandler, logger)(getTasks(suiteName))
+      _      <- runTasks(eventHandler, logger)(getTasks(suites))
       _      <- patience.fold(IO.unit)(timer.sleep)
       logs   <- logRef.get
       events <- eventRef.get
     } yield (logs, events)
+
+  // Method used to run a test-suite
+  def runSuite(suiteName: String) =
+    runSuites(Fingerprinted.ModuleSuite(suiteName))
 
   // Method used to run a test-suite
   def runSuite[F[_]](suite: EffectSuite[F]): IO[State] =
@@ -58,14 +66,15 @@ trait DogFood {
   }
 
   // todo: ensure none of these contain side effects
-  private def getTasks(fullyQualifiedName: String): Array[SbtTask] = {
+  private def getTasks(suites: Seq[Fingerprinted]): Array[SbtTask] = {
     val tf     = new TestFramework
-    val runner = tf.runner(Array(), Array(), new ClassLoader() {})
-    val taskDefs: Array[TaskDef] = Array(
-      new TaskDef(fullyQualifiedName,
-                  TestFramework.ModuleFingerprint,
+    val runner = tf.runner(Array(), Array(), this.getClass.getClassLoader())
+    val taskDefs: Array[TaskDef] = suites.toArray.map { s =>
+      new TaskDef(s.fullyQualifiedName,
+                  s.fingerprint,
                   true,
-                  Array(new SuiteSelector)))
+                  Array(new SuiteSelector))
+    }
     runner.tasks(taskDefs)
   }
 
@@ -73,6 +82,28 @@ trait DogFood {
       tasks: Array[SbtTask]): IO[Unit] =
     DogFoodCompat.runTasks(eventHandler, logger)(tasks)
 
+}
+
+sealed trait Fingerprinted {
+  def fullyQualifiedName: String
+  def fingerprint: WeaverFingerprint = this match {
+    case ModuleSuite(_)  => TestFramework.ModuleFingerprint
+    case GlobalInit(_)   => TestFramework.GlobalResourcesFingerprint
+    case SharingSuite(_) => TestFramework.GlobalResourcesSharingFingerprint
+  }
+}
+object Fingerprinted {
+  def globalInit(g: GlobalResourcesInit): Fingerprinted =
+    GlobalInit(g.getClass.getName.dropRight(1))
+  def moduleSuite[F[_]](g: EffectSuite[F]): Fingerprinted =
+    ModuleSuite(g.getClass.getName.dropRight(1))
+  def sharingSuite[S <: BaseSuiteClass](
+      implicit ct: ClassTag[S]): Fingerprinted =
+    SharingSuite(ct.runtimeClass.getName())
+
+  case class ModuleSuite(fullyQualifiedName: String)  extends Fingerprinted
+  case class GlobalInit(fullyQualifiedName: String)   extends Fingerprinted
+  case class SharingSuite(fullyQualifiedName: String) extends Fingerprinted
 }
 
 object DogFood extends DogFood {
