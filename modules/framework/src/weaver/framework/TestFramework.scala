@@ -57,7 +57,7 @@ object TestFramework {
 
   /**
    * A fingerprint that searches only for singleton objects
-   * of type [[weaver.EffectSuite]].
+   * of type [[weaver.GlobalResourcesInit]].
    */
   object GlobalResourcesFingerprint extends WeaverFingerprint {
     val isModule                           = true
