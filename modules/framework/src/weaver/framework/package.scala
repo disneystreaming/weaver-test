@@ -44,7 +44,6 @@ package object framework {
       name: String,
       globalResources: GlobalResources,
       loader: ClassLoader): IO[Any] = {
-    println(name)
     IO(Reflect.lookupInstantiatableClass(name, loader))
       .flatMap {
         case None =>

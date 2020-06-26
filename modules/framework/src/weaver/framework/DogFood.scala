@@ -68,7 +68,8 @@ trait DogFood {
   // todo: ensure none of these contain side effects
   private def getTasks(suites: Seq[Fingerprinted]): Array[SbtTask] = {
     val tf     = new TestFramework
-    val runner = tf.runner(Array(), Array(), this.getClass.getClassLoader())
+    val cl     = PlatformCompat.getClassLoader(this.getClass())
+    val runner = tf.runner(Array(), Array(), cl)
     val taskDefs: Array[TaskDef] = suites.toArray.map { s =>
       new TaskDef(s.fullyQualifiedName,
                   s.fingerprint,

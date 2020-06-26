@@ -6,7 +6,6 @@ import cats.effect._
 
 import scala.concurrent.duration.{ TimeUnit, FiniteDuration }
 import java.time.OffsetDateTime
-import java.io.File
 
 // The build tool will only detect and run top-level test suites. We can however nest objects
 // that contain failing tests, to allow for testing the framework without failing the build
@@ -139,29 +138,6 @@ object Meta {
       Some("DogFoodTests.scala"),
       Some("src/main/DogFoodTests.scala"),
       5)
-  }
-
-  object GlobalStub extends GlobalResourcesInit {
-    def sharedResources(store: GlobalResources.Write[IO]): Resource[IO, Unit] =
-      Resource.make(makeTmpFile)(deleteFile).flatMap { file =>
-        store.putR(file)
-      }
-
-    val makeTmpFile                    = IO(java.io.File.createTempFile("hello", ".tmp"))
-    def deleteFile(file: java.io.File) = IO(file.delete()).void
-  }
-
-  class TmpFileSuite(global: GlobalResources) extends IOSuite {
-    type Res = File
-    def sharedResource: Resource[IO, File] =
-      global.in[IO].getOrFailR[File]()
-
-    test("electric boo") { (file, log) =>
-      for {
-        _          <- log.info(s"file:${file.getAbsolutePath()}")
-        fileExists <- IO(file.exists())
-      } yield expect(fileExists) and failure("forcing logs dispatch")
-    }
   }
 
 }
