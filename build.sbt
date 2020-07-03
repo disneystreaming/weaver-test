@@ -3,15 +3,18 @@ import sbtcrossproject.CrossPlugin.autoImport.{ crossProject, CrossType }
 
 addCommandAlias(
   "ci",
-  ";project root ;versionDump; scalafmtCheckAll ;+clean ;+test:compile ;+test; docs/docusaurusCreateSite")
+  ";project root ;versionDump; scalafmtCheckAll; scalafix --check; test:scalafix --check ;+clean ;+test:compile ;+test; docs/docusaurusCreateSite")
 
 addCommandAlias("release",
                 ";project root ; +publishSigned; sonatypeBundleRelease")
 
 scalaVersion in ThisBuild := WeaverPlugin.scala213
 
+ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.3.1-RC3"
+
 lazy val root = project
   .in(file("."))
+  .enablePlugins(ScalafixPlugin)
   .aggregate(coreJVM,
              frameworkJVM,
              scalacheckJVM,

@@ -5,6 +5,7 @@ import sbtcrossproject.CrossPlugin.autoImport.{
   JVMPlatform,
   crossProjectPlatform
 }
+import scalafix.sbt.ScalafixPlugin.autoImport._
 import xerial.sbt.Sonatype.SonatypeKeys._
 
 import sbt._
@@ -51,7 +52,10 @@ object WeaverPlugin extends AutoPlugin {
     ),
     // https://github.com/sbt/sbt/issues/2654
     incOptions := incOptions.value.withLogRecompileOnMacro(false),
-    testFrameworks := Seq(new TestFramework("weaver.framework.TestFramework"))
+    testFrameworks := Seq(new TestFramework("weaver.framework.TestFramework")),
+    // https://scalacenter.github.io/scalafix/docs/users/installation.html
+    semanticdbEnabled := true,
+    semanticdbVersion := scalafixSemanticdb.revision
   ) ++ coverageSettings ++ publishSettings
 
   def compilerOptions(scalaVersion: String) = {
