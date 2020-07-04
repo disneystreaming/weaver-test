@@ -3,10 +3,37 @@ import sbtcrossproject.CrossPlugin.autoImport.{ crossProject, CrossType }
 
 addCommandAlias(
   "ci",
-  ";project root ;versionDump; scalafmtCheckAll; scalafix --check; test:scalafix --check ;+clean ;+test:compile ;+test; docs/docusaurusCreateSite")
+  Seq(
+    "project root",
+    "versionDump",
+    "scalafmtCheckAll",
+    "scalafix --check",
+    "test:scalafix --check",
+    "+clean",
+    "+test:compile",
+    "+test",
+    "docs/docusaurusCreateSite"
+  ).mkString(";", ";", "")
+)
 
-addCommandAlias("release",
-                ";project root ; +publishSigned; sonatypeBundleRelease")
+addCommandAlias(
+  "fix",
+  Seq(
+    "root/scalafmtAll",
+    "root/scalafmtSbt",
+    "root/scalafix",
+    "root/test:scalafix"
+  ).mkString(";", ";", "")
+)
+
+addCommandAlias(
+  "release",
+  Seq(
+    "project root",
+    "+publishSigned",
+    "sontypeBundleRelease"
+  ).mkString(";", ";", "")
+)
 
 ThisBuild / scalaVersion := WeaverPlugin.scala213
 
