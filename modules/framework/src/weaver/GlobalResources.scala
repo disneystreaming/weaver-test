@@ -2,13 +2,13 @@ package weaver
 
 import scala.reflect.ClassTag
 import scala.util.Try
+
 import cats.effect._
-import cats.implicits._
-import cats.MonadError
 import cats.effect.concurrent.Ref
+import cats.implicits._
+import cats.{ Applicative, MonadError }
 
 import org.portablescala.reflect.annotation.EnableReflectiveInstantiation
-import cats.Applicative
 
 /**
  * Top-level instances of this trait are detected by the framework and used to manage

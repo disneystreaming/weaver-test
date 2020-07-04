@@ -1,8 +1,10 @@
 package weaver
 
-import cats.effect.IO
-import org.portablescala.reflect.Reflect
 import scala.util.control.NoStackTrace
+
+import cats.effect.IO
+
+import org.portablescala.reflect.Reflect
 
 package object framework {
 

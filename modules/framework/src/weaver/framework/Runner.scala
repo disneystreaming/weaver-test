@@ -1,14 +1,14 @@
 package weaver
 package framework
 
-import TestFramework._
-
-import cats.implicits._
-import cats.effect.{ ContextShift, IO, Timer }
-import cats.effect.concurrent.{ Ref, Semaphore }
 import cats.data.Chain
+import cats.effect.concurrent.{ Ref, Semaphore }
+import cats.effect.{ ContextShift, IO, Resource, Timer }
+import cats.implicits._
+
 import sbt.testing.{ Runner => BaseRunner, Task => BaseTask, _ }
-import cats.effect.Resource
+
+import TestFramework._
 
 final class Runner(
     val args: Array[String],

@@ -2,8 +2,7 @@ package weaver
 package framework
 package test
 
-import cats.effect.IO
-import cats.effect.Resource
+import cats.effect.{ IO, Resource }
 
 object SharedResources extends GlobalResourcesInit {
   def sharedResources(store: GlobalResources.Write[IO]): Resource[IO, Unit] =

@@ -3,6 +3,7 @@ package framework
 
 import cats.effect.IO
 import cats.implicits._
+
 import sbt.testing.{ Task => SbtTask, _ }
 
 private[weaver] object DogFoodCompat {

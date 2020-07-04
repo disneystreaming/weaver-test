@@ -2,8 +2,9 @@ package weaver
 package framework
 package test
 
-import scala.concurrent.duration._
 import java.util.concurrent.TimeUnit
+
+import scala.concurrent.duration._
 
 abstract class MutableSuiteTest extends SimpleIOSuite {
 

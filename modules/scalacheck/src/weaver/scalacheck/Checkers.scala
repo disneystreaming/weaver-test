@@ -1,14 +1,13 @@
 package weaver
 package scalacheck
 
+import cats.Show
+import cats.effect.IO
+import cats.effect.concurrent.Ref
 import cats.implicits._
 
-import org.scalacheck.Gen
-import cats.effect.IO
 import org.scalacheck.rng.Seed
-import cats.Show
-import org.scalacheck.Arbitrary
-import cats.effect.concurrent.Ref
+import org.scalacheck.{ Arbitrary, Gen }
 
 trait IOCheckers extends Checkers[IO] {
   self: ConcurrentEffectSuite[IO] =>

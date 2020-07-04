@@ -1,10 +1,12 @@
 package weaver
 package scalacheck
 
-import org.scalacheck.Gen
 import scala.concurrent.duration._
-import cats.implicits._
+
 import cats.effect.IO
+import cats.implicits._
+
+import org.scalacheck.Gen
 
 object CheckersTest extends SimpleIOSuite with IOCheckers {
 

@@ -1,9 +1,11 @@
 package weaver
 
-import LogFormatter.{ formatTimestamp }
-import weaver.Log.{ debug, error, info, warn }
 import cats.data.Chain
 import cats.syntax.show._
+
+import weaver.Log.{ debug, error, info, warn }
+
+import LogFormatter.{ formatTimestamp }
 
 object Formatter {
   val EOL        = java.lang.System.lineSeparator()

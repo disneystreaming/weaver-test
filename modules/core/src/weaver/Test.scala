@@ -1,12 +1,11 @@
 package weaver
 
-import cats.syntax.all._
+import scala.concurrent.duration.{ MILLISECONDS, _ }
+
 import cats.data.Chain
 import cats.effect.concurrent.Ref
-
-import scala.concurrent.duration.{ MILLISECONDS, _ }
-import cats.effect.Sync
-import cats.effect.Timer
+import cats.effect.{ Sync, Timer }
+import cats.syntax.all._
 
 object Test {
 

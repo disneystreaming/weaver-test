@@ -1,13 +1,13 @@
 package weaver
 package framework
 
-import weaver.TestOutcome
-
-import cats.effect.IO
 import cats.data.Chain
+import cats.effect.IO
 import cats.implicits._
 
-import sbt.testing.{ TaskDef, Task => BaseTask, Logger => BaseLogger, _ }
+import weaver.TestOutcome
+
+import sbt.testing.{ Logger => BaseLogger, Task => BaseTask, TaskDef, _ }
 
 final class ReportTask(
     processLogs: (Chain[(String, TestOutcome)] => IO[Unit]) => IO[Unit])

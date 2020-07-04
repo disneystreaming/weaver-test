@@ -2,13 +2,13 @@ package weaver
 package framework
 
 import sbt.testing.{
+  Event => SbtEvent,
   Fingerprint,
   OptionalThrowable,
   Selector,
-  TestSelector,
-  Event => SbtEvent,
+  Status => SbtStatus,
   Task => SbtTask,
-  Status => SbtStatus
+  TestSelector
 }
 
 trait WeaverTask extends SbtTask {

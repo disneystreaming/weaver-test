@@ -1,8 +1,8 @@
 package weaver.framework
 
+import weaver.{ Platform, discard }
+
 import sbt.testing.{ Framework => BaseFramework, Runner => BaseRunner, _ }
-import weaver.discard
-import weaver.Platform
 
 class TestFramework extends BaseFramework {
 

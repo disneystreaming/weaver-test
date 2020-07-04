@@ -1,10 +1,12 @@
 package weaver
 package scalacheck
 
-import weaver.framework._
-import cats.implicits._
 import scala.concurrent.duration._
+
 import cats.effect.IO
+import cats.implicits._
+
+import weaver.framework._
 
 object PropertyDogFoodTest extends SimpleIOSuite with DogFood {
 
