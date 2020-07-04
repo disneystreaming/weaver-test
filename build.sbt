@@ -8,7 +8,7 @@ addCommandAlias(
 addCommandAlias("release",
                 ";project root ; +publishSigned; sonatypeBundleRelease")
 
-scalaVersion in ThisBuild := WeaverPlugin.scala213
+ThisBuild / scalaVersion := WeaverPlugin.scala213
 
 ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.3.1-RC3"
 
@@ -80,7 +80,7 @@ lazy val framework = crossProject(JSPlatform, JVMPlatform)
       "io.github.cquiroz" %%% "scala-java-time"      % "2.0.0" % Test,
       "io.github.cquiroz" %%% "scala-java-time-tzdb" % "2.0.0" % Test
     ),
-    scalacOptions in Test ~= (_ filterNot (_ == "-Xfatal-warnings")),
+    Test / scalacOptions ~= (_ filterNot (_ == "-Xfatal-warnings")),
     scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) }
   )
   .jvmSettings(
@@ -136,6 +136,6 @@ lazy val versionDump =
   taskKey[Unit]("Dumps the version in a file named version")
 
 versionDump := {
-  val file = (baseDirectory in ThisBuild).value / "version"
-  IO.write(file, (version in (Compile)).value)
+  val file = (ThisBuild / baseDirectory).value / "version"
+  IO.write(file, (Compile / version).value)
 }
