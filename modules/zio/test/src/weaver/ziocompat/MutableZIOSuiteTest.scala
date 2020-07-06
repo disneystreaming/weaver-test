@@ -1,8 +1,9 @@
 package weaver.ziocompat
 
-import sbt.testing.Status
 import weaver.framework.DogFood
 import weaver.ziocompat.modules._
+
+import sbt.testing.Status
 import zio._
 import zio.duration._
 

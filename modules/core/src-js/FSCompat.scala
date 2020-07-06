@@ -1,6 +1,7 @@
 package weaver
 
 import scala.scalajs.js
+
 import js.annotation._
 
 private[weaver] object FSCompat {

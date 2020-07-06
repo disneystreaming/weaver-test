@@ -1,12 +1,13 @@
 package weaver
 package ziocompat
 
+import scala.util.Try
+
 import cats.effect.ConcurrentEffect
+
 import fs2._
 import zio._
 import zio.interop.catz._
-
-import scala.util.Try
 
 abstract class MutableZIOSuite[Res <: Has[_]](implicit tag: Tag[Res])
     extends ConcurrentEffectSuite[Task] {

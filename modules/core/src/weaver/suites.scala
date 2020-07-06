@@ -1,13 +1,19 @@
 package weaver
 
+import cats.effect.implicits._
+import cats.effect.{
+  ConcurrentEffect,
+  ContextShift,
+  Effect,
+  IO,
+  Resource,
+  Timer
+}
 import cats.syntax.applicative._
 import cats.syntax.applicativeError._
-import cats.effect.{ ContextShift, Effect, IO, Resource, Timer }
-import cats.effect.implicits._
-import fs2.Stream
 
+import fs2.Stream
 import org.portablescala.reflect.annotation.EnableReflectiveInstantiation
-import cats.effect.ConcurrentEffect
 
 // Just a non-parameterized marker trait to help SBT's test detection logic.
 @EnableReflectiveInstantiation

@@ -2,12 +2,14 @@ package weaver.ziocompat
 
 import java.util.concurrent.TimeUnit
 
-import cats.data.Chain
-import weaver.{ Expectations, Log, Result, TestOutcome }
-import zio._
-
 import scala.concurrent.duration._
 import scala.util.control.NonFatal
+
+import cats.data.Chain
+
+import weaver.{ Expectations, Log, Result, TestOutcome }
+
+import zio._
 
 object Test {
 

@@ -1,12 +1,11 @@
 package weaver
 
-import com.eed3si9n.expecty._
-
 import cats.data.Validated
-import cats.implicits._
-import cats.data.Validated.Invalid
-import cats.data.Validated.Valid
+import cats.data.Validated.{ Invalid, Valid }
 import cats.effect.Sync
+import cats.implicits._
+
+import com.eed3si9n.expecty._
 
 case class SingleExpectation(run: Validated[String, Unit]) {
   def and(other: Expectations)(implicit loc: SourceLocation) =

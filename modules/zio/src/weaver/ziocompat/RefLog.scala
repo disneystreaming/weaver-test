@@ -1,10 +1,10 @@
 package weaver.ziocompat
 
+import cats.data.Chain
+
 import weaver.Log
 
 import zio._
-
-import cats.data.Chain
 
 class RefLog(ref: Ref[Chain[Log.Entry]]) extends Log[UIO] { self =>
   def log(l: => Log.Entry): UIO[Unit] =

@@ -5,6 +5,7 @@ import sbtcrossproject.CrossPlugin.autoImport.{
   JVMPlatform,
   crossProjectPlatform
 }
+import scalafix.sbt.ScalafixPlugin.autoImport._
 import xerial.sbt.Sonatype.SonatypeKeys._
 
 import sbt._
@@ -37,10 +38,10 @@ object WeaverPlugin extends AutoPlugin {
     crossScalaVersions := supportedScalaVersions,
     scalacOptions ++= compilerOptions(scalaVersion.value),
     // Turning off fatal warnings for ScalaDoc, otherwise we can't release.
-    scalacOptions in (Compile, doc) ~= (_ filterNot (_ == "-Xfatal-warnings")),
+    Compile / doc / scalacOptions ~= (_ filterNot (_ == "-Xfatal-warnings")),
     // ScalaDoc settings
     autoAPIMappings := true,
-    scalacOptions in ThisBuild ++= Seq(
+    ThisBuild / scalacOptions ++= Seq(
       // Note, this is used by the doc-source-url feature to determine the
       // relative path of a given source file. If it's not a prefix of a the
       // absolute path of the source file, the absolute path of that file
@@ -51,7 +52,10 @@ object WeaverPlugin extends AutoPlugin {
     ),
     // https://github.com/sbt/sbt/issues/2654
     incOptions := incOptions.value.withLogRecompileOnMacro(false),
-    testFrameworks := Seq(new TestFramework("weaver.framework.TestFramework"))
+    testFrameworks := Seq(new TestFramework("weaver.framework.TestFramework")),
+    // https://scalacenter.github.io/scalafix/docs/users/installation.html
+    semanticdbEnabled := true,
+    semanticdbVersion := scalafixSemanticdb.revision
   ) ++ coverageSettings ++ publishSettings
 
   def compilerOptions(scalaVersion: String) = {
@@ -138,9 +142,9 @@ object WeaverPlugin extends AutoPlugin {
 
   lazy val doNotPublishArtifact = Seq(
     publishArtifact := false,
-    publishArtifact in (Compile, packageDoc) := false,
-    publishArtifact in (Compile, packageSrc) := false,
-    publishArtifact in (Compile, packageBin) := false
+    Compile / packageDoc / publishArtifact := false,
+    Compile / packageSrc / publishArtifact := false,
+    Compile / packageBin / publishArtifact := false
   )
 
   def profile: Project => Project = pr => {
@@ -153,7 +157,7 @@ object WeaverPlugin extends AutoPlugin {
 
   // Mill-like simple layout
   val simpleLayout: Seq[Setting[_]] = Seq(
-    unmanagedSourceDirectories in Compile := Seq(
+    Compile / unmanagedSourceDirectories := Seq(
       baseDirectory.value.getParentFile / "src") ++ {
       if (crossProjectPlatform.value == JVMPlatform)
         Seq(baseDirectory.value.getParentFile / "src-jvm")
@@ -162,7 +166,7 @@ object WeaverPlugin extends AutoPlugin {
       else
         Seq.empty
     },
-    unmanagedSourceDirectories in Test := Seq(
+    Test / unmanagedSourceDirectories := Seq(
       baseDirectory.value.getParentFile / "test" / "src"
     ) ++ {
       if (crossProjectPlatform.value == JVMPlatform)

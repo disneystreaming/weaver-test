@@ -1,8 +1,8 @@
 package weaver
 
-import cats.data.Chain
-
 import scala.concurrent.duration.FiniteDuration
+
+import cats.data.Chain
 
 import TestOutcome.Mode
 

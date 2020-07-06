@@ -2,9 +2,9 @@ package weaver
 
 import cats.Monoid
 import cats.data.Chain
-import cats.implicits._
 import cats.effect._
 import cats.effect.concurrent.{ MVar, Ref }
+import cats.implicits._
 
 import TestOutcome.{ Summary, Verbose }
 

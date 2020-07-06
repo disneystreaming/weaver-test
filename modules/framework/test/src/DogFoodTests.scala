@@ -2,9 +2,10 @@ package weaver
 package framework
 package test
 
-import cats.implicits._
-import sbt.testing.Status
 import cats.data.Chain
+import cats.implicits._
+
+import sbt.testing.Status
 
 object DogFoodSuite extends SimpleIOSuite with DogFood {
   simpleTest("test suite reports successes events") {

@@ -1,18 +1,18 @@
 package weaver
 package framework
 
-import cats.effect.IO
-import cats.instances.unit._
-import IO.ioMonoid
-import cats.syntax.foldable._
-import cats.instances.vector._
+import scala.concurrent.duration._
+import scala.util.control.NonFatal
+
 import cats.data.Chain
+import cats.effect.{ IO, Resource }
+import cats.instances.unit._
+import cats.instances.vector._
+import cats.syntax.foldable._
 
 import sbt.testing.{ Logger => BaseLogger, Task => BaseTask, _ }
 
-import scala.concurrent.duration._
-import scala.util.control.NonFatal
-import cats.effect.Resource
+import IO.ioMonoid
 
 final class Task(
     val task: TaskDef,

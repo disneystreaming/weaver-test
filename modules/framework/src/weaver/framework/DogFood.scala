@@ -1,23 +1,25 @@
 package weaver
 package framework
 
-import TestFramework._
-import Fingerprinted._
-
-import cats.syntax.option._
-import cats.data.Chain
-import cats.effect.{ IO, Timer }
-import cats.effect.concurrent.Ref
-import sbt.testing.{
-  Event => SbtEvent,
-  Task => SbtTask,
-  Status => SbtStatus,
-  _
-}
-import Platform._
-import cats.kernel.Eq
 import scala.concurrent.duration._
 import scala.reflect.ClassTag
+
+import cats.data.Chain
+import cats.effect.concurrent.Ref
+import cats.effect.{ IO, Timer }
+import cats.kernel.Eq
+import cats.syntax.option._
+
+import sbt.testing.{
+  Event => SbtEvent,
+  Status => SbtStatus,
+  Task => SbtTask,
+  _
+}
+
+import TestFramework._
+import Fingerprinted._
+import Platform._
 
 // Functionality to test how the frameworks react to successful and failing tests/suites
 trait DogFood {
