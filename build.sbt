@@ -46,10 +46,12 @@ lazy val root = project
              frameworkJVM,
              scalacheckJVM,
              zioJVM,
+             specs2JVM,
              coreJS,
              frameworkJS,
              scalacheckJS,
-             zioJS)
+             zioJS,
+             specs2JS)
   .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.doNotPublishArtifact)
   .settings(
@@ -73,6 +75,11 @@ lazy val core = crossProject(JSPlatform, JVMPlatform)
   .jvmSettings(
     libraryDependencies ++= Seq(
       "org.scala-js" %%% "scalajs-stubs" % "1.0.0" % "provided"
+    )
+  )
+  .jsSettings(
+    libraryDependencies ++= Seq(
+      "io.github.cquiroz" %%% "scala-java-time" % "2.0.0"
     )
   )
 
@@ -133,14 +140,30 @@ lazy val scalacheck = crossProject(JSPlatform, JVMPlatform)
   .settings(WeaverPlugin.simpleLayout)
   .settings(
     libraryDependencies ++= Seq(
-      "org.scalacheck"    %%% "scalacheck"      % "1.14.3",
-      "io.github.cquiroz" %%% "scala-java-time" % "2.0.0" % Test
+      "org.scalacheck" %%% "scalacheck" % "1.14.3"
     ),
     scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) }
   )
 
 lazy val scalacheckJVM = scalacheck.jvm
 lazy val scalacheckJS  = scalacheck.js
+
+lazy val specs2 = crossProject(JSPlatform, JVMPlatform)
+  .crossType(CrossType.Pure)
+  .in(file("modules/specs2"))
+  .dependsOn(core, framework % "test->compile")
+  .configure(WeaverPlugin.profile)
+  .settings(
+    name := "specs2",
+    libraryDependencies ++= Seq(
+      "org.specs2" %%% "specs2-matcher" % "4.10.0"
+    ),
+    scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) }
+  )
+  .settings(WeaverPlugin.simpleLayout)
+
+lazy val specs2JVM = specs2.jvm
+lazy val specs2JS  = specs2.js
 
 lazy val zio = crossProject(JSPlatform, JVMPlatform)
   .crossType(CrossType.Pure)
