@@ -37,7 +37,7 @@ addCommandAlias(
 
 ThisBuild / scalaVersion := WeaverPlugin.scala213
 
-ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.3.1-RC3"
+ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.4.0"
 
 lazy val root = project
   .in(file("."))
