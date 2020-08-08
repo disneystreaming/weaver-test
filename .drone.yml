@@ -11,6 +11,7 @@ steps:
   - echo Built $(cat version)
   environment:
     COURSIER_CACHE: .cache/coursier
+    JAVA_OPTS: "-XX:MaxMetaspaceSize=1g -Xms1g -Xmx2g -Xss2M"
   volumes:
     - name: sbt-cache
       path: /root/.sbt
