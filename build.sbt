@@ -31,7 +31,7 @@ addCommandAlias(
   Seq(
     "project root",
     "+publishSigned",
-    "sontypeBundleRelease"
+    "sonatypeBundleRelease"
   ).mkString(";", ";", "")
 )
 
