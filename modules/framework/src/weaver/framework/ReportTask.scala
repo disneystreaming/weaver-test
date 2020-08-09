@@ -5,48 +5,7 @@ import cats.data.Chain
 import cats.effect.IO
 import cats.implicits._
 
-import weaver.TestOutcome
-
-import sbt.testing.{ Logger => BaseLogger, Task => BaseTask, TaskDef, _ }
-
-final class ReportTask(
-    processLogs: (Chain[(String, TestOutcome)] => IO[Unit]) => IO[Unit])
-    extends WeaverTask { self =>
-
-  def tags(): Array[String] = Array.empty
-
-  def execute(
-      eventHandler: EventHandler,
-      loggers: Array[BaseLogger],
-      continuation: Array[BaseTask] => Unit): Unit = {
-    executeWrapper(eventHandler, loggers)
-      .map(continuation)
-      .unsafeRunAsyncAndForget()
-  }
-
-  def execute(
-      eventHandler: EventHandler,
-      loggers: Array[BaseLogger]): Array[BaseTask] = {
-    executeWrapper(eventHandler, loggers).unsafeRunSync()
-  }
-
-  override def taskDef(): TaskDef = {
-    new TaskDef("weaver.framework.ReportTask",
-                new Fingerprint {},
-                false,
-                Array())
-  }
-
-  private def executeWrapper(
-      eventHandler: EventHandler,
-      loggers: Array[BaseLogger]): IO[Array[BaseTask]] = {
-    discard[EventHandler](eventHandler)
-    processLogs(ReportTask.report(loggers)).attempt.map {
-      case Right(_) => Array.empty[BaseTask]
-      case Left(e)  => e.printStackTrace(); Array.empty[BaseTask]
-    }
-  }
-}
+import sbt.testing.{ Logger => BaseLogger }
 
 object ReportTask {
 

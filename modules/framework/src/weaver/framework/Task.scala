@@ -6,9 +6,7 @@ import scala.util.control.NonFatal
 
 import cats.data.Chain
 import cats.effect.{ IO, Resource }
-import cats.instances.unit._
-import cats.instances.vector._
-import cats.syntax.foldable._
+import cats.implicits._
 
 import sbt.testing.{ Logger => BaseLogger, Task => BaseTask, _ }
 
@@ -19,7 +17,7 @@ final class Task(
     args: List[String],
     loadSuite: IO[EffectSuite[Any]],
     maybeDeferredLogger: Option[Resource[IO, DeferredLogger]],
-    maybeNext: Option[BaseTask])
+    maybeNext: Option[Array[BaseLogger] => IO[Unit]])
     extends WeaverTask {
 
   def tags(): Array[String] = Array.empty
@@ -74,6 +72,8 @@ final class Task(
 
     val loggerResource = maybeDeferredLogger.getOrElse(defaultLoggedBracket)
 
+    val finalize = maybeNext.foldMap(_(loggers))
+
     // format: off
     loggerResource.use { log =>
       def report(event: TestOutcome) : IO[Unit] = IO.suspend {
@@ -105,10 +105,7 @@ final class Task(
               _ <- log(task.fullyQualifiedName(), event)
             } yield ()
         }
-    }.as(maybeNext).attempt.map {
-      case Right(nextTask) => nextTask.toArray
-      case Left(_)         => Array.empty[BaseTask]
-    }
+    }.guarantee(finalize).attempt.as(Array.empty[BaseTask])
   }
 
 }
