@@ -6,7 +6,12 @@ import cats.effect.concurrent.{ Ref, Semaphore }
 import cats.effect.{ ContextShift, IO, Resource, Timer }
 import cats.implicits._
 
-import sbt.testing.{ Runner => BaseRunner, Task => BaseTask, _ }
+import sbt.testing.{
+  Runner => BaseRunner,
+  Task => BaseTask,
+  Logger => BaseLogger,
+  _
+}
 
 import TestFramework._
 
@@ -54,15 +59,16 @@ final class Runner(
       semaphore   <- Semaphore[IO](N)
       _           <- semaphore.acquireN(N)
       cleanup     <- globalAllocation(resourceMap)
-      ref         <- Ref[IO].of(Chain.empty: Chain[(String, TestOutcome)])
+      ref         <- Ref[IO].of(Chain.empty[(String, TestOutcome)])
     } yield {
 
-      val next: BaseTask =
-        new ReportTask((f: Chain[(String, TestOutcome)] => IO[Unit]) =>
-          for {
-            acquired <- semaphore.tryAcquireN(N)
-            _        <- if (acquired) cleanup >> ref.get.flatMap(f) else IO.unit
-          } yield ())
+      val next = (loggers: Array[BaseLogger]) =>
+        for {
+          acquired <- semaphore.tryAcquireN(N)
+          _ <- if (acquired)
+            cleanup >> ref.get.flatMap(ReportTask.report(loggers))
+          else IO.unit
+        } yield ()
 
       val loggerResource: Resource[IO, DeferredLogger] =
         Resource.make(IO.pure[DeferredLogger]((str, event) =>
