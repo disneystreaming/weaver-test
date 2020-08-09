@@ -7,9 +7,9 @@ import cats.effect.{ ContextShift, IO, Resource, Timer }
 import cats.implicits._
 
 import sbt.testing.{
+  Logger => BaseLogger,
   Runner => BaseRunner,
   Task => BaseTask,
-  Logger => BaseLogger,
   _
 }
 
