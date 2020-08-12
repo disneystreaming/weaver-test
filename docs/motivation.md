@@ -13,11 +13,11 @@ Weaver-test was born in 2018 as an experiment, trying to speedup an extremely sl
 
 Neither **cats-effect** nor **fs2** had reached their respective 1.0.0 at the time, and **ZIO** was not yet known under that name.
 
-Nethertheless, built on bleeding edge libraries, and offering a principled api  that didn't completely shift from more classic frameworks such as utest, specs2, scalatest, etc, **weaver** allowed to tremendously speed up the test suite in question by parallelising its test, weaving their respective computations together in a single IO value that was executed by the framework.
+Nevertheless, built on bleeding edge libraries, and offering a principled api  that didn't completely shift from more classic frameworks such as utest, specs2, scalatest, etc, **weaver** allowed to tremendously speed up the test suite in question by parallelising its test, weaving their respective computations together in a single IO value that was executed by the framework.
 
 From there, additional problems were tackled, among which :
 
-* Making errors appear at the very end of the report, no matter how many suites wwere run.
+* Making errors appear at the very end of the report, no matter how many suites were run.
 * Ensuring a principled sharing of resources across tests, using `cats.effect.Resource` to guarantee their release.
 * Providing a lazy logger to enrich reporting with ad-hoc information, ensuring
 it only gets displayed when a test fails.
@@ -32,4 +32,4 @@ framework which got this framework started.
 
 Another **HUGE** thank eu to Eugene Yokota, author of [Expecty](https://github.com/eed3si9n/expecty/).
 
-And an obious thank you to the maintainers of cats and fs2. We stand on the shoulders of giants.
+And an obvious thank you to the maintainers of cats and fs2. We stand on the shoulders of giants.
