@@ -11,7 +11,8 @@
       "global_resources",
       "logging",
       "scalacheck",
-      "zio"
+      "zio",
+      "specs2"
     ],
     "Sample reports": [
       "multiple_suites_success",
