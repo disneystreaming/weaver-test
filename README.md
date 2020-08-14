@@ -191,6 +191,19 @@ brew install git-lfs
 git lfs install
 ```
 
+If you want to build and run the website then you will need yarn installed:
+
+```bash
+brew install yarn
+```
+
+### PR Guidelines
+
+Please:
+- Sign the CLA
+- Write positive and negative tests
+- Include documentation
+
 ## Inspiration
 
 A **HUGE** thank you to Alexandru Nedelcu, author of [Monix](https://github.com/monix/monix) and contributor to
