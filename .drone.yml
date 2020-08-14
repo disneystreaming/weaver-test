@@ -12,6 +12,7 @@ steps:
   environment:
     COURSIER_CACHE: .cache/coursier
     JAVA_OPTS: "-XX:MaxMetaspaceSize=1g -Xms1g -Xmx2g -Xss2M"
+    SBT_OPTS: "-XX:+CMSClassUnloadingEnabled -XX:MaxMetaspaceSize=2g -Xmx2g"
   volumes:
     - name: sbt-cache
       path: /root/.sbt
