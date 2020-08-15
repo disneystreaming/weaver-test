@@ -49,7 +49,7 @@ which generally keeps tests cleaner / clearer.
 
 ## API
 
-Weaver provides two types of testing suites.
+Weaver's core framework provides two primary types of testing suites.
 
 | Suite name | Use case |
 | --- | --- |
@@ -125,6 +125,17 @@ object MySuite extends IOSuite {
   }
 }
 ```
+
+#### Other suites
+
+Weaver also includes support for `ZIO`-based suites via the optional `weaver-zio` dependency.
+
+| Alias | Suite name | Provided by | Use case |
+| --- | --- | --- | --- |
+| `SimpleIOSuite`  | `SimpleMutableIOSuite`       | `weaver-framework` | Each test is a standalone `IO` action
+| `IOSuite`        | `MutableIOSuite`             | `weaver-framework` | Each test needs access to a shared `Resource`
+| `SimpleZIOSuite` | `SimpleMutableZIOSuite`      | `weaver-zio`       | Each test is a standalone `ZIO` action
+| `ZIOSuite[R]`    | `MutableZIOSuite[R]`         | `weaver-zio`       | Each test needs access to a shared `ZLayer`
 
 ### Expectations (assertions)
 
