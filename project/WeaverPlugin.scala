@@ -21,8 +21,8 @@ object WeaverPlugin extends AutoPlugin {
   override def requires = plugins.JvmPlugin
   override def trigger  = allRequirements
 
-  lazy val scala212               = "2.12.11"
-  lazy val scala213               = "2.13.2"
+  lazy val scala212               = "2.12.12"
+  lazy val scala213               = "2.13.3"
   lazy val supportedScalaVersions = List(scala212, scala213)
 
   /** @see [[sbt.AutoPlugin]] */
@@ -90,7 +90,6 @@ object WeaverPlugin extends AutoPlugin {
     "-Xlint:inaccessible",           // Warn about inaccessible types in method signatures.
     "-Xlint:infer-any",              // Warn when a type argument is inferred to be `Any`.
     "-Xlint:missing-interpolator",   // A string literal appears to be missing an interpolator id.
-    "-Xlint:nullary-override",       // Warn when non-nullary `def f()' overrides nullary `def f'.
     "-Xlint:nullary-unit",           // Warn when nullary methods return Unit.
     "-Xlint:option-implicit",        // Option.apply used implicit view.
     "-Xlint:package-object-classes", // Class or object defined in package object.
@@ -115,6 +114,7 @@ object WeaverPlugin extends AutoPlugin {
     Seq(
       "-Xfuture",                         // Turn on future language features.
       "-Xlint:by-name-right-associative", // By-name parameter of right associative operator.
+      "-Xlint:nullary-override",          // Warn when non-nullary `def f()' overrides nullary `def f'.
       "-Xlint:unsound-match",             // Pattern match may not be typesafe.
       "-Yno-adapted-args",                // Do not adapt an argument list (either by inserting () or creating a tuple) to match the receiver.
       "-Ypartial-unification",            // Enable partial unification in type constructor inference

@@ -32,8 +32,13 @@ object Log {
   // Logger that doesn't do anything
   def nop[F[_]: Applicative]: Log[F] = _ => Applicative[F].unit
 
-  // Logger that collects the entries in a referential-transparent variable
-  // containing a collection
+  /**
+   * Builds a logger that collects to a referential-transparent variable
+   *
+   * @param ref A reference to the logger
+   * @tparam F Effect type
+   * @tparam L Logging collection type
+   */
   def collected[F[_], L[_]: MonoidK: Applicative](
       ref: Ref[F, L[Entry]]): Log[F] = new Log[F] {
     implicit val monoid: Monoid[L[Entry]] = MonoidK[L].algebra[Entry]
