@@ -156,7 +156,7 @@ lazy val specs2 = crossProject(JSPlatform, JVMPlatform)
   .settings(
     name := "specs2",
     libraryDependencies ++= Seq(
-      "org.specs2" %%% "specs2-matcher" % "4.10.0"
+      "org.specs2" %%% "specs2-matcher" % "4.10.3"
     ),
     scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) }
   )
