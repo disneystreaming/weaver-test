@@ -184,7 +184,10 @@ Contributions are most welcome !
 
 ### Development requirements
 
-This repository uses [Git LFS](https://git-lfs.github.com/). To install for Mac using `brew`:
+:warning: This repository uses [Git LFS](https://git-lfs.github.com/). Having it installed is required for
+`git checkout` to work properly.
+
+To install for Mac using `brew`:
 
 ```bash
 brew install git-lfs
