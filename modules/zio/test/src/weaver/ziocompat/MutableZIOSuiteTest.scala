@@ -46,7 +46,7 @@ object ZIOSuiteTest extends ZIOSuite[KVStore] {
         (_, events) <- DogFood.runSuite(testSuite).to[Task]
       } yield {
         val event = events.headOption.get
-        expect(event.status == Status.Error) and
+        expect(event.status() == Status.Error) and
           expect(event.throwable().get().getMessage == "oh no")
       }
     }
@@ -55,7 +55,7 @@ object ZIOSuiteTest extends ZIOSuite[KVStore] {
   test("fail properly on failed expectations") {
     for {
       (_, events) <- DogFood.runSuite(TestWithFailedExpectation).to[Task]
-    } yield expect(events.headOption.get.status == Status.Failure)
+    } yield expect(events.headOption.get.status() == Status.Failure)
   }
 
   object TestWithExceptionInTest extends SimpleZIOSuite {
