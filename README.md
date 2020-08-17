@@ -49,6 +49,13 @@ which generally keeps tests cleaner / clearer.
 
 ## API
 
+Weaver's core framework provides two primary types of testing suites.
+
+| Suite name | Use case |
+| --- | --- |
+| `SimpleIOSuite` | Each test is a standalone `IO` action
+| `IOSuite` | Each test needs access to a shared `Resource`
+
 ### Suites
 
 #### SimpleIOSuite
@@ -62,23 +69,20 @@ import cats.effect._
 // Suites must be "objects" for them to be picked by the framework
 object MySuite extends SimpleIOSuite {
 
-  // A test for non-effectful (pure) functions
-  pureTest("hello pure"){
+  pureTest("non-effectful (pure) test"){
     expect("hello".size == 6)
   }
 
-  val random = IO(java.util.UUID.randomUUID())
+  private val random = IO(java.util.UUID.randomUUID())
 
-  // A test for side-effecting functions
-  simpleTest("hello side-effects") {
+  simpleTest("test with side-effects") {
     for {
       x <- random
       y <- random
     } yield expect(x != y)
   }
 
-  // A test with logs
-  loggedTest("hello logs"){ log =>
+  loggedTest("test with side-effects and a logger"){ log =>
     for {
       x <- random
       _ <- log.info(s"x : $x")
@@ -86,30 +90,52 @@ object MySuite extends SimpleIOSuite {
       _ <- log.info(s"y : $y")
     } yield expect(x != y)
   }
-
 }
 ```
 
 #### IOSuite
 
+The `IOSuite` constructs the given resource once for all tests in the suite.
+
 ```scala
 import weaver.IOSuite
 import cats.effect._
 
-// Same as SimpleIOSuite, but supports sharing a resource across tests
 object MySuite extends IOSuite {
 
-  override type Res = AmazonDynamodb
-  def sharedResource : Resource[IO, AmazonDynamodb] = Resource.make(...)
-
-  // A test that uses the shared resource
-  test("hello resource"){ (ddb : AmazonDynamodb, log : Log[IO]) =>
-    // ...
+  type Res = Int
+  
+  def sharedResource : Resource[IO, Int] = Resource
+    .make(
+      IO(println("Making resource"))
+        .as(123)
+    )(n => IO(println(s"Closing resource $n")))
+  
+  test("test, but resource not visible"){
+    expect(123 == 123)
   }
-
-
+  
+  test("test with resource"){ n =>
+    expect(n == 123)
+  }
+  
+  test("test with resource and a logger"){ (n, log) =>
+    log.info("log was available")
+    expect(n == 123)
+  }
 }
 ```
+
+#### Other suites
+
+Weaver also includes support for `ZIO`-based suites via the optional `weaver-zio` dependency.
+
+| Alias | Suite name | Provided by | Use case |
+| --- | --- | --- | --- |
+| `SimpleIOSuite`  | `SimpleMutableIOSuite`       | `weaver-framework` | Each test is a standalone `IO` action
+| `IOSuite`        | `MutableIOSuite`             | `weaver-framework` | Each test needs access to a shared `Resource`
+| `SimpleZIOSuite` | `SimpleMutableZIOSuite`      | `weaver-zio`       | Each test is a standalone `ZIO` action
+| `ZIOSuite[R]`    | `MutableZIOSuite[R]`         | `weaver-zio`       | Each test needs access to a shared `ZLayer`
 
 ### Expectations (assertions)
 
@@ -184,12 +210,28 @@ Contributions are most welcome !
 
 ### Development requirements
 
-This repository uses [Git LFS](https://git-lfs.github.com/). To install for Mac using `brew`:
+:warning: This repository uses [Git LFS](https://git-lfs.github.com/). Having it installed is required for
+`git checkout` to work properly.
+
+To install for Mac using `brew`:
 
 ```bash
 brew install git-lfs
 git lfs install
 ```
+
+If you want to build and run the website then you will need yarn installed:
+
+```bash
+brew install yarn
+```
+
+### PR Guidelines
+
+Please:
+- Sign the CLA
+- Write positive and negative tests
+- Include documentation
 
 ## Inspiration
 

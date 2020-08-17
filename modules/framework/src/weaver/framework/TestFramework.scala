@@ -66,10 +66,11 @@ object TestFramework {
   }
 
   trait WeaverFingerprint extends SubclassFingerprint {
-    def unapply(taskDef: TaskDef): Option[TaskDef] = taskDef.fingerprint match {
-      case sf: SubclassFingerprint if fingerprintMatches(sf) => Some(taskDef)
-      case _                                                 => None
-    }
+    def unapply(taskDef: TaskDef): Option[TaskDef] =
+      taskDef.fingerprint() match {
+        case sf: SubclassFingerprint if fingerprintMatches(sf) => Some(taskDef)
+        case _                                                 => None
+      }
 
     private def fingerprintMatches(sf: SubclassFingerprint): Boolean = {
       sf.isModule() == this.isModule() &&
