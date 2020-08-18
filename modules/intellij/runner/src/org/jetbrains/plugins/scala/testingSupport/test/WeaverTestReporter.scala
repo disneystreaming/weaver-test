@@ -1,15 +1,16 @@
 package org.jetbrains.plugins.scala.testingSupport.test
 
-import java.io.{PrintWriter, StringWriter}
+import java.io.{ PrintWriter, StringWriter }
 
 import cats.effect.IO
 import cats.effect.concurrent.Ref
-import weaver.{TestOutcome, TestStatus}
+
+import weaver.{ TestOutcome, TestStatus }
 
 trait WeaverTestReporter {
 
   def reportScenario(parentId: Int, testClass: String, idCounter: Ref[IO, Int])(
-    result: TestOutcome
+      result: TestOutcome
   ): IO[Unit] = {
     import result._
     idCounter.modify(c => (c + 1, c)).map { id =>
@@ -77,14 +78,15 @@ trait WeaverTestReporter {
   }
 
   private def escapeString(str: String): String = {
-    if (str == null) return ""
-    str
-      .replaceAll("[|]", "||")
-      .replaceAll("[']", "|'")
-      .replaceAll("[\n]", "|n")
-      .replaceAll("[\r]", "|r")
-      .replaceAll("]", "|]")
-      .replaceAll("\\[", "|[")
+    if (str != null)
+      str
+        .replaceAll("[|]", "||")
+        .replaceAll("[']", "|'")
+        .replaceAll("[\n]", "|n")
+        .replaceAll("[\r]", "|r")
+        .replaceAll("]", "|]")
+        .replaceAll("\\[", "|[")
+    else ""
   }
 
 }

@@ -1,10 +1,11 @@
 package org.jetbrains.plugins.scala.testingSupport.test
 
 import cats.effect.concurrent.Ref
-import cats.effect.{ExitCode, IO, IOApp};
+import cats.effect.{ ExitCode, IO, IOApp }
 import cats.instances.list._
 import cats.syntax.parallel._
 import cats.syntax.traverse._
+
 import weaver._
 
 object WeaverTestRunner extends IOApp {
@@ -37,7 +38,7 @@ object WeaverTestRunner extends IOApp {
   }
 
   private def run(name: String, testName: Option[String])(
-    report: TestOutcome => IO[Unit]
+      report: TestOutcome => IO[Unit]
   ): IO[Unit] = {
     val suite =
       ReflectUtil.loadModule(name + "$", getClass.getClassLoader).get
@@ -46,12 +47,14 @@ object WeaverTestRunner extends IOApp {
     suite.run(args)(report)
   }
 
-  case class Config(testClasses: List[String],
-                    showProgressMessages: Boolean, //What is this supposed to do?
-                    testName: Option[String])
+  case class Config(
+      testClasses: List[String],
+      showProgressMessages: Boolean, //What is this supposed to do?
+      testName: Option[String])
 
-  private def parse(args: List[String],
-                    config: Config = Config(Nil, false, None)): Config =
+  private def parse(
+      args: List[String],
+      config: Config = Config(Nil, false, None)): Config =
     args match {
       case "-s" :: testClass :: rest =>
         parse(rest, config.copy(testClasses = config.testClasses :+ testClass))
