@@ -1,5 +1,6 @@
 // shadow sbt-scalajs' crossProject and CrossType from Scala.js 0.6.x
-import sbtcrossproject.CrossPlugin.autoImport.{ crossProject, CrossType }
+import org.jetbrains.sbtidea.Keys.createRunnerProject
+import sbtcrossproject.CrossPlugin.autoImport.{ CrossType, crossProject }
 
 addCommandAlias(
   "ci",
@@ -182,8 +183,26 @@ lazy val zio = crossProject(JSPlatform, JVMPlatform)
 lazy val zioJVM = zio.jvm
 lazy val zioJS  = zio.js
 
-lazy val ideaPlugin =
-  (project in file("modules/intellij")).disablePlugins(WeaverPlugin)
+lazy val ideaPlugin = (project in file("modules/intellij/plugin"))
+  .dependsOn(
+    WeaverIdeaPlugin.ideaScala % Configurations.Provided
+  ).settings(
+    packageAdditionalProjects := Seq(ideaRunner_2_12, ideaRunner_2_13)
+  ).enablePlugins(WeaverIdeaPlugin)
+  .disablePlugins(WeaverPlugin)
+
+lazy val ideaRunner_2_13 =
+  (project in file("modules/intellij/runner")).settings(
+    WeaverIdeaPlugin.runnerSettings(WeaverPlugin.scala213): _*
+  )
+
+lazy val ideaRunner_2_12 =
+  (project in file("modules/intellij/runner")).settings(
+    WeaverIdeaPlugin.runnerSettings(WeaverPlugin.scala212): _*
+  )
+
+lazy val ideaRunner = createRunnerProject(ideaPlugin, "weaver-runner")
+  .disablePlugins(WeaverPlugin)
 
 lazy val versionDump =
   taskKey[Unit]("Dumps the version in a file named version")
