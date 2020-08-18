@@ -182,6 +182,8 @@ lazy val zio = crossProject(JSPlatform, JVMPlatform)
 lazy val zioJVM = zio.jvm
 lazy val zioJS  = zio.js
 
+lazy val ideaPlugin = (project in file("modules/intellij")).disablePlugins(WeaverPlugin)
+
 lazy val versionDump =
   taskKey[Unit]("Dumps the version in a file named version")
 
