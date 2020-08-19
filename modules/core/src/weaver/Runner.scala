@@ -3,7 +3,7 @@ package weaver
 import cats.Monoid
 import cats.data.Chain
 import cats.effect._
-import cats.effect.concurrent.{ MVar, Ref }
+import cats.effect.concurrent.{ MVar, MVar2, Ref }
 import cats.implicits._
 
 import TestOutcome.{ Summary, Verbose }
@@ -14,7 +14,7 @@ class Runner[F[_]: Concurrent](args: List[String], maxConcurrentSuites: Int)(
   import Runner._
 
   // Signaling option, because we need to detect completion
-  type Channel[A] = MVar[F, Option[A]]
+  type Channel[A] = MVar2[F, Option[A]]
 
   def run(suites: fs2.Stream[F, Suite[F]]): F[Outcome] =
     for {
