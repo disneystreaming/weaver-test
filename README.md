@@ -32,6 +32,9 @@ libraryDependencies +=  "com.disneystreaming" %% "weaver-zio" % "x.y.z" % Test
 // optionally (for Scalacheck usage)
 libraryDependencies +=  "com.disneystreaming" %% "weaver-scalacheck" % "x.y.z" % Test
 
+// optionally (for specs2 interop)
+libraryDependencies +=  "com.disneystreaming" %% "weaver-specs2" % "x.y.z" % Test
+
 ```
 
 ## Motivation
