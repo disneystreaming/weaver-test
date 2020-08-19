@@ -10,6 +10,7 @@
       "resources",
       "global_resources",
       "logging",
+      "tagging",
       "scalacheck",
       "zio",
       "specs2"
