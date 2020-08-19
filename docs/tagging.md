@@ -3,7 +3,7 @@ id: tagging
 title: Tagging
 ---
 
-Weaver brings some default tags as `ignore` or `cancel` to disable the tests temporally.
+Weaver provides some constructs to dynamically tag tests as `ignored` or `cancelled` :   
 
 ```scala mdoc
 import cats.effect._
