@@ -35,7 +35,7 @@ class WeaverTestConfigurationProducer
     val lineStartAt1 = line + 1
 
     getTestClass(element).map(clazz =>
-      ClassWithTestName(clazz.testClass, Some(s"line//:$lineStartAt1")))
+      ClassWithTestName(clazz.testClass, Some(s"line://$lineStartAt1")))
   }
 
   private def getTestClass(element: PsiElement): Option[ClassWithTestName] = {

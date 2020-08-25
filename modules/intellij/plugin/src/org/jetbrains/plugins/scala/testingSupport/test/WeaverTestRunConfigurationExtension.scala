@@ -20,8 +20,8 @@ class WeaverTestRunConfigurationExtension extends RunConfigurationExtension {
 
     val runnerJarName = module.scalaSdk match {
       case Some(lib) => lib.compilerVersion match {
-          case Some(version) if version.startsWith("2.12") => "/runner_2_12.jar"
-          case Some(version) if version.startsWith("2.13") => "/runner_2_13.jar"
+          case Some(version) if version.startsWith("2.12") => "/ideaRunner_2_12.jar"
+          case Some(version) if version.startsWith("2.13") => "/ideaRunner_2_13.jar"
           case unsupported => throw new RuntimeException(
               "Can't run test in Module. Unsupported compiler version" + unsupported)
         }
@@ -31,7 +31,7 @@ class WeaverTestRunConfigurationExtension extends RunConfigurationExtension {
 
     val runnerJar = PathUtil
       .getJarPathForClass(classOf[WeaverTestRunConfigurationExtension])
-      .replace("/plugin.jar", runnerJarName)
+      .replace("/ideaPlugin.jar", runnerJarName)
     javaParameters.getClassPath.add(runnerJar)
   }
   override def isApplicableFor(

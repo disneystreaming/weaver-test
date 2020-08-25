@@ -19,7 +19,7 @@ class WeaverTestFramework
 
   override def getDefaultSuperClass: String = "weaver.SimpleIOSuite"
 
-  def baseSuitePaths: Seq[String] = List("weaver.WeaverNext.Suite")
+  def baseSuitePaths: Seq[String] = List("weaver.Suite")
 
   def frameworkSetupInfo(scalaVersion: Option[String]) =
     TestFrameworkSetupInfo(

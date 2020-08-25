@@ -36,20 +36,36 @@ package object weaver {
     Pattern.compile(parts.mkString(".*"))
   }
 
-  type TestName = String
+  type TestConfig = (String, TestIndicator)
+
+  private type Predicate = TestConfig => Boolean
+
   private[weaver] def filterTests(suiteName: String)(
-      args: List[String]): TestName => Boolean = {
+      args: List[String]): TestConfig => Boolean = {
+
+    def toPredicate(filter: String): Predicate = {
+      filter match {
+
+        case s"${filterSuiteName}.line://${lineNumber}"
+            if filterSuiteName == suiteName => {
+          case (_, indicator) => indicator.line.toString == lineNumber
+        }
+        case regexStr => {
+          case (name, _) =>
+            val fullName = suiteName + "." + name
+            toPattern(regexStr).matcher(fullName).matches()
+        }
+      }
+    }
+
     import scala.util.Try
     val maybePattern = for {
       index <- Option(args.indexOf("-o"))
         .orElse(Option(args.indexOf("--only")))
         .filter(_ >= 0)
-      regexStr <- Try(args(index + 1)).toOption
-    } yield toPattern(regexStr)
-    testName => {
-      val fullName = suiteName + "." + testName
-      maybePattern.forall(_.matcher(fullName).matches())
-    }
+      filter <- Try(args(index + 1)).toOption
+    } yield toPredicate(filter)
+    testName => maybePattern.forall(_.apply((testName._1, testName._2)))
   }
 
 }

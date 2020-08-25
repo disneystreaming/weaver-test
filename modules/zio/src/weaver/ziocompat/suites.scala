@@ -22,25 +22,30 @@ abstract class MutableZIOSuite[Res <: Has[_]](implicit tag: Tag[Res])
 
   private[this] type Test = ZIO[Env[Res], Nothing, TestOutcome]
 
-  protected def registerTest(name: String)(test: Test): Unit =
+  protected def registerTest(
+      name: String,
+      testIndicator: TestIndicator)(test: Test): Unit =
     synchronized {
       if (isInitialized) throw initError()
-      testSeq = testSeq :+ (name -> test)
+      testSeq = testSeq :+ ((name, testIndicator, test))
     }
 
-  def pureTest(name: String)(run: => Expectations): Unit =
-    registerTest(name)(Test(name, ZIO(run)))
+  def pureTest(name: String)(run: => Expectations)(implicit
+  ti: TestIndicator): Unit =
+    registerTest(name, ti)(Test(name, ZIO(run)))
 
   def test(name: String)(
-      run: => ZIO[PerTestEnv[Res], Throwable, Expectations]): Unit =
-    registerTest(name)(Test(name, ZIO.fromTry(Try { run }).flatten))
+      run: => ZIO[PerTestEnv[Res], Throwable, Expectations])(implicit
+  ti: TestIndicator): Unit =
+    registerTest(name, ti)(Test(name, ZIO.fromTry(Try { run }).flatten))
 
   override def spec(args: List[String]): Stream[Task, TestOutcome] =
     synchronized {
       if (!isInitialized) isInitialized = true
       val argsFilter = filterTests(this.name)(args)
       val filteredTests = testSeq.collect {
-        case (name, test) if argsFilter(name) => test
+        case (name, testIndicator, test) if argsFilter((name, testIndicator)) =>
+          test
       }
       if (filteredTests.isEmpty) Stream.empty // no need to allocate resources
       else {
@@ -56,7 +61,7 @@ abstract class MutableZIOSuite[Res <: Has[_]](implicit tag: Tag[Res])
       }
     }
 
-  private[this] var testSeq       = Seq.empty[(String, Test)]
+  private[this] var testSeq       = Seq.empty[(String, TestIndicator, Test)]
   private[this] var isInitialized = false
 
   private[this] def initError() =
