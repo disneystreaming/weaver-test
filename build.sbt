@@ -111,7 +111,6 @@ lazy val framework = crossProject(JSPlatform, JVMPlatform)
   .settings(WeaverPlugin.simpleLayout)
   .settings(
     libraryDependencies ++= Seq(
-      "io.github.cquiroz" %%% "scala-java-time"      % "2.0.0" % Test,
       "io.github.cquiroz" %%% "scala-java-time-tzdb" % "2.0.0" % Test
     ),
     Test / scalacOptions ~= (_ filterNot (_ == "-Xfatal-warnings")),
@@ -173,14 +172,50 @@ lazy val zio = crossProject(JSPlatform, JVMPlatform)
   .settings(WeaverPlugin.simpleLayout)
   .settings(
     libraryDependencies ++= Seq(
-      "dev.zio"           %%% "zio-interop-cats" % "2.1.4.0",
-      "io.github.cquiroz" %%% "scala-java-time"  % "2.0.0"
+      "dev.zio" %%% "zio-interop-cats" % "2.1.4.0"
     ),
     scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) }
   )
 
 lazy val zioJVM = zio.jvm
 lazy val zioJS  = zio.js
+
+lazy val cli = crossProject(JSPlatform, JVMPlatform)
+  .crossType(CrossType.Pure)
+  .in(file("modules/cli"))
+  .dependsOn(core, framework, codecs, framework % "test->compile")
+  .configure(WeaverPlugin.profile)
+  .settings(WeaverPlugin.simpleLayout)
+  .settings(
+    libraryDependencies ++= Seq(
+      "com.monovore"       %%% "decline-effect"         % "1.0.0",
+      "org.portable-scala" %%% "portable-scala-reflect" % "1.0.0",
+      "co.fs2"             %%% "fs2-io"                 % "2.4.3",
+      "io.circe"           %%% "circe-parser"           % "0.12.3" % Test
+    ),
+    scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) }
+  )
+
+lazy val cliJVM = cli.jvm
+lazy val cliJS  = cli.js
+
+// Json codecs for TestOutcome
+lazy val codecs = crossProject(JSPlatform, JVMPlatform)
+  .crossType(CrossType.Pure)
+  .in(file("modules/codecs"))
+  .dependsOn(core, framework % "test->compile")
+  .configure(WeaverPlugin.profile)
+  .settings(WeaverPlugin.simpleLayout)
+  .settings(
+    name := "codecs",
+    libraryDependencies ++= Seq(
+      "io.circe" %%% "circe-core" % "0.12.3"
+    ),
+    scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) }
+  )
+
+lazy val codecsJVM = codecs.jvm
+lazy val codecsJS  = codecs.js
 
 lazy val versionDump =
   taskKey[Unit]("Dumps the version in a file named version")
