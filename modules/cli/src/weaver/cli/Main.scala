@@ -3,7 +3,7 @@ package cli
 
 import java.io.PrintStream
 
-import cats.effect.{Blocker, ExitCode, IO}
+import cats.effect.{ Blocker, ExitCode, IO }
 import cats.implicits._
 
 import weaver.codecs._

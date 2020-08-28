@@ -4,7 +4,7 @@ import scala.concurrent.duration.FiniteDuration
 
 import cats.data.Chain
 
-import weaver.{TestOutcome, TestStatus}
+import weaver.{ TestOutcome, TestStatus }
 
 import io.circe._
 

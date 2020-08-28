@@ -1,6 +1,6 @@
 package weaver.codecs
 
-import io.circe.{Decoder, Encoder, Json}
+import io.circe.{ Decoder, Encoder, Json }
 
 case class EncodeOneOf[Union, Member <: Union](
     label: String,

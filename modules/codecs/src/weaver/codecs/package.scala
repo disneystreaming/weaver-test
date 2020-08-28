@@ -2,7 +2,7 @@ package weaver
 
 import scala.concurrent.duration._
 
-import io.circe.{ACursor, Decoder, DecodingFailure, Encoder, HCursor, Json}
+import io.circe.{ ACursor, Decoder, DecodingFailure, Encoder, HCursor, Json }
 
 package object codecs {
 
