@@ -47,6 +47,8 @@ lazy val root = project
              scalacheckJVM,
              zioJVM,
              specs2JVM,
+             codecsJVM,
+             cliJVM,
              coreJS,
              frameworkJS,
              scalacheckJS,
@@ -180,7 +182,7 @@ lazy val zio = crossProject(JSPlatform, JVMPlatform)
 lazy val zioJVM = zio.jvm
 lazy val zioJS  = zio.js
 
-lazy val cli = crossProject(JSPlatform, JVMPlatform)
+lazy val cli = crossProject(JVMPlatform)
   .crossType(CrossType.Pure)
   .in(file("modules/cli"))
   .dependsOn(core, framework, codecs, framework % "test->compile")
@@ -197,10 +199,9 @@ lazy val cli = crossProject(JSPlatform, JVMPlatform)
   )
 
 lazy val cliJVM = cli.jvm
-lazy val cliJS  = cli.js
 
 // Json codecs for TestOutcome
-lazy val codecs = crossProject(JSPlatform, JVMPlatform)
+lazy val codecs = crossProject(JVMPlatform)
   .crossType(CrossType.Pure)
   .in(file("modules/codecs"))
   .dependsOn(core, framework % "test->compile")
@@ -216,7 +217,6 @@ lazy val codecs = crossProject(JSPlatform, JVMPlatform)
   )
 
 lazy val codecsJVM = codecs.jvm
-lazy val codecsJS  = codecs.js
 
 lazy val versionDump =
   taskKey[Unit]("Dumps the version in a file named version")
