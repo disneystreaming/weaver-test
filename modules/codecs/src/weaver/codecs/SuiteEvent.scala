@@ -1,9 +1,11 @@
 package weaver.codecs
 
 import scala.concurrent.duration.FiniteDuration
-import weaver.TestStatus
+
 import cats.data.Chain
-import weaver.TestOutcome
+
+import weaver.{TestOutcome, TestStatus}
+
 import io.circe._
 
 sealed trait SuiteEvent extends Product with Serializable {

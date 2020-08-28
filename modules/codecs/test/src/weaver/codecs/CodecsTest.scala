@@ -2,11 +2,13 @@ package weaver
 package codecs
 
 import scala.concurrent.duration._
-import cats.data.Chain
-import io.circe.syntax._
 import scala.io.Source
+
+import cats.data.Chain
 import cats.effect.IO
 import cats.implicits._
+
+import io.circe.syntax._
 
 object CodecsTest extends SimpleIOSuite {
 

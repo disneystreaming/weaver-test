@@ -1,7 +1,7 @@
 package weaver
 package codecs
 
-import io.circe.{ Encoder, Decoder }
+import io.circe.{Decoder, Encoder}
 
 /**
  * This is a serialisable version of Log.Entry

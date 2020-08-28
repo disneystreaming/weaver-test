@@ -1,13 +1,15 @@
 package weaver
 package cli
 
-import com.monovore.decline.effect.CommandIOApp
-import cats.effect.{ ExitCode, IO }
-import cats.implicits._
-import com.monovore.decline._
-import cats.effect.Blocker
 import java.io.PrintStream
+
+import cats.effect.{Blocker, ExitCode, IO}
+import cats.implicits._
+
 import weaver.codecs._
+
+import com.monovore.decline._
+import com.monovore.decline.effect.CommandIOApp
 import fs2.concurrent.Queue
 
 object Main

@@ -1,12 +1,8 @@
 package weaver
 
-import io.circe.Encoder
-import io.circe.Decoder
 import scala.concurrent.duration._
-import io.circe.DecodingFailure
-import io.circe.HCursor
-import io.circe.ACursor
-import io.circe.Json
+
+import io.circe.{ACursor, Decoder, DecodingFailure, Encoder, HCursor, Json}
 
 package object codecs {
 
