@@ -66,7 +66,7 @@ lazy val core = crossProject(JSPlatform, JVMPlatform)
   .settings(WeaverPlugin.simpleLayout)
   .settings(
     libraryDependencies ++= Seq(
-      "co.fs2"               %%% "fs2-core"               % "2.4.3",
+      "co.fs2"               %%% "fs2-core"               % "2.4.4",
       "org.typelevel"        %%% "cats-effect"            % "2.1.4",
       "com.eed3si9n.expecty" %%% "expecty"                % "0.13.0",
       "org.portable-scala"   %%% "portable-scala-reflect" % "1.0.0"
@@ -190,8 +190,8 @@ lazy val cli = crossProject(JSPlatform, JVMPlatform)
     libraryDependencies ++= Seq(
       "com.monovore"       %%% "decline-effect"         % "1.0.0",
       "org.portable-scala" %%% "portable-scala-reflect" % "1.0.0",
-      "co.fs2"             %%% "fs2-io"                 % "2.4.3",
-      "io.circe"           %%% "circe-parser"           % "0.12.3" % Test
+      "co.fs2"             %%% "fs2-io"                 % "2.4.4",
+      "io.circe"           %%% "circe-parser"           % "0.13.0" % Test
     ),
     scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) }
   )
@@ -209,7 +209,7 @@ lazy val codecs = crossProject(JSPlatform, JVMPlatform)
   .settings(
     name := "codecs",
     libraryDependencies ++= Seq(
-      "io.circe" %%% "circe-core" % "0.12.3"
+      "io.circe" %%% "circe-core" % "0.13.0"
     ),
     scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) }
   )

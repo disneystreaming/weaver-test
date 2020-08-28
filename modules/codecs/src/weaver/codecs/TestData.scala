@@ -13,8 +13,6 @@ object SuiteEvent {
     case s: SuiteStarts => SuiteStarts.suiteStartsEncoder.oneOf("start", s)
     case s: SuiteEnds   => SuiteEnds.suiteEndsEncoder.oneOf("end", s)
     case o: TestData    => TestData.testDataEncoder.oneOf("outcome", o)
-    case s: StdoutLine =>
-      StdoutLine.stdoutMessageEncoder.oneOf("stdout", s)
   }
 
 }
@@ -28,14 +26,6 @@ object SuiteStarts {
   implicit val suiteEndsDecoder: Encoder[SuiteEnds] =
     Encoder.forProduct1[SuiteEnds, String]("name")(suiteStarts =>
       suiteStarts.name)
-}
-case class StdoutLine(line: String) extends SuiteEvent
-object StdoutLine {
-  implicit val stdoutMessageEncoder: Encoder[StdoutLine] =
-    Encoder.forProduct1[StdoutLine, String]("line")(_.line)
-
-  implicit val stdoutMessageDecoder: Decoder[StdoutLine] =
-    Decoder.forProduct1[StdoutLine, String]("line")(StdoutLine.apply)
 }
 case class SuiteEnds(name: String) extends SuiteEvent
 object SuiteEnds {
