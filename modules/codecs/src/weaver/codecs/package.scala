@@ -1,17 +1,16 @@
 package weaver
 
-import io.circe.Json
 import io.circe.Encoder
 import io.circe.Decoder
 import scala.concurrent.duration._
 import io.circe.DecodingFailure
+import io.circe.HCursor
+import io.circe.ACursor
+import io.circe.Json
 
 package object codecs {
 
-  def eventJson(event: SuiteEvent): String =
-    SuiteEvent.suiteEventEncoder(event).noSpaces
-
-  implicit class EncoderOps[A](encoder: Encoder[A]) {
+  implicit class WeaverEncoderOps[A](encoder: Encoder[A]) {
     def oneOf[Union >: A](label: String, value: A): EncodeOneOf[Union, A] =
       EncodeOneOf(label, encoder, value)
   }
@@ -20,47 +19,26 @@ package object codecs {
       route: Union => EncodeOneOf[Union, _]): Encoder[Union] =
     (member: Union) => route(member).encode
 
+  implicit class WeaverDecoderOps[A](decoder: Decoder[A]) {
+    def oneOf[Union >: A](label: String): DecodeOneOf[Union, A] =
+      DecodeOneOf(label, decoder)
+  }
+
   def decodeUnion[Union](oneOfs: DecodeOneOf[Union, _]*): Decoder[Union] = {
     val emptyUnion = Decoder.failed[Union](DecodingFailure("Empty union", Nil))
     oneOfs.map(_.upcast).fold(emptyUnion)(_ or _)
   }
 
-  implicit val stackTraceElementEncoder: Encoder[StackTraceElement] =
-    (ste: StackTraceElement) =>
-      Json.obj(
-        "fileName"   -> Json.fromString(ste.getFileName()),
-        "className"  -> Json.fromString(ste.getClassName()),
-        "methodName" -> Json.fromString(ste.getMethodName()),
-        "lineNumber" -> Json.fromInt(ste.getLineNumber())
-      )
+  def recursiveDecoder[A](f: => Decoder[A]): Decoder[A] = new Decoder[A] {
+    lazy val decoder: Decoder[A]                          = f
+    def apply(c: HCursor): Decoder.Result[A]              = decoder(c)
+    override def tryDecode(c: ACursor): Decoder.Result[A] = decoder.tryDecode(c)
+  }
 
-  implicit val stackTraceElementDecoder: Decoder[StackTraceElement] =
-    Decoder.forProduct4[StackTraceElement, String, String, String, Int](
-      "fileName",
-      "className",
-      "methodName",
-      "lineNumber") {
-      case (fileName, className, methodName, lineNumber) =>
-        new StackTraceElement(className, methodName, fileName, lineNumber)
-    }
-
-  implicit val throwableEncoder: Encoder[Throwable] = (t: Throwable) =>
-    Json.obj(
-      "message" -> Json.fromString(t.getMessage()),
-      "stackTrace" -> Json.fromValues(
-        t.getStackTrace().map(stackTraceElementEncoder.apply))
-    )
-
-  implicit val throwableDecoder: Decoder[Throwable] =
-    Decoder.forProduct2[Throwable, String, Array[StackTraceElement]](
-      "message",
-      "stackTrace") {
-      case (message, stackTrace) =>
-        new Throwable(message) {
-          override def fillInStackTrace(): Throwable = this
-          override def getStackTrace()               = stackTrace
-        }
-    }
+  def recursiveEncoder[A](f: => Encoder[A]): Encoder[A] = new Encoder[A] {
+    lazy val encoder: Encoder[A] = f
+    def apply(a: A): Json        = encoder(a)
+  }
 
   implicit val sourceLocationEncoder: Encoder[SourceLocation] =
     Encoder.forProduct3[SourceLocation, Option[String], Option[String], Int](
@@ -81,41 +59,6 @@ package object codecs {
 
   implicit val logLevelDecoder: Decoder[Log.Level] =
     Decoder.decodeString.emap(Log.Level.fromString)
-
-  implicit val logEntryEncoder: Encoder[Log.Entry] =
-    Encoder.forProduct6[Log.Entry,
-                        Long,
-                        String,
-                        Map[String, String],
-                        Log.Level,
-                        Option[Throwable],
-                        SourceLocation]("timestamp",
-                                        "msg",
-                                        "ctx",
-                                        "level",
-                                        "cause",
-                                        "location") { entry =>
-      (entry.timestamp,
-       entry.msg,
-       entry.ctx,
-       entry.level,
-       entry.cause,
-       entry.location)
-    }
-
-  implicit val logEntryDecoder: Decoder[Log.Entry] =
-    Decoder.forProduct6[Log.Entry,
-                        Long,
-                        String,
-                        Map[String, String],
-                        Log.Level,
-                        Option[Throwable],
-                        SourceLocation]("timestamp",
-                                        "msg",
-                                        "ctx",
-                                        "level",
-                                        "cause",
-                                        "location")(Log.Entry.apply)
 
   implicit val testStatusEncoder: Encoder[TestStatus] =
     Encoder.encodeString.contramap(_.label)

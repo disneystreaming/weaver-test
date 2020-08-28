@@ -3,28 +3,37 @@ package weaver.codecs
 import scala.concurrent.duration.FiniteDuration
 import weaver.TestStatus
 import cats.data.Chain
-import weaver.Log
 import weaver.TestOutcome
 import io.circe._
 
-sealed trait SuiteEvent
+sealed trait SuiteEvent extends Product with Serializable {
+  def json: Json         = SuiteEvent.suiteEventEncoder(this)
+  def jsonString: String = json.noSpaces
+}
+
 object SuiteEvent {
+
   implicit val suiteEventEncoder = encodeUnion[SuiteEvent] {
     case s: SuiteStarts => SuiteStarts.suiteStartsEncoder.oneOf("start", s)
     case s: SuiteEnds   => SuiteEnds.suiteEndsEncoder.oneOf("end", s)
     case o: TestData    => TestData.testDataEncoder.oneOf("outcome", o)
   }
 
+  implicit val suiteEventDecoder = decodeUnion[SuiteEvent](
+    SuiteStarts.suiteStartsDecoder.oneOf("start"),
+    SuiteEnds.suiteEndsDecoder.oneOf("end"),
+    TestData.testDataDecoder.oneOf("outcome")
+  )
+
 }
 
 case class SuiteStarts(name: String) extends SuiteEvent
 object SuiteStarts {
+  implicit val suiteStartsDecoder: Decoder[SuiteStarts] =
+    Decoder.forProduct1[SuiteStarts, String]("name")(SuiteStarts.apply)
+
   implicit val suiteStartsEncoder: Encoder[SuiteStarts] =
     Encoder.forProduct1[SuiteStarts, String]("name")(suiteStarts =>
-      suiteStarts.name)
-
-  implicit val suiteEndsDecoder: Encoder[SuiteEnds] =
-    Encoder.forProduct1[SuiteEnds, String]("name")(suiteStarts =>
       suiteStarts.name)
 }
 case class SuiteEnds(name: String) extends SuiteEvent
@@ -43,13 +52,10 @@ case class TestData(
     name: String,
     duration: FiniteDuration,
     status: TestStatus,
-    log: Chain[Log.Entry],
+    log: Chain[LogEntry],
     description: String,
-    cause: Option[Throwable])
-    extends SuiteEvent {
-  def json: Json         = TestData.testDataEncoder(this)
-  def jsonString: String = json.noSpaces
-}
+    cause: Option[SerialisableThrowable])
+    extends SuiteEvent
 
 object TestData {
 
@@ -57,9 +63,9 @@ object TestData {
     testOutcome.name,
     testOutcome.duration,
     testOutcome.status,
-    testOutcome.log,
+    testOutcome.log.map(LogEntry.fromEntry),
     testOutcome.formatted(TestOutcome.Verbose),
-    testOutcome.cause
+    testOutcome.cause.map(SerialisableThrowable.fromThrowable)
   )
 
   implicit val testDataEncoder: Encoder[TestData] =
@@ -67,14 +73,14 @@ object TestData {
                         String,
                         FiniteDuration,
                         TestStatus,
-                        Chain[Log.Entry],
+                        Chain[LogEntry],
                         String,
-                        Option[Throwable]]("name",
-                                           "duration",
-                                           "status",
-                                           "log",
-                                           "description",
-                                           "cause") { outcome =>
+                        Option[SerialisableThrowable]]("name",
+                                                       "duration",
+                                                       "status",
+                                                       "log",
+                                                       "description",
+                                                       "cause") { outcome =>
       (outcome.name,
        outcome.duration,
        outcome.status,
@@ -88,13 +94,13 @@ object TestData {
                         String,
                         FiniteDuration,
                         TestStatus,
-                        Chain[Log.Entry],
+                        Chain[LogEntry],
                         String,
-                        Option[Throwable]]("name",
-                                           "duration",
-                                           "status",
-                                           "log",
-                                           "description",
-                                           "cause")(TestData.apply)
+                        Option[SerialisableThrowable]]("name",
+                                                       "duration",
+                                                       "status",
+                                                       "log",
+                                                       "description",
+                                                       "cause")(TestData.apply)
 
 }

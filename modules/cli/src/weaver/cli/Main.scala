@@ -71,7 +71,7 @@ object Main
           case SuiteEnds(_) => false
           case _            => true
         }
-        .map(eventJson)
+        .map(_.jsonString)
         .interleave(fs2.Stream("\n").repeat)
         .through(fs2.text.utf8Encode)
         .through(stdoutSink)

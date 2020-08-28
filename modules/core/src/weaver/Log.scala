@@ -65,8 +65,8 @@ object Log {
 
     def fromString(s: String): Either[String, Level] =
       values.find(_.label == s) match {
-        case None            => Left(s"$other is not a valid log-level")
         case Some(level) => Right(level)
+        case None        => Left(s"$s is not a valid log-level")
       }
 
     implicit val levelShow: Show[Level] = {
