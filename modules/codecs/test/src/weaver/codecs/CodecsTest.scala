@@ -12,6 +12,8 @@ import io.circe.syntax._
 
 object CodecsTest extends SimpleIOSuite {
 
+  override def maxParallelism: Int = 1
+
   val logContext = Map("a" -> "a", "b" -> "b")
   val throwable1 = new Throwable("boom1")
   val throwable2 = new Throwable("boom2")
@@ -49,10 +51,13 @@ object CodecsTest extends SimpleIOSuite {
 
   simpleTest(
     "golden test: previously serialised payload is still deserialisable") {
-    IO(Source.fromResource("golden.json")).flatMap { reader =>
-      val jsonString = reader.getLines().mkString("")
-      io.circe.parser.parse(jsonString).liftTo[IO]
-    }.flatMap(_.as[SuiteEvent].liftTo[IO]).as(success)
+    for {
+      inputStream <- IO(getClass.getResourceAsStream("/golden.json"))
+      lines       <- IO(Source.fromInputStream(inputStream).getLines())
+      jsonString = lines.mkString("")
+      json <- io.circe.parser.parse(jsonString).liftTo[IO]
+      _    <- json.as[SuiteEvent].liftTo[IO]
+    } yield success
   }
 
   for ((message, index) <- messages.zipWithIndex)
