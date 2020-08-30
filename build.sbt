@@ -194,7 +194,6 @@ lazy val cli = crossProject(JVMPlatform)
     libraryDependencies ++= Seq(
       "com.monovore"       %%% "decline-effect"         % "1.0.0",
       "org.portable-scala" %%% "portable-scala-reflect" % "1.0.0",
-      "co.fs2"             %%% "fs2-io"                 % "2.4.4",
       "io.circe"           %%% "circe-parser"           % "0.13.0" % Test
     ),
     scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) }
