@@ -1,5 +1,9 @@
 package weaver
 
+/**
+ * Exactly the same as SourceLocation, but typed differently to specifically
+ * location of test declaration, for tooling purposes.
+ */
 final case class TestIndicator(
     fileName: Option[String],
     filePath: Option[String],

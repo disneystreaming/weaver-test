@@ -40,6 +40,9 @@ ThisBuild / scalaVersion := WeaverPlugin.scala213
 
 ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.4.0"
 
+// Enabling only locally
+disablePlugins(SbtIdeaPlugin)
+
 lazy val root = project
   .in(file("."))
   .enablePlugins(ScalafixPlugin)
@@ -188,7 +191,7 @@ lazy val ideaPlugin = (project in file("modules/intellij/plugin"))
     WeaverIdeaPlugin.ideaScala % Configurations.Provided
   ).settings(
     packageAdditionalProjects := Seq(ideaRunner_2_12, ideaRunner_2_13)
-  ).enablePlugins(WeaverIdeaPlugin)
+  ).enablePlugins(SbtIdeaPlugin, WeaverIdeaPlugin)
   .disablePlugins(WeaverPlugin)
 
 lazy val ideaRunner_2_13 =

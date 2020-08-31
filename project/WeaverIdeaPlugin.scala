@@ -9,17 +9,20 @@ object WeaverIdeaPlugin extends AutoPlugin {
   // We need to have the same version as org.intellij.scala
   val scalaPluginScalaVersion = "2.12.7"
 
-  override def trigger = PluginTrigger.NoTrigger
+  override def trigger = allRequirements
 
   override def requires: Plugins = SbtIdeaPlugin
 
   override def extraProjects: Seq[Project] = Seq(ideaScala)
 
+  override def buildSettings: Seq[Def.Setting[_]] = Seq(
+    intellijBuild in ThisBuild := "202.6948.69"
+  )
+
   override def projectSettings: Seq[Def.Setting[_]] = Seq(
     scalaVersion := scalaPluginScalaVersion,
     version := "2020.2.2",
     intellijPluginName := "weaver-intelliJ",
-    intellijBuild := "202.6397.94",
     intellijPlatform := IntelliJPlatform.IdeaUltimate,
     packageMethod := PackagingMethod.Standalone(),
     SettingKey[Seq[String]]("ide-base-packages") := Seq(
