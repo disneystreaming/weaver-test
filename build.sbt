@@ -39,6 +39,8 @@ ThisBuild / scalaVersion := WeaverPlugin.scala213
 
 ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.4.0"
 
+fork in Test := true
+
 lazy val root = project
   .in(file("."))
   .enablePlugins(ScalafixPlugin)
@@ -47,6 +49,8 @@ lazy val root = project
              scalacheckJVM,
              zioJVM,
              specs2JVM,
+             codecsJVM,
+             cliJVM,
              coreJS,
              frameworkJS,
              scalacheckJS,
@@ -66,7 +70,7 @@ lazy val core = crossProject(JSPlatform, JVMPlatform)
   .settings(WeaverPlugin.simpleLayout)
   .settings(
     libraryDependencies ++= Seq(
-      "co.fs2"               %%% "fs2-core"               % "2.4.3",
+      "co.fs2"               %%% "fs2-core"               % "2.4.4",
       "org.typelevel"        %%% "cats-effect"            % "2.1.4",
       "com.eed3si9n.expecty" %%% "expecty"                % "0.13.0",
       "org.portable-scala"   %%% "portable-scala-reflect" % "1.0.0"
@@ -111,7 +115,6 @@ lazy val framework = crossProject(JSPlatform, JVMPlatform)
   .settings(WeaverPlugin.simpleLayout)
   .settings(
     libraryDependencies ++= Seq(
-      "io.github.cquiroz" %%% "scala-java-time"      % "2.0.0" % Test,
       "io.github.cquiroz" %%% "scala-java-time-tzdb" % "2.0.0" % Test
     ),
     Test / scalacOptions ~= (_ filterNot (_ == "-Xfatal-warnings")),
@@ -173,14 +176,48 @@ lazy val zio = crossProject(JSPlatform, JVMPlatform)
   .settings(WeaverPlugin.simpleLayout)
   .settings(
     libraryDependencies ++= Seq(
-      "dev.zio"           %%% "zio-interop-cats" % "2.1.4.0",
-      "io.github.cquiroz" %%% "scala-java-time"  % "2.0.0"
+      "dev.zio" %%% "zio-interop-cats" % "2.1.4.0"
     ),
     scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) }
   )
 
 lazy val zioJVM = zio.jvm
 lazy val zioJS  = zio.js
+
+lazy val cli = crossProject(JVMPlatform)
+  .crossType(CrossType.Pure)
+  .in(file("modules/cli"))
+  .dependsOn(core, framework, codecs, framework % "test->compile")
+  .configure(WeaverPlugin.profile)
+  .settings(WeaverPlugin.simpleLayout)
+  .settings(
+    libraryDependencies ++= Seq(
+      "com.monovore"       %%% "decline-effect"         % "1.0.0",
+      "org.portable-scala" %%% "portable-scala-reflect" % "1.0.0",
+      "io.circe"           %%% "circe-parser"           % "0.13.0" % Test
+    ),
+    scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) }
+  )
+
+lazy val cliJVM = cli.jvm
+
+// Json codecs for TestOutcome
+lazy val codecs = crossProject(JVMPlatform)
+  .crossType(CrossType.Pure)
+  .in(file("modules/codecs"))
+  .dependsOn(core, framework % "test->compile")
+  .configure(WeaverPlugin.profile)
+  .settings(WeaverPlugin.simpleLayout)
+  .settings(
+    name := "codecs",
+    libraryDependencies ++= Seq(
+      "io.circe" %%% "circe-core"   % "0.13.0",
+      "io.circe" %%% "circe-parser" % "0.13.0" % Test
+    ),
+    scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) }
+  )
+
+lazy val codecsJVM = codecs.jvm
 
 lazy val versionDump =
   taskKey[Unit]("Dumps the version in a file named version")
