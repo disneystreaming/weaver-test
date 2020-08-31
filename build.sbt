@@ -192,7 +192,7 @@ lazy val cli = crossProject(JVMPlatform)
   .settings(WeaverPlugin.simpleLayout)
   .settings(
     libraryDependencies ++= Seq(
-      "com.monovore"       %%% "decline-effect"         % "1.0.0",
+      "com.monovore"       %%% "decline-effect"         % "1.3.0",
       "org.portable-scala" %%% "portable-scala-reflect" % "1.0.0",
       "io.circe"           %%% "circe-parser"           % "0.13.0" % Test
     ),
