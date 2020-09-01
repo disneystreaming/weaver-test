@@ -172,7 +172,10 @@ object WeaverPlugin extends AutoPlugin {
         Seq(baseDirectory.value.getParentFile / "test" / "src-js")
       else
         Seq.empty
-    }
+    },
+    Test / unmanagedResourceDirectories := Seq(
+      baseDirectory.value.getParentFile / "test" / "resources"
+    )
   )
 
   lazy val publishSettings = Seq(

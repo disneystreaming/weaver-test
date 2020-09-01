@@ -54,13 +54,21 @@ object Log {
       cause: Option[Throwable],
       location: SourceLocation)
 
-  sealed trait Level
-  case object info  extends Level
-  case object warn  extends Level
-  case object debug extends Level
-  case object error extends Level
+  sealed abstract class Level(val label: String)
+  case object info  extends Level("info")
+  case object warn  extends Level("warn")
+  case object debug extends Level("debug")
+  case object error extends Level("error")
 
   object Level {
+    val values: List[Level] = List(info, warn, debug, error)
+
+    def fromString(s: String): Either[String, Level] =
+      values.find(_.label == s) match {
+        case Some(level) => Right(level)
+        case None        => Left(s"$s is not a valid log-level")
+      }
+
     implicit val levelShow: Show[Level] = {
       case `info`  => "[INFO]"
       case `warn`  => "[WARN]"

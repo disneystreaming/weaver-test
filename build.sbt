@@ -1,4 +1,5 @@
 // shadow sbt-scalajs' crossProject and CrossType from Scala.js 0.6.x
+
 import org.jetbrains.sbtidea.Keys.createRunnerProject
 import sbtcrossproject.CrossPlugin.autoImport.{ CrossType, crossProject }
 
@@ -40,8 +41,10 @@ ThisBuild / scalaVersion := WeaverPlugin.scala213
 
 ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.4.0"
 
+fork in Test := true
+
 // Enabling only locally
-disablePlugins(SbtIdeaPlugin)
+//disablePlugins(SbtIdeaPlugin)
 
 lazy val root = project
   .in(file("."))
@@ -51,6 +54,8 @@ lazy val root = project
              scalacheckJVM,
              zioJVM,
              specs2JVM,
+             codecsJVM,
+             intellijRunnerJVM,
              coreJS,
              frameworkJS,
              scalacheckJS,
@@ -70,7 +75,7 @@ lazy val core = crossProject(JSPlatform, JVMPlatform)
   .settings(WeaverPlugin.simpleLayout)
   .settings(
     libraryDependencies ++= Seq(
-      "co.fs2"               %%% "fs2-core"               % "2.4.2",
+      "co.fs2"               %%% "fs2-core"               % "2.4.4",
       "org.typelevel"        %%% "cats-effect"            % "2.1.4",
       "com.eed3si9n.expecty" %%% "expecty"                % "0.13.0",
       "org.portable-scala"   %%% "portable-scala-reflect" % "1.0.0"
@@ -115,11 +120,12 @@ lazy val framework = crossProject(JSPlatform, JVMPlatform)
   .settings(WeaverPlugin.simpleLayout)
   .settings(
     libraryDependencies ++= Seq(
-      "io.github.cquiroz" %%% "scala-java-time"      % "2.0.0" % Test,
       "io.github.cquiroz" %%% "scala-java-time-tzdb" % "2.0.0" % Test
     ),
     Test / scalacOptions ~= (_ filterNot (_ == "-Xfatal-warnings")),
-    scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) }
+    scalaJSLinkerConfig ~= {
+      _.withModuleKind(ModuleKind.CommonJSModule)
+    }
   )
   .jvmSettings(
     libraryDependencies ++= Seq(
@@ -146,7 +152,9 @@ lazy val scalacheck = crossProject(JSPlatform, JVMPlatform)
     libraryDependencies ++= Seq(
       "org.scalacheck" %%% "scalacheck" % "1.14.3"
     ),
-    scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) }
+    scalaJSLinkerConfig ~= {
+      _.withModuleKind(ModuleKind.CommonJSModule)
+    }
   )
 
 lazy val scalacheckJVM = scalacheck.jvm
@@ -162,7 +170,9 @@ lazy val specs2 = crossProject(JSPlatform, JVMPlatform)
     libraryDependencies ++= Seq(
       "org.specs2" %%% "specs2-matcher" % "4.10.3"
     ),
-    scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) }
+    scalaJSLinkerConfig ~= {
+      _.withModuleKind(ModuleKind.CommonJSModule)
+    }
   )
   .settings(WeaverPlugin.simpleLayout)
 
@@ -177,35 +187,86 @@ lazy val zio = crossProject(JSPlatform, JVMPlatform)
   .settings(WeaverPlugin.simpleLayout)
   .settings(
     libraryDependencies ++= Seq(
-      "dev.zio"           %%% "zio-interop-cats" % "2.1.4.0",
-      "io.github.cquiroz" %%% "scala-java-time"  % "2.0.0"
+      "dev.zio" %%% "zio-interop-cats" % "2.1.4.0"
     ),
-    scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) }
+    scalaJSLinkerConfig ~= {
+      _.withModuleKind(ModuleKind.CommonJSModule)
+    }
   )
 
 lazy val zioJVM = zio.jvm
 lazy val zioJS  = zio.js
 
-lazy val ideaPlugin = (project in file("modules/intellij/plugin"))
-  .dependsOn(
-    WeaverIdeaPlugin.ideaScala % Configurations.Provided
-  ).settings(
-    packageAdditionalProjects := Seq(ideaRunner_2_12, ideaRunner_2_13)
-  ).enablePlugins(SbtIdeaPlugin, WeaverIdeaPlugin)
-  .disablePlugins(WeaverPlugin)
-
-lazy val ideaRunner_2_13 =
-  (project in file("modules/intellij/runner")).settings(
-    WeaverIdeaPlugin.runnerSettings(WeaverPlugin.scala213): _*
+lazy val intellijRunner = crossProject(JVMPlatform)
+  .crossType(CrossType.Pure)
+  .in(file("modules/intellij-runner"))
+  .dependsOn(core, framework, codecs, framework % "test->compile")
+  .configure(WeaverPlugin.profile)
+  .settings(WeaverPlugin.simpleLayout)
+  .settings(
+    name := "intellij-runner",
+    libraryDependencies ++= Seq(
+      "com.monovore"       %%% "decline-effect"         % "1.0.0",
+      "org.portable-scala" %%% "portable-scala-reflect" % "1.0.0",
+      "io.circe"           %%% "circe-parser"           % "0.13.0" % Test
+    ),
+    scalaJSLinkerConfig ~= {
+      _.withModuleKind(ModuleKind.CommonJSModule)
+    }
   )
 
-lazy val ideaRunner_2_12 =
-  (project in file("modules/intellij/runner")).settings(
-    WeaverIdeaPlugin.runnerSettings(WeaverPlugin.scala212): _*
+lazy val intellijRunnerJVM = intellijRunner.jvm
+
+// Json codecs for TestOutcome
+lazy val codecs = crossProject(JVMPlatform)
+  .crossType(CrossType.Pure)
+  .in(file("modules/codecs"))
+  .dependsOn(core, framework % "test->compile")
+  .configure(WeaverPlugin.profile)
+  .settings(WeaverPlugin.simpleLayout)
+  .settings(
+    name := "codecs",
+    libraryDependencies ++= Seq(
+      "io.circe" %%% "circe-core"   % "0.13.0",
+      "io.circe" %%% "circe-parser" % "0.13.0" % Test
+    ),
+    scalaJSLinkerConfig ~= {
+      _.withModuleKind(ModuleKind.CommonJSModule)
+    }
   )
 
-lazy val ideaRunner = createRunnerProject(ideaPlugin, "weaver-runner")
+lazy val codecsJVM = codecs.jvm
+
+ThisBuild / intellijBuild := "202.6948.69"
+ThisBuild / intellijPluginName := "weaver-intellij"
+
+import org.jetbrains.sbtidea.Keys._
+import org.jetbrains.sbtidea.SbtIdeaPlugin
+import sbt.Keys._
+import sbt._
+
+lazy val intellij = (project in file("modules/intellij"))
+  .settings(
+    scalaVersion := "2.12.10",
+    intellijPlugins := Seq(
+      "com.intellij.java".toPlugin,
+      "org.intellij.scala:2020.2.23".toPlugin
+    ),
+    libraryDependencies ++= Seq(
+      "io.get-coursier" %% "coursier" % "2.0.0-RC6-24"
+    ),
+    patchPluginXml := pluginXmlOptions { xml =>
+      xml.version = version.value
+    },
+    packageMethod := PackagingMethod.Standalone(),
+    scalacOptions ++= (WeaverPlugin.commonCompilerOptions ++ WeaverPlugin.compilerOptions2_12_Only)
+  )
+  .enablePlugins(SbtIdeaPlugin)
   .disablePlugins(WeaverPlugin)
+
+lazy val intellijPluginRunner =
+  createRunnerProject(intellij, "weaver-intellij-plugin-runner")
+    .disablePlugins(WeaverPlugin)
 
 lazy val versionDump =
   taskKey[Unit]("Dumps the version in a file named version")

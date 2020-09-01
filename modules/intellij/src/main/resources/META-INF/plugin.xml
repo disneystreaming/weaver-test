@@ -1,0 +1,29 @@
+<idea-plugin>
+    <id>com.disneystreaming.weaver-intellij</id>
+    <name>weaver-intellij</name>
+    <version>replaced-by-build</version>
+    <vendor>Disneystreaming</vendor>
+
+    <description><![CDATA[
+        Adds support for Weaver test framework (scala)
+    ]]></description>
+
+    <idea-version since-build="202" until-build="202.*"/>
+
+    <depends>org.intellij.scala</depends>
+    <depends>com.intellij.modules.java</depends>
+    <depends>com.intellij.modules.platform</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <runConfigurationExtension
+                implementation="weaver.intellij.testsupport.WeaverTestRunConfigurationExtension"/>
+        <runConfigurationProducer
+                implementation="weaver.intellij.testsupport.WeaverTestConfigurationProducer"/>
+        <configurationType
+                implementation="weaver.intellij.testsupport.WeaverTestConfigurationType"/>
+        <testFramework implementation="weaver.intellij.testsupport.WeaverTestFramework"/>
+
+        <runLineMarkerContributor implementationClass="weaver.intellij.testsupport.WeaverTestRunLineMarkerProvider" language="Scala"/>
+        <!-- Add your extensions here -->
+    </extensions>
+</idea-plugin>

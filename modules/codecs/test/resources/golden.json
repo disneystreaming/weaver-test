@@ -1,0 +1,1459 @@
+{
+  "outcome": {
+    "name": "outcome",
+    "duration": 1000,
+    "status": "success",
+    "log": [
+      {
+        "timestamp": 1000,
+        "msg": "log",
+        "ctx": {
+          "a": "a",
+          "b": "b"
+        },
+        "level": "info",
+        "cause": {
+          "message": "boom1",
+          "stackTrace": [
+            {
+              "fileName": "CodecsTest.scala",
+              "className": "weaver.codecs.CodecsTest$",
+              "methodName": "<clinit>",
+              "lineNumber": 11
+            },
+            {
+              "fileName": "Unsafe.java",
+              "className": "sun.misc.Unsafe",
+              "methodName": "ensureClassInitialized",
+              "lineNumber": -2
+            },
+            {
+              "fileName": "UnsafeFieldAccessorFactory.java",
+              "className": "sun.reflect.UnsafeFieldAccessorFactory",
+              "methodName": "newFieldAccessor",
+              "lineNumber": 43
+            },
+            {
+              "fileName": "ReflectionFactory.java",
+              "className": "sun.reflect.ReflectionFactory",
+              "methodName": "newFieldAccessor",
+              "lineNumber": 156
+            },
+            {
+              "fileName": "Field.java",
+              "className": "java.lang.reflect.Field",
+              "methodName": "acquireFieldAccessor",
+              "lineNumber": 1088
+            },
+            {
+              "fileName": "Field.java",
+              "className": "java.lang.reflect.Field",
+              "methodName": "getFieldAccessor",
+              "lineNumber": 1069
+            },
+            {
+              "fileName": "Field.java",
+              "className": "java.lang.reflect.Field",
+              "methodName": "get",
+              "lineNumber": 393
+            },
+            {
+              "fileName": "LoadableModuleClass.scala",
+              "className": "org.portablescala.reflect.LoadableModuleClass",
+              "methodName": "loadModule",
+              "lineNumber": 17
+            },
+            {
+              "fileName": "package.scala",
+              "className": "weaver.framework.package$",
+              "methodName": "$anonfun$loadModule$3",
+              "lineNumber": 41
+            },
+            {
+              "fileName": "IORunLoop.scala",
+              "className": "cats.effect.internals.IORunLoop$",
+              "methodName": "cats$effect$internals$IORunLoop$$loop",
+              "lineNumber": 87
+            },
+            {
+              "fileName": "IORunLoop.scala",
+              "className": "cats.effect.internals.IORunLoop$",
+              "methodName": "startCancelable",
+              "lineNumber": 41
+            },
+            {
+              "fileName": "IOBracket.scala",
+              "className": "cats.effect.internals.IOBracket$BracketStart",
+              "methodName": "run",
+              "lineNumber": 90
+            },
+            {
+              "fileName": "Trampoline.scala",
+              "className": "cats.effect.internals.Trampoline",
+              "methodName": "cats$effect$internals$Trampoline$$immediateLoop",
+              "lineNumber": 67
+            },
+            {
+              "fileName": "Trampoline.scala",
+              "className": "cats.effect.internals.Trampoline",
+              "methodName": "startLoop",
+              "lineNumber": 35
+            },
+            {
+              "fileName": "TrampolineEC.scala",
+              "className": "cats.effect.internals.TrampolineEC$JVMTrampoline",
+              "methodName": "super$startLoop",
+              "lineNumber": 90
+            },
+            {
+              "fileName": "TrampolineEC.scala",
+              "className": "cats.effect.internals.TrampolineEC$JVMTrampoline",
+              "methodName": "$anonfun$startLoop$1",
+              "lineNumber": 90
+            },
+            {
+              "fileName": "JFunction0$mcV$sp.scala",
+              "className": "scala.runtime.java8.JFunction0$mcV$sp",
+              "methodName": "apply",
+              "lineNumber": 18
+            },
+            {
+              "fileName": "BlockContext.scala",
+              "className": "scala.concurrent.BlockContext$",
+              "methodName": "withBlockContext",
+              "lineNumber": 94
+            },
+            {
+              "fileName": "TrampolineEC.scala",
+              "className": "cats.effect.internals.TrampolineEC$JVMTrampoline",
+              "methodName": "startLoop",
+              "lineNumber": 90
+            },
+            {
+              "fileName": "Trampoline.scala",
+              "className": "cats.effect.internals.Trampoline",
+              "methodName": "execute",
+              "lineNumber": 43
+            },
+            {
+              "fileName": "TrampolineEC.scala",
+              "className": "cats.effect.internals.TrampolineEC",
+              "methodName": "execute",
+              "lineNumber": 42
+            },
+            {
+              "fileName": "IOBracket.scala",
+              "className": "cats.effect.internals.IOBracket$",
+              "methodName": "$anonfun$guaranteeCase$1",
+              "lineNumber": 105
+            },
+            {
+              "fileName": "IOBracket.scala",
+              "className": "cats.effect.internals.IOBracket$",
+              "methodName": "$anonfun$guaranteeCase$1$adapted",
+              "lineNumber": 103
+            },
+            {
+              "fileName": "IORunLoop.scala",
+              "className": "cats.effect.internals.IORunLoop$RestartCallback",
+              "methodName": "start",
+              "lineNumber": 352
+            },
+            {
+              "fileName": "IORunLoop.scala",
+              "className": "cats.effect.internals.IORunLoop$",
+              "methodName": "cats$effect$internals$IORunLoop$$loop",
+              "lineNumber": 124
+            },
+            {
+              "fileName": "IORunLoop.scala",
+              "className": "cats.effect.internals.IORunLoop$",
+              "methodName": "$anonfun$suspendAsync$1",
+              "lineNumber": 264
+            },
+            {
+              "fileName": "IORunLoop.scala",
+              "className": "cats.effect.internals.IORunLoop$",
+              "methodName": "$anonfun$suspendAsync$1$adapted",
+              "lineNumber": 263
+            },
+            {
+              "fileName": "IORunLoop.scala",
+              "className": "cats.effect.internals.IORunLoop$RestartCallback",
+              "methodName": "start",
+              "lineNumber": 352
+            },
+            {
+              "fileName": "IORunLoop.scala",
+              "className": "cats.effect.internals.IORunLoop$",
+              "methodName": "cats$effect$internals$IORunLoop$$loop",
+              "lineNumber": 124
+            },
+            {
+              "fileName": "IORunLoop.scala",
+              "className": "cats.effect.internals.IORunLoop$",
+              "methodName": "start",
+              "lineNumber": 34
+            },
+            {
+              "fileName": "IO.scala",
+              "className": "cats.effect.IO",
+              "methodName": "unsafeRunAsync",
+              "lineNumber": 264
+            },
+            {
+              "fileName": "IOPlatform.scala",
+              "className": "cats.effect.internals.IOPlatform$",
+              "methodName": "unsafeResync",
+              "lineNumber": 39
+            },
+            {
+              "fileName": "IO.scala",
+              "className": "cats.effect.IO",
+              "methodName": "unsafeRunTimed",
+              "lineNumber": 331
+            },
+            {
+              "fileName": "IO.scala",
+              "className": "cats.effect.IO",
+              "methodName": "unsafeRunSync",
+              "lineNumber": 246
+            },
+            {
+              "fileName": "Task.scala",
+              "className": "weaver.framework.Task",
+              "methodName": "execute",
+              "lineNumber": 51
+            },
+            {
+              "fileName": "TestFramework.scala",
+              "className": "sbt.TestRunner",
+              "methodName": "runTest$1",
+              "lineNumber": 139
+            },
+            {
+              "fileName": "TestFramework.scala",
+              "className": "sbt.TestRunner",
+              "methodName": "run",
+              "lineNumber": 154
+            },
+            {
+              "fileName": "TestFramework.scala",
+              "className": "sbt.TestFramework$$anon$3$$anonfun$$lessinit$greater$1",
+              "methodName": "$anonfun$apply$1",
+              "lineNumber": 317
+            },
+            {
+              "fileName": "TestFramework.scala",
+              "className": "sbt.TestFramework$",
+              "methodName": "sbt$TestFramework$$withContextLoader",
+              "lineNumber": 277
+            },
+            {
+              "fileName": "TestFramework.scala",
+              "className": "sbt.TestFramework$$anon$3$$anonfun$$lessinit$greater$1",
+              "methodName": "apply",
+              "lineNumber": 317
+            },
+            {
+              "fileName": "TestFramework.scala",
+              "className": "sbt.TestFramework$$anon$3$$anonfun$$lessinit$greater$1",
+              "methodName": "apply",
+              "lineNumber": 317
+            },
+            {
+              "fileName": "TestFramework.scala",
+              "className": "sbt.TestFunction",
+              "methodName": "apply",
+              "lineNumber": 329
+            },
+            {
+              "fileName": "Tests.scala",
+              "className": "sbt.Tests$",
+              "methodName": "$anonfun$toTask$1",
+              "lineNumber": 311
+            },
+            {
+              "fileName": "Transform.scala",
+              "className": "sbt.std.Transform$$anon$3",
+              "methodName": "$anonfun$apply$2",
+              "lineNumber": 46
+            },
+            {
+              "fileName": "Transform.scala",
+              "className": "sbt.std.Transform$$anon$4",
+              "methodName": "work",
+              "lineNumber": 67
+            },
+            {
+              "fileName": "Execute.scala",
+              "className": "sbt.Execute",
+              "methodName": "$anonfun$submit$2",
+              "lineNumber": 281
+            },
+            {
+              "fileName": "ErrorHandling.scala",
+              "className": "sbt.internal.util.ErrorHandling$",
+              "methodName": "wideConvert",
+              "lineNumber": 19
+            },
+            {
+              "fileName": "Execute.scala",
+              "className": "sbt.Execute",
+              "methodName": "work",
+              "lineNumber": 290
+            },
+            {
+              "fileName": "Execute.scala",
+              "className": "sbt.Execute",
+              "methodName": "$anonfun$submit$1",
+              "lineNumber": 281
+            },
+            {
+              "fileName": "ConcurrentRestrictions.scala",
+              "className": "sbt.ConcurrentRestrictions$$anon$4",
+              "methodName": "$anonfun$submitValid$1",
+              "lineNumber": 178
+            },
+            {
+              "fileName": "CompletionService.scala",
+              "className": "sbt.CompletionService$$anon$2",
+              "methodName": "call",
+              "lineNumber": 37
+            },
+            {
+              "fileName": "FutureTask.java",
+              "className": "java.util.concurrent.FutureTask",
+              "methodName": "run",
+              "lineNumber": 266
+            },
+            {
+              "fileName": "Executors.java",
+              "className": "java.util.concurrent.Executors$RunnableAdapter",
+              "methodName": "call",
+              "lineNumber": 511
+            },
+            {
+              "fileName": "FutureTask.java",
+              "className": "java.util.concurrent.FutureTask",
+              "methodName": "run",
+              "lineNumber": 266
+            },
+            {
+              "fileName": "ThreadPoolExecutor.java",
+              "className": "java.util.concurrent.ThreadPoolExecutor",
+              "methodName": "runWorker",
+              "lineNumber": 1149
+            },
+            {
+              "fileName": "ThreadPoolExecutor.java",
+              "className": "java.util.concurrent.ThreadPoolExecutor$Worker",
+              "methodName": "run",
+              "lineNumber": 624
+            },
+            {
+              "fileName": "Thread.java",
+              "className": "java.lang.Thread",
+              "methodName": "run",
+              "lineNumber": 748
+            }
+          ],
+          "cause": null
+        },
+        "location": {
+          "fileName": "CodecsTest.scala",
+          "filePath": "/Users/oliviermelois/git/doss/weaver-test/modules/codecs/test/src/weaver/codecs/CodecsTest.scala",
+          "line": 24
+        }
+      },
+      {
+        "timestamp": 1000,
+        "msg": "log",
+        "ctx": {
+          "a": "a",
+          "b": "b"
+        },
+        "level": "warn",
+        "cause": {
+          "message": "boom1",
+          "stackTrace": [
+            {
+              "fileName": "CodecsTest.scala",
+              "className": "weaver.codecs.CodecsTest$",
+              "methodName": "<clinit>",
+              "lineNumber": 11
+            },
+            {
+              "fileName": "Unsafe.java",
+              "className": "sun.misc.Unsafe",
+              "methodName": "ensureClassInitialized",
+              "lineNumber": -2
+            },
+            {
+              "fileName": "UnsafeFieldAccessorFactory.java",
+              "className": "sun.reflect.UnsafeFieldAccessorFactory",
+              "methodName": "newFieldAccessor",
+              "lineNumber": 43
+            },
+            {
+              "fileName": "ReflectionFactory.java",
+              "className": "sun.reflect.ReflectionFactory",
+              "methodName": "newFieldAccessor",
+              "lineNumber": 156
+            },
+            {
+              "fileName": "Field.java",
+              "className": "java.lang.reflect.Field",
+              "methodName": "acquireFieldAccessor",
+              "lineNumber": 1088
+            },
+            {
+              "fileName": "Field.java",
+              "className": "java.lang.reflect.Field",
+              "methodName": "getFieldAccessor",
+              "lineNumber": 1069
+            },
+            {
+              "fileName": "Field.java",
+              "className": "java.lang.reflect.Field",
+              "methodName": "get",
+              "lineNumber": 393
+            },
+            {
+              "fileName": "LoadableModuleClass.scala",
+              "className": "org.portablescala.reflect.LoadableModuleClass",
+              "methodName": "loadModule",
+              "lineNumber": 17
+            },
+            {
+              "fileName": "package.scala",
+              "className": "weaver.framework.package$",
+              "methodName": "$anonfun$loadModule$3",
+              "lineNumber": 41
+            },
+            {
+              "fileName": "IORunLoop.scala",
+              "className": "cats.effect.internals.IORunLoop$",
+              "methodName": "cats$effect$internals$IORunLoop$$loop",
+              "lineNumber": 87
+            },
+            {
+              "fileName": "IORunLoop.scala",
+              "className": "cats.effect.internals.IORunLoop$",
+              "methodName": "startCancelable",
+              "lineNumber": 41
+            },
+            {
+              "fileName": "IOBracket.scala",
+              "className": "cats.effect.internals.IOBracket$BracketStart",
+              "methodName": "run",
+              "lineNumber": 90
+            },
+            {
+              "fileName": "Trampoline.scala",
+              "className": "cats.effect.internals.Trampoline",
+              "methodName": "cats$effect$internals$Trampoline$$immediateLoop",
+              "lineNumber": 67
+            },
+            {
+              "fileName": "Trampoline.scala",
+              "className": "cats.effect.internals.Trampoline",
+              "methodName": "startLoop",
+              "lineNumber": 35
+            },
+            {
+              "fileName": "TrampolineEC.scala",
+              "className": "cats.effect.internals.TrampolineEC$JVMTrampoline",
+              "methodName": "super$startLoop",
+              "lineNumber": 90
+            },
+            {
+              "fileName": "TrampolineEC.scala",
+              "className": "cats.effect.internals.TrampolineEC$JVMTrampoline",
+              "methodName": "$anonfun$startLoop$1",
+              "lineNumber": 90
+            },
+            {
+              "fileName": "JFunction0$mcV$sp.scala",
+              "className": "scala.runtime.java8.JFunction0$mcV$sp",
+              "methodName": "apply",
+              "lineNumber": 18
+            },
+            {
+              "fileName": "BlockContext.scala",
+              "className": "scala.concurrent.BlockContext$",
+              "methodName": "withBlockContext",
+              "lineNumber": 94
+            },
+            {
+              "fileName": "TrampolineEC.scala",
+              "className": "cats.effect.internals.TrampolineEC$JVMTrampoline",
+              "methodName": "startLoop",
+              "lineNumber": 90
+            },
+            {
+              "fileName": "Trampoline.scala",
+              "className": "cats.effect.internals.Trampoline",
+              "methodName": "execute",
+              "lineNumber": 43
+            },
+            {
+              "fileName": "TrampolineEC.scala",
+              "className": "cats.effect.internals.TrampolineEC",
+              "methodName": "execute",
+              "lineNumber": 42
+            },
+            {
+              "fileName": "IOBracket.scala",
+              "className": "cats.effect.internals.IOBracket$",
+              "methodName": "$anonfun$guaranteeCase$1",
+              "lineNumber": 105
+            },
+            {
+              "fileName": "IOBracket.scala",
+              "className": "cats.effect.internals.IOBracket$",
+              "methodName": "$anonfun$guaranteeCase$1$adapted",
+              "lineNumber": 103
+            },
+            {
+              "fileName": "IORunLoop.scala",
+              "className": "cats.effect.internals.IORunLoop$RestartCallback",
+              "methodName": "start",
+              "lineNumber": 352
+            },
+            {
+              "fileName": "IORunLoop.scala",
+              "className": "cats.effect.internals.IORunLoop$",
+              "methodName": "cats$effect$internals$IORunLoop$$loop",
+              "lineNumber": 124
+            },
+            {
+              "fileName": "IORunLoop.scala",
+              "className": "cats.effect.internals.IORunLoop$",
+              "methodName": "$anonfun$suspendAsync$1",
+              "lineNumber": 264
+            },
+            {
+              "fileName": "IORunLoop.scala",
+              "className": "cats.effect.internals.IORunLoop$",
+              "methodName": "$anonfun$suspendAsync$1$adapted",
+              "lineNumber": 263
+            },
+            {
+              "fileName": "IORunLoop.scala",
+              "className": "cats.effect.internals.IORunLoop$RestartCallback",
+              "methodName": "start",
+              "lineNumber": 352
+            },
+            {
+              "fileName": "IORunLoop.scala",
+              "className": "cats.effect.internals.IORunLoop$",
+              "methodName": "cats$effect$internals$IORunLoop$$loop",
+              "lineNumber": 124
+            },
+            {
+              "fileName": "IORunLoop.scala",
+              "className": "cats.effect.internals.IORunLoop$",
+              "methodName": "start",
+              "lineNumber": 34
+            },
+            {
+              "fileName": "IO.scala",
+              "className": "cats.effect.IO",
+              "methodName": "unsafeRunAsync",
+              "lineNumber": 264
+            },
+            {
+              "fileName": "IOPlatform.scala",
+              "className": "cats.effect.internals.IOPlatform$",
+              "methodName": "unsafeResync",
+              "lineNumber": 39
+            },
+            {
+              "fileName": "IO.scala",
+              "className": "cats.effect.IO",
+              "methodName": "unsafeRunTimed",
+              "lineNumber": 331
+            },
+            {
+              "fileName": "IO.scala",
+              "className": "cats.effect.IO",
+              "methodName": "unsafeRunSync",
+              "lineNumber": 246
+            },
+            {
+              "fileName": "Task.scala",
+              "className": "weaver.framework.Task",
+              "methodName": "execute",
+              "lineNumber": 51
+            },
+            {
+              "fileName": "TestFramework.scala",
+              "className": "sbt.TestRunner",
+              "methodName": "runTest$1",
+              "lineNumber": 139
+            },
+            {
+              "fileName": "TestFramework.scala",
+              "className": "sbt.TestRunner",
+              "methodName": "run",
+              "lineNumber": 154
+            },
+            {
+              "fileName": "TestFramework.scala",
+              "className": "sbt.TestFramework$$anon$3$$anonfun$$lessinit$greater$1",
+              "methodName": "$anonfun$apply$1",
+              "lineNumber": 317
+            },
+            {
+              "fileName": "TestFramework.scala",
+              "className": "sbt.TestFramework$",
+              "methodName": "sbt$TestFramework$$withContextLoader",
+              "lineNumber": 277
+            },
+            {
+              "fileName": "TestFramework.scala",
+              "className": "sbt.TestFramework$$anon$3$$anonfun$$lessinit$greater$1",
+              "methodName": "apply",
+              "lineNumber": 317
+            },
+            {
+              "fileName": "TestFramework.scala",
+              "className": "sbt.TestFramework$$anon$3$$anonfun$$lessinit$greater$1",
+              "methodName": "apply",
+              "lineNumber": 317
+            },
+            {
+              "fileName": "TestFramework.scala",
+              "className": "sbt.TestFunction",
+              "methodName": "apply",
+              "lineNumber": 329
+            },
+            {
+              "fileName": "Tests.scala",
+              "className": "sbt.Tests$",
+              "methodName": "$anonfun$toTask$1",
+              "lineNumber": 311
+            },
+            {
+              "fileName": "Transform.scala",
+              "className": "sbt.std.Transform$$anon$3",
+              "methodName": "$anonfun$apply$2",
+              "lineNumber": 46
+            },
+            {
+              "fileName": "Transform.scala",
+              "className": "sbt.std.Transform$$anon$4",
+              "methodName": "work",
+              "lineNumber": 67
+            },
+            {
+              "fileName": "Execute.scala",
+              "className": "sbt.Execute",
+              "methodName": "$anonfun$submit$2",
+              "lineNumber": 281
+            },
+            {
+              "fileName": "ErrorHandling.scala",
+              "className": "sbt.internal.util.ErrorHandling$",
+              "methodName": "wideConvert",
+              "lineNumber": 19
+            },
+            {
+              "fileName": "Execute.scala",
+              "className": "sbt.Execute",
+              "methodName": "work",
+              "lineNumber": 290
+            },
+            {
+              "fileName": "Execute.scala",
+              "className": "sbt.Execute",
+              "methodName": "$anonfun$submit$1",
+              "lineNumber": 281
+            },
+            {
+              "fileName": "ConcurrentRestrictions.scala",
+              "className": "sbt.ConcurrentRestrictions$$anon$4",
+              "methodName": "$anonfun$submitValid$1",
+              "lineNumber": 178
+            },
+            {
+              "fileName": "CompletionService.scala",
+              "className": "sbt.CompletionService$$anon$2",
+              "methodName": "call",
+              "lineNumber": 37
+            },
+            {
+              "fileName": "FutureTask.java",
+              "className": "java.util.concurrent.FutureTask",
+              "methodName": "run",
+              "lineNumber": 266
+            },
+            {
+              "fileName": "Executors.java",
+              "className": "java.util.concurrent.Executors$RunnableAdapter",
+              "methodName": "call",
+              "lineNumber": 511
+            },
+            {
+              "fileName": "FutureTask.java",
+              "className": "java.util.concurrent.FutureTask",
+              "methodName": "run",
+              "lineNumber": 266
+            },
+            {
+              "fileName": "ThreadPoolExecutor.java",
+              "className": "java.util.concurrent.ThreadPoolExecutor",
+              "methodName": "runWorker",
+              "lineNumber": 1149
+            },
+            {
+              "fileName": "ThreadPoolExecutor.java",
+              "className": "java.util.concurrent.ThreadPoolExecutor$Worker",
+              "methodName": "run",
+              "lineNumber": 624
+            },
+            {
+              "fileName": "Thread.java",
+              "className": "java.lang.Thread",
+              "methodName": "run",
+              "lineNumber": 748
+            }
+          ],
+          "cause": null
+        },
+        "location": {
+          "fileName": "CodecsTest.scala",
+          "filePath": "/Users/oliviermelois/git/doss/weaver-test/modules/codecs/test/src/weaver/codecs/CodecsTest.scala",
+          "line": 24
+        }
+      },
+      {
+        "timestamp": 1000,
+        "msg": "log",
+        "ctx": {
+          "a": "a",
+          "b": "b"
+        },
+        "level": "debug",
+        "cause": {
+          "message": "boom1",
+          "stackTrace": [
+            {
+              "fileName": "CodecsTest.scala",
+              "className": "weaver.codecs.CodecsTest$",
+              "methodName": "<clinit>",
+              "lineNumber": 11
+            },
+            {
+              "fileName": "Unsafe.java",
+              "className": "sun.misc.Unsafe",
+              "methodName": "ensureClassInitialized",
+              "lineNumber": -2
+            },
+            {
+              "fileName": "UnsafeFieldAccessorFactory.java",
+              "className": "sun.reflect.UnsafeFieldAccessorFactory",
+              "methodName": "newFieldAccessor",
+              "lineNumber": 43
+            },
+            {
+              "fileName": "ReflectionFactory.java",
+              "className": "sun.reflect.ReflectionFactory",
+              "methodName": "newFieldAccessor",
+              "lineNumber": 156
+            },
+            {
+              "fileName": "Field.java",
+              "className": "java.lang.reflect.Field",
+              "methodName": "acquireFieldAccessor",
+              "lineNumber": 1088
+            },
+            {
+              "fileName": "Field.java",
+              "className": "java.lang.reflect.Field",
+              "methodName": "getFieldAccessor",
+              "lineNumber": 1069
+            },
+            {
+              "fileName": "Field.java",
+              "className": "java.lang.reflect.Field",
+              "methodName": "get",
+              "lineNumber": 393
+            },
+            {
+              "fileName": "LoadableModuleClass.scala",
+              "className": "org.portablescala.reflect.LoadableModuleClass",
+              "methodName": "loadModule",
+              "lineNumber": 17
+            },
+            {
+              "fileName": "package.scala",
+              "className": "weaver.framework.package$",
+              "methodName": "$anonfun$loadModule$3",
+              "lineNumber": 41
+            },
+            {
+              "fileName": "IORunLoop.scala",
+              "className": "cats.effect.internals.IORunLoop$",
+              "methodName": "cats$effect$internals$IORunLoop$$loop",
+              "lineNumber": 87
+            },
+            {
+              "fileName": "IORunLoop.scala",
+              "className": "cats.effect.internals.IORunLoop$",
+              "methodName": "startCancelable",
+              "lineNumber": 41
+            },
+            {
+              "fileName": "IOBracket.scala",
+              "className": "cats.effect.internals.IOBracket$BracketStart",
+              "methodName": "run",
+              "lineNumber": 90
+            },
+            {
+              "fileName": "Trampoline.scala",
+              "className": "cats.effect.internals.Trampoline",
+              "methodName": "cats$effect$internals$Trampoline$$immediateLoop",
+              "lineNumber": 67
+            },
+            {
+              "fileName": "Trampoline.scala",
+              "className": "cats.effect.internals.Trampoline",
+              "methodName": "startLoop",
+              "lineNumber": 35
+            },
+            {
+              "fileName": "TrampolineEC.scala",
+              "className": "cats.effect.internals.TrampolineEC$JVMTrampoline",
+              "methodName": "super$startLoop",
+              "lineNumber": 90
+            },
+            {
+              "fileName": "TrampolineEC.scala",
+              "className": "cats.effect.internals.TrampolineEC$JVMTrampoline",
+              "methodName": "$anonfun$startLoop$1",
+              "lineNumber": 90
+            },
+            {
+              "fileName": "JFunction0$mcV$sp.scala",
+              "className": "scala.runtime.java8.JFunction0$mcV$sp",
+              "methodName": "apply",
+              "lineNumber": 18
+            },
+            {
+              "fileName": "BlockContext.scala",
+              "className": "scala.concurrent.BlockContext$",
+              "methodName": "withBlockContext",
+              "lineNumber": 94
+            },
+            {
+              "fileName": "TrampolineEC.scala",
+              "className": "cats.effect.internals.TrampolineEC$JVMTrampoline",
+              "methodName": "startLoop",
+              "lineNumber": 90
+            },
+            {
+              "fileName": "Trampoline.scala",
+              "className": "cats.effect.internals.Trampoline",
+              "methodName": "execute",
+              "lineNumber": 43
+            },
+            {
+              "fileName": "TrampolineEC.scala",
+              "className": "cats.effect.internals.TrampolineEC",
+              "methodName": "execute",
+              "lineNumber": 42
+            },
+            {
+              "fileName": "IOBracket.scala",
+              "className": "cats.effect.internals.IOBracket$",
+              "methodName": "$anonfun$guaranteeCase$1",
+              "lineNumber": 105
+            },
+            {
+              "fileName": "IOBracket.scala",
+              "className": "cats.effect.internals.IOBracket$",
+              "methodName": "$anonfun$guaranteeCase$1$adapted",
+              "lineNumber": 103
+            },
+            {
+              "fileName": "IORunLoop.scala",
+              "className": "cats.effect.internals.IORunLoop$RestartCallback",
+              "methodName": "start",
+              "lineNumber": 352
+            },
+            {
+              "fileName": "IORunLoop.scala",
+              "className": "cats.effect.internals.IORunLoop$",
+              "methodName": "cats$effect$internals$IORunLoop$$loop",
+              "lineNumber": 124
+            },
+            {
+              "fileName": "IORunLoop.scala",
+              "className": "cats.effect.internals.IORunLoop$",
+              "methodName": "$anonfun$suspendAsync$1",
+              "lineNumber": 264
+            },
+            {
+              "fileName": "IORunLoop.scala",
+              "className": "cats.effect.internals.IORunLoop$",
+              "methodName": "$anonfun$suspendAsync$1$adapted",
+              "lineNumber": 263
+            },
+            {
+              "fileName": "IORunLoop.scala",
+              "className": "cats.effect.internals.IORunLoop$RestartCallback",
+              "methodName": "start",
+              "lineNumber": 352
+            },
+            {
+              "fileName": "IORunLoop.scala",
+              "className": "cats.effect.internals.IORunLoop$",
+              "methodName": "cats$effect$internals$IORunLoop$$loop",
+              "lineNumber": 124
+            },
+            {
+              "fileName": "IORunLoop.scala",
+              "className": "cats.effect.internals.IORunLoop$",
+              "methodName": "start",
+              "lineNumber": 34
+            },
+            {
+              "fileName": "IO.scala",
+              "className": "cats.effect.IO",
+              "methodName": "unsafeRunAsync",
+              "lineNumber": 264
+            },
+            {
+              "fileName": "IOPlatform.scala",
+              "className": "cats.effect.internals.IOPlatform$",
+              "methodName": "unsafeResync",
+              "lineNumber": 39
+            },
+            {
+              "fileName": "IO.scala",
+              "className": "cats.effect.IO",
+              "methodName": "unsafeRunTimed",
+              "lineNumber": 331
+            },
+            {
+              "fileName": "IO.scala",
+              "className": "cats.effect.IO",
+              "methodName": "unsafeRunSync",
+              "lineNumber": 246
+            },
+            {
+              "fileName": "Task.scala",
+              "className": "weaver.framework.Task",
+              "methodName": "execute",
+              "lineNumber": 51
+            },
+            {
+              "fileName": "TestFramework.scala",
+              "className": "sbt.TestRunner",
+              "methodName": "runTest$1",
+              "lineNumber": 139
+            },
+            {
+              "fileName": "TestFramework.scala",
+              "className": "sbt.TestRunner",
+              "methodName": "run",
+              "lineNumber": 154
+            },
+            {
+              "fileName": "TestFramework.scala",
+              "className": "sbt.TestFramework$$anon$3$$anonfun$$lessinit$greater$1",
+              "methodName": "$anonfun$apply$1",
+              "lineNumber": 317
+            },
+            {
+              "fileName": "TestFramework.scala",
+              "className": "sbt.TestFramework$",
+              "methodName": "sbt$TestFramework$$withContextLoader",
+              "lineNumber": 277
+            },
+            {
+              "fileName": "TestFramework.scala",
+              "className": "sbt.TestFramework$$anon$3$$anonfun$$lessinit$greater$1",
+              "methodName": "apply",
+              "lineNumber": 317
+            },
+            {
+              "fileName": "TestFramework.scala",
+              "className": "sbt.TestFramework$$anon$3$$anonfun$$lessinit$greater$1",
+              "methodName": "apply",
+              "lineNumber": 317
+            },
+            {
+              "fileName": "TestFramework.scala",
+              "className": "sbt.TestFunction",
+              "methodName": "apply",
+              "lineNumber": 329
+            },
+            {
+              "fileName": "Tests.scala",
+              "className": "sbt.Tests$",
+              "methodName": "$anonfun$toTask$1",
+              "lineNumber": 311
+            },
+            {
+              "fileName": "Transform.scala",
+              "className": "sbt.std.Transform$$anon$3",
+              "methodName": "$anonfun$apply$2",
+              "lineNumber": 46
+            },
+            {
+              "fileName": "Transform.scala",
+              "className": "sbt.std.Transform$$anon$4",
+              "methodName": "work",
+              "lineNumber": 67
+            },
+            {
+              "fileName": "Execute.scala",
+              "className": "sbt.Execute",
+              "methodName": "$anonfun$submit$2",
+              "lineNumber": 281
+            },
+            {
+              "fileName": "ErrorHandling.scala",
+              "className": "sbt.internal.util.ErrorHandling$",
+              "methodName": "wideConvert",
+              "lineNumber": 19
+            },
+            {
+              "fileName": "Execute.scala",
+              "className": "sbt.Execute",
+              "methodName": "work",
+              "lineNumber": 290
+            },
+            {
+              "fileName": "Execute.scala",
+              "className": "sbt.Execute",
+              "methodName": "$anonfun$submit$1",
+              "lineNumber": 281
+            },
+            {
+              "fileName": "ConcurrentRestrictions.scala",
+              "className": "sbt.ConcurrentRestrictions$$anon$4",
+              "methodName": "$anonfun$submitValid$1",
+              "lineNumber": 178
+            },
+            {
+              "fileName": "CompletionService.scala",
+              "className": "sbt.CompletionService$$anon$2",
+              "methodName": "call",
+              "lineNumber": 37
+            },
+            {
+              "fileName": "FutureTask.java",
+              "className": "java.util.concurrent.FutureTask",
+              "methodName": "run",
+              "lineNumber": 266
+            },
+            {
+              "fileName": "Executors.java",
+              "className": "java.util.concurrent.Executors$RunnableAdapter",
+              "methodName": "call",
+              "lineNumber": 511
+            },
+            {
+              "fileName": "FutureTask.java",
+              "className": "java.util.concurrent.FutureTask",
+              "methodName": "run",
+              "lineNumber": 266
+            },
+            {
+              "fileName": "ThreadPoolExecutor.java",
+              "className": "java.util.concurrent.ThreadPoolExecutor",
+              "methodName": "runWorker",
+              "lineNumber": 1149
+            },
+            {
+              "fileName": "ThreadPoolExecutor.java",
+              "className": "java.util.concurrent.ThreadPoolExecutor$Worker",
+              "methodName": "run",
+              "lineNumber": 624
+            },
+            {
+              "fileName": "Thread.java",
+              "className": "java.lang.Thread",
+              "methodName": "run",
+              "lineNumber": 748
+            }
+          ],
+          "cause": null
+        },
+        "location": {
+          "fileName": "CodecsTest.scala",
+          "filePath": "/Users/oliviermelois/git/doss/weaver-test/modules/codecs/test/src/weaver/codecs/CodecsTest.scala",
+          "line": 24
+        }
+      },
+      {
+        "timestamp": 1000,
+        "msg": "log",
+        "ctx": {
+          "a": "a",
+          "b": "b"
+        },
+        "level": "error",
+        "cause": {
+          "message": "boom1",
+          "stackTrace": [
+            {
+              "fileName": "CodecsTest.scala",
+              "className": "weaver.codecs.CodecsTest$",
+              "methodName": "<clinit>",
+              "lineNumber": 11
+            },
+            {
+              "fileName": "Unsafe.java",
+              "className": "sun.misc.Unsafe",
+              "methodName": "ensureClassInitialized",
+              "lineNumber": -2
+            },
+            {
+              "fileName": "UnsafeFieldAccessorFactory.java",
+              "className": "sun.reflect.UnsafeFieldAccessorFactory",
+              "methodName": "newFieldAccessor",
+              "lineNumber": 43
+            },
+            {
+              "fileName": "ReflectionFactory.java",
+              "className": "sun.reflect.ReflectionFactory",
+              "methodName": "newFieldAccessor",
+              "lineNumber": 156
+            },
+            {
+              "fileName": "Field.java",
+              "className": "java.lang.reflect.Field",
+              "methodName": "acquireFieldAccessor",
+              "lineNumber": 1088
+            },
+            {
+              "fileName": "Field.java",
+              "className": "java.lang.reflect.Field",
+              "methodName": "getFieldAccessor",
+              "lineNumber": 1069
+            },
+            {
+              "fileName": "Field.java",
+              "className": "java.lang.reflect.Field",
+              "methodName": "get",
+              "lineNumber": 393
+            },
+            {
+              "fileName": "LoadableModuleClass.scala",
+              "className": "org.portablescala.reflect.LoadableModuleClass",
+              "methodName": "loadModule",
+              "lineNumber": 17
+            },
+            {
+              "fileName": "package.scala",
+              "className": "weaver.framework.package$",
+              "methodName": "$anonfun$loadModule$3",
+              "lineNumber": 41
+            },
+            {
+              "fileName": "IORunLoop.scala",
+              "className": "cats.effect.internals.IORunLoop$",
+              "methodName": "cats$effect$internals$IORunLoop$$loop",
+              "lineNumber": 87
+            },
+            {
+              "fileName": "IORunLoop.scala",
+              "className": "cats.effect.internals.IORunLoop$",
+              "methodName": "startCancelable",
+              "lineNumber": 41
+            },
+            {
+              "fileName": "IOBracket.scala",
+              "className": "cats.effect.internals.IOBracket$BracketStart",
+              "methodName": "run",
+              "lineNumber": 90
+            },
+            {
+              "fileName": "Trampoline.scala",
+              "className": "cats.effect.internals.Trampoline",
+              "methodName": "cats$effect$internals$Trampoline$$immediateLoop",
+              "lineNumber": 67
+            },
+            {
+              "fileName": "Trampoline.scala",
+              "className": "cats.effect.internals.Trampoline",
+              "methodName": "startLoop",
+              "lineNumber": 35
+            },
+            {
+              "fileName": "TrampolineEC.scala",
+              "className": "cats.effect.internals.TrampolineEC$JVMTrampoline",
+              "methodName": "super$startLoop",
+              "lineNumber": 90
+            },
+            {
+              "fileName": "TrampolineEC.scala",
+              "className": "cats.effect.internals.TrampolineEC$JVMTrampoline",
+              "methodName": "$anonfun$startLoop$1",
+              "lineNumber": 90
+            },
+            {
+              "fileName": "JFunction0$mcV$sp.scala",
+              "className": "scala.runtime.java8.JFunction0$mcV$sp",
+              "methodName": "apply",
+              "lineNumber": 18
+            },
+            {
+              "fileName": "BlockContext.scala",
+              "className": "scala.concurrent.BlockContext$",
+              "methodName": "withBlockContext",
+              "lineNumber": 94
+            },
+            {
+              "fileName": "TrampolineEC.scala",
+              "className": "cats.effect.internals.TrampolineEC$JVMTrampoline",
+              "methodName": "startLoop",
+              "lineNumber": 90
+            },
+            {
+              "fileName": "Trampoline.scala",
+              "className": "cats.effect.internals.Trampoline",
+              "methodName": "execute",
+              "lineNumber": 43
+            },
+            {
+              "fileName": "TrampolineEC.scala",
+              "className": "cats.effect.internals.TrampolineEC",
+              "methodName": "execute",
+              "lineNumber": 42
+            },
+            {
+              "fileName": "IOBracket.scala",
+              "className": "cats.effect.internals.IOBracket$",
+              "methodName": "$anonfun$guaranteeCase$1",
+              "lineNumber": 105
+            },
+            {
+              "fileName": "IOBracket.scala",
+              "className": "cats.effect.internals.IOBracket$",
+              "methodName": "$anonfun$guaranteeCase$1$adapted",
+              "lineNumber": 103
+            },
+            {
+              "fileName": "IORunLoop.scala",
+              "className": "cats.effect.internals.IORunLoop$RestartCallback",
+              "methodName": "start",
+              "lineNumber": 352
+            },
+            {
+              "fileName": "IORunLoop.scala",
+              "className": "cats.effect.internals.IORunLoop$",
+              "methodName": "cats$effect$internals$IORunLoop$$loop",
+              "lineNumber": 124
+            },
+            {
+              "fileName": "IORunLoop.scala",
+              "className": "cats.effect.internals.IORunLoop$",
+              "methodName": "$anonfun$suspendAsync$1",
+              "lineNumber": 264
+            },
+            {
+              "fileName": "IORunLoop.scala",
+              "className": "cats.effect.internals.IORunLoop$",
+              "methodName": "$anonfun$suspendAsync$1$adapted",
+              "lineNumber": 263
+            },
+            {
+              "fileName": "IORunLoop.scala",
+              "className": "cats.effect.internals.IORunLoop$RestartCallback",
+              "methodName": "start",
+              "lineNumber": 352
+            },
+            {
+              "fileName": "IORunLoop.scala",
+              "className": "cats.effect.internals.IORunLoop$",
+              "methodName": "cats$effect$internals$IORunLoop$$loop",
+              "lineNumber": 124
+            },
+            {
+              "fileName": "IORunLoop.scala",
+              "className": "cats.effect.internals.IORunLoop$",
+              "methodName": "start",
+              "lineNumber": 34
+            },
+            {
+              "fileName": "IO.scala",
+              "className": "cats.effect.IO",
+              "methodName": "unsafeRunAsync",
+              "lineNumber": 264
+            },
+            {
+              "fileName": "IOPlatform.scala",
+              "className": "cats.effect.internals.IOPlatform$",
+              "methodName": "unsafeResync",
+              "lineNumber": 39
+            },
+            {
+              "fileName": "IO.scala",
+              "className": "cats.effect.IO",
+              "methodName": "unsafeRunTimed",
+              "lineNumber": 331
+            },
+            {
+              "fileName": "IO.scala",
+              "className": "cats.effect.IO",
+              "methodName": "unsafeRunSync",
+              "lineNumber": 246
+            },
+            {
+              "fileName": "Task.scala",
+              "className": "weaver.framework.Task",
+              "methodName": "execute",
+              "lineNumber": 51
+            },
+            {
+              "fileName": "TestFramework.scala",
+              "className": "sbt.TestRunner",
+              "methodName": "runTest$1",
+              "lineNumber": 139
+            },
+            {
+              "fileName": "TestFramework.scala",
+              "className": "sbt.TestRunner",
+              "methodName": "run",
+              "lineNumber": 154
+            },
+            {
+              "fileName": "TestFramework.scala",
+              "className": "sbt.TestFramework$$anon$3$$anonfun$$lessinit$greater$1",
+              "methodName": "$anonfun$apply$1",
+              "lineNumber": 317
+            },
+            {
+              "fileName": "TestFramework.scala",
+              "className": "sbt.TestFramework$",
+              "methodName": "sbt$TestFramework$$withContextLoader",
+              "lineNumber": 277
+            },
+            {
+              "fileName": "TestFramework.scala",
+              "className": "sbt.TestFramework$$anon$3$$anonfun$$lessinit$greater$1",
+              "methodName": "apply",
+              "lineNumber": 317
+            },
+            {
+              "fileName": "TestFramework.scala",
+              "className": "sbt.TestFramework$$anon$3$$anonfun$$lessinit$greater$1",
+              "methodName": "apply",
+              "lineNumber": 317
+            },
+            {
+              "fileName": "TestFramework.scala",
+              "className": "sbt.TestFunction",
+              "methodName": "apply",
+              "lineNumber": 329
+            },
+            {
+              "fileName": "Tests.scala",
+              "className": "sbt.Tests$",
+              "methodName": "$anonfun$toTask$1",
+              "lineNumber": 311
+            },
+            {
+              "fileName": "Transform.scala",
+              "className": "sbt.std.Transform$$anon$3",
+              "methodName": "$anonfun$apply$2",
+              "lineNumber": 46
+            },
+            {
+              "fileName": "Transform.scala",
+              "className": "sbt.std.Transform$$anon$4",
+              "methodName": "work",
+              "lineNumber": 67
+            },
+            {
+              "fileName": "Execute.scala",
+              "className": "sbt.Execute",
+              "methodName": "$anonfun$submit$2",
+              "lineNumber": 281
+            },
+            {
+              "fileName": "ErrorHandling.scala",
+              "className": "sbt.internal.util.ErrorHandling$",
+              "methodName": "wideConvert",
+              "lineNumber": 19
+            },
+            {
+              "fileName": "Execute.scala",
+              "className": "sbt.Execute",
+              "methodName": "work",
+              "lineNumber": 290
+            },
+            {
+              "fileName": "Execute.scala",
+              "className": "sbt.Execute",
+              "methodName": "$anonfun$submit$1",
+              "lineNumber": 281
+            },
+            {
+              "fileName": "ConcurrentRestrictions.scala",
+              "className": "sbt.ConcurrentRestrictions$$anon$4",
+              "methodName": "$anonfun$submitValid$1",
+              "lineNumber": 178
+            },
+            {
+              "fileName": "CompletionService.scala",
+              "className": "sbt.CompletionService$$anon$2",
+              "methodName": "call",
+              "lineNumber": 37
+            },
+            {
+              "fileName": "FutureTask.java",
+              "className": "java.util.concurrent.FutureTask",
+              "methodName": "run",
+              "lineNumber": 266
+            },
+            {
+              "fileName": "Executors.java",
+              "className": "java.util.concurrent.Executors$RunnableAdapter",
+              "methodName": "call",
+              "lineNumber": 511
+            },
+            {
+              "fileName": "FutureTask.java",
+              "className": "java.util.concurrent.FutureTask",
+              "methodName": "run",
+              "lineNumber": 266
+            },
+            {
+              "fileName": "ThreadPoolExecutor.java",
+              "className": "java.util.concurrent.ThreadPoolExecutor",
+              "methodName": "runWorker",
+              "lineNumber": 1149
+            },
+            {
+              "fileName": "ThreadPoolExecutor.java",
+              "className": "java.util.concurrent.ThreadPoolExecutor$Worker",
+              "methodName": "run",
+              "lineNumber": 624
+            },
+            {
+              "fileName": "Thread.java",
+              "className": "java.lang.Thread",
+              "methodName": "run",
+              "lineNumber": 748
+            }
+          ],
+          "cause": null
+        },
+        "location": {
+          "fileName": "CodecsTest.scala",
+          "filePath": "/Users/oliviermelois/git/doss/weaver-test/modules/codecs/test/src/weaver/codecs/CodecsTest.scala",
+          "line": 24
+        }
+      }
+    ],
+    "description": "\u001b[32m+ \u001b[0moutcome",
+    "cause": null
+  }
+}
