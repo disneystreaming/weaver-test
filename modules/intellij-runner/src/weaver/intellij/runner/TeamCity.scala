@@ -1,6 +1,7 @@
 package weaver.intellij.runner
 
 import java.io.{ PrintWriter, StringWriter }
+
 import weaver.{ TestOutcome, TestStatus }
 
 object TeamCity {

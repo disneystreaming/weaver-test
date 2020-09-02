@@ -268,6 +268,21 @@ lazy val intellijPluginRunner =
   createRunnerProject(intellij, "weaver-intellij-plugin-runner")
     .disablePlugins(WeaverPlugin)
 
+//lazy val ideaScala =
+//  Project("intellij-scala", file("modules/intellij/intellij-scala/scala"))
+//    .settings(
+//      scalaVersion := "2.12.10",
+//      packageMethod := PackagingMethod.Skip(),
+//      managedSourceDirectories in Compile ++=
+//        List(
+//          baseDirectory.value / "scala-api/src",
+//          baseDirectory.value / "scala-impl/src",
+//          baseDirectory.value / "runners/src"
+//        )
+//    )
+//    .enablePlugins(SbtIdeaPlugin)
+//    .disablePlugins(WeaverPlugin)
+
 lazy val versionDump =
   taskKey[Unit]("Dumps the version in a file named version")
 

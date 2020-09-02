@@ -3,6 +3,7 @@ package weaver.intellij.runner
 import cats.effect.concurrent.Ref
 import cats.effect.{ ExitCode, IO, IOApp }
 import cats.implicits._
+
 import weaver._
 
 object WeaverTestRunner extends IOApp { self =>
