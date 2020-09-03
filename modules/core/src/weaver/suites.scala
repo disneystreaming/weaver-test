@@ -100,9 +100,9 @@ trait MutableFSuite[F[_]] extends ConcurrentEffectSuite[F]  {
   def test(id: TestId) : PartiallyAppliedTest = new PartiallyAppliedTest(id)
 
   class PartiallyAppliedTest(id : TestId) {
-    def apply(run: => F[Expectations]) : Unit = registerTest(id)(_ => Test(name, run))
-    def apply(run : Res => F[Expectations]) : Unit = registerTest(id)(res => Test(name, run(res)))
-    def apply(run : (Res, Log[F]) => F[Expectations]) : Unit = registerTest(id)(res => Test(name, log => run(res, log)))
+    def apply(run: => F[Expectations]) : Unit = registerTest(id)(_ => Test(id.name, run))
+    def apply(run : Res => F[Expectations]) : Unit = registerTest(id)(res => Test(id.name, run(res)))
+    def apply(run : (Res, Log[F]) => F[Expectations]) : Unit = registerTest(id)(res => Test(id.name, log => run(res, log)))
   }
 
   override def spec(args: List[String]) : Stream[F, TestOutcome] =
