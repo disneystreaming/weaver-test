@@ -16,6 +16,8 @@ steps:
   volumes:
     - name: sbt-cache
       path: /root/.sbt
+    - name: intellij-cache
+      path: /root/.weaver-intellijPluginIC
 
 # Publish maven artifacts (on tag push)
 - name: publish-to-sonatype
@@ -62,4 +64,6 @@ steps:
 
 volumes:
 - name: sbt-cache
+  temp: {}
+- name: intellij-cache
   temp: {}

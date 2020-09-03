@@ -14,7 +14,9 @@ addCommandAlias(
     "+clean",
     "+test:compile",
     "+test",
-    "docs/docusaurusCreateSite"
+    "docs/docusaurusCreateSite",
+    "intellij/updateIntellij",
+    "intellij/test"
   ).mkString(";", ";", "")
 )
 
@@ -54,7 +56,6 @@ lazy val root = project
              scalacheckJVM,
              zioJVM,
              specs2JVM,
-             codecsJVM,
              intellijRunnerJVM,
              coreJS,
              frameworkJS,
@@ -200,42 +201,17 @@ lazy val zioJS  = zio.js
 lazy val intellijRunner = crossProject(JVMPlatform)
   .crossType(CrossType.Pure)
   .in(file("modules/intellij-runner"))
-  .dependsOn(core, framework, codecs, framework % "test->compile")
+  .dependsOn(core, framework, framework % "test->compile")
   .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.simpleLayout)
   .settings(
     name := "intellij-runner",
-    libraryDependencies ++= Seq(
-      "com.monovore"       %%% "decline-effect"         % "1.0.0",
-      "org.portable-scala" %%% "portable-scala-reflect" % "1.0.0",
-      "io.circe"           %%% "circe-parser"           % "0.13.0" % Test
-    ),
     scalaJSLinkerConfig ~= {
       _.withModuleKind(ModuleKind.CommonJSModule)
     }
   )
 
 lazy val intellijRunnerJVM = intellijRunner.jvm
-
-// Json codecs for TestOutcome
-lazy val codecs = crossProject(JVMPlatform)
-  .crossType(CrossType.Pure)
-  .in(file("modules/codecs"))
-  .dependsOn(core, framework % "test->compile")
-  .configure(WeaverPlugin.profile)
-  .settings(WeaverPlugin.simpleLayout)
-  .settings(
-    name := "codecs",
-    libraryDependencies ++= Seq(
-      "io.circe" %%% "circe-core"   % "0.13.0",
-      "io.circe" %%% "circe-parser" % "0.13.0" % Test
-    ),
-    scalaJSLinkerConfig ~= {
-      _.withModuleKind(ModuleKind.CommonJSModule)
-    }
-  )
-
-lazy val codecsJVM = codecs.jvm
 
 ThisBuild / intellijBuild := "202.6948.69"
 ThisBuild / intellijPluginName := "weaver-intellij"
@@ -244,6 +220,10 @@ import org.jetbrains.sbtidea.Keys._
 import org.jetbrains.sbtidea.SbtIdeaPlugin
 import sbt.Keys._
 import sbt._
+
+// Prevents sbt-idea-plugin from automatically
+// downloading intellij binaries on startup
+ThisBuild / doProjectSetup := {}
 
 lazy val intellij = (project in file("modules/intellij"))
   .settings(
