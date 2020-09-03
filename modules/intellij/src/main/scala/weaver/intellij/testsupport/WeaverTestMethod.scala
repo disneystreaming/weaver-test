@@ -15,7 +15,7 @@ case object WeaverTestMethod {
               case f: ScFunction =>
                 f.clauses.exists(_.params.exists {
                   _.`type`().exists(
-                    _.canonicalText == "_root_.weaver.TestIndicator")
+                    _.canonicalText == "_root_.weaver.TestId")
                 })
               case _ => false
             }

@@ -36,9 +36,7 @@ package object weaver {
     Pattern.compile(parts.mkString(".*"))
   }
 
-  type TestConfig = (String, TestIndicator)
-
-  private type Predicate = TestConfig => Boolean
+  private type Predicate = TestId => Boolean
 
   private object atLine {
     def unapply(testPath: String): Option[(String, Int)] = {
@@ -54,16 +52,16 @@ package object weaver {
   }
 
   private[weaver] def filterTests(suiteName: String)(
-      args: List[String]): TestConfig => Boolean = {
+      args: List[String]): TestId => Boolean = {
 
     def toPredicate(filter: String): Predicate = {
       filter match {
 
         case atLine(`suiteName`, line) => {
-          case (_, indicator) => indicator.line == line
+          case TestId(_, indicator) => indicator.line == line
         }
         case regexStr => {
-          case (name, _) =>
+          case TestId(name, _) =>
             val fullName = suiteName + "." + name
             toPattern(regexStr).matcher(fullName).matches()
         }
@@ -77,7 +75,7 @@ package object weaver {
         .filter(_ >= 0)
       filter <- Try(args(index + 1)).toOption
     } yield toPredicate(filter)
-    testName => maybePattern.forall(_.apply((testName._1, testName._2)))
+    testId => maybePattern.forall(_.apply(testId))
   }
 
 }
