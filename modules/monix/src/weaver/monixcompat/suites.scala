@@ -1,12 +1,11 @@
 package weaver
 package monixcompat
 
-import cats.effect.Resource
+import cats.effect.{ ConcurrentEffect, ContextShift, Resource, Timer }
 
 import monix.eval.Task
 import monix.eval.instances._
 import monix.execution.Scheduler
-import cats.effect.{ Timer, ContextShift, ConcurrentEffect }
 
 trait BaseMonixSuite { self: ConcurrentEffectSuite[Task] =>
   val ec                              = scala.concurrent.ExecutionContext.global
