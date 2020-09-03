@@ -15,6 +15,7 @@ addCommandAlias(
     "+test:compile",
     "+test",
     "docs/docusaurusCreateSite",
+    "coreJVM/publishLocal",
     "intellij/updateIntellij",
     "intellij/test"
   ).mkString(";", ";", "")
@@ -233,35 +234,25 @@ lazy val intellij = (project in file("modules/intellij"))
       "org.intellij.scala:2020.2.23".toPlugin
     ),
     libraryDependencies ++= Seq(
-      "io.get-coursier" %% "coursier" % "2.0.0-RC6-24"
+      "io.get-coursier" %% "coursier"        % "2.0.0-RC6-24",
+      "com.novocode"     % "junit-interface" % "0.11" % Test
     ),
     patchPluginXml := pluginXmlOptions { xml =>
       xml.version = version.value
     },
     packageMethod := PackagingMethod.Standalone(),
-    scalacOptions ++= (WeaverPlugin.commonCompilerOptions ++ WeaverPlugin.compilerOptions2_12_Only)
+    scalacOptions ++= (WeaverPlugin.commonCompilerOptions ++ WeaverPlugin.compilerOptions2_12_Only),
+    buildInfoKeys := Seq[BuildInfoKey](name, version),
+    buildInfoPackage := "weaver.build",
+    semanticdbEnabled := true,
+    semanticdbVersion := scalafixSemanticdb.revision,
   )
-  .enablePlugins(SbtIdeaPlugin)
+  .enablePlugins(SbtIdeaPlugin, BuildInfoPlugin)
   .disablePlugins(WeaverPlugin)
 
 lazy val intellijPluginRunner =
   createRunnerProject(intellij, "weaver-intellij-plugin-runner")
     .disablePlugins(WeaverPlugin)
-
-//lazy val ideaScala =
-//  Project("intellij-scala", file("modules/intellij/intellij-scala/scala"))
-//    .settings(
-//      scalaVersion := "2.12.10",
-//      packageMethod := PackagingMethod.Skip(),
-//      managedSourceDirectories in Compile ++=
-//        List(
-//          baseDirectory.value / "scala-api/src",
-//          baseDirectory.value / "scala-impl/src",
-//          baseDirectory.value / "runners/src"
-//        )
-//    )
-//    .enablePlugins(SbtIdeaPlugin)
-//    .disablePlugins(WeaverPlugin)
 
 lazy val versionDump =
   taskKey[Unit]("Dumps the version in a file named version")

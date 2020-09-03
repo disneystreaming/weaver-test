@@ -1,5 +1,6 @@
 package weaver.intellij.testsupport
 
+import scala.collection.JavaConverters._
 
 import com.intellij.codeInsight.daemon.impl.CollectHighlightsUtil
 import com.intellij.openapi.editor.Document
@@ -10,10 +11,8 @@ import org.jetbrains.plugins.scala.DependencyManagerBase.DependencyDescription
 import org.junit.runner.RunWith
 import org.junit.runners.AllTests
 
-import scala.collection.JavaConverters._
-
 @RunWith(classOf[AllTests])
-class WeaverTestMethodTest extends WeaverFileSetTestCase("testMethod")  {
+class WeaverTestMethodTest extends WeaverFileSetTestCase("testMethod") {
 
   var myTestRootDisposable: TestDisposable = _
 
@@ -30,32 +29,35 @@ class WeaverTestMethodTest extends WeaverFileSetTestCase("testMethod")  {
   override protected def transform(data: Seq[String]): String = {
     addModuleDependencies()
 
-    val psiFile = createPseudoPhysicalScalaFile(data.head)
+    val psiFile            = createPseudoPhysicalScalaFile(data.head)
     val document: Document = getDocument(psiFile)
 
-    val allPsiElements = CollectHighlightsUtil.getElementsInRange(psiFile, 0, psiFile.getTextLength).asScala.toList
+    val allPsiElements = CollectHighlightsUtil.getElementsInRange(
+      psiFile,
+      0,
+      psiFile.getTextLength).asScala.toList
 
     allPsiElements.collect {
-      case e@WeaverTestMethod() => position(e, document)
+      case e @ WeaverTestMethod() => position(e, document)
     }.mkString("\n")
   }
-
 
   private def addModuleDependencies(): Unit = {
     val module = ModuleManager.getInstance(myProject).getModules()(0)
     IvyManagedLoader(DependencyDescription(
-      "com.disneystreaming", "weaver-core_2.13", "0.4.3+12-f2fe1695+20200902-2229"
+      "com.disneystreaming",
+      "weaver-core_2.13",
+      weaver.build.BuildInfo.version
     )).init(module, myTestRootDisposable)
   }
 
-  private def position(element:PsiElement, document: Document):String = {
-    val line: Int    = document.getLineNumber(element.getTextRange.getStartOffset)
-    val column: Int    = element.getTextRange.getStartOffset - document.getLineStartOffset(line)
+  private def position(element: PsiElement, document: Document): String = {
+    val line: Int = document.getLineNumber(element.getTextRange.getStartOffset)
+    val column: Int =
+      element.getTextRange.getStartOffset - document.getLineStartOffset(line)
     val label = element.getText
-    s"$label-${line+1}:${column+1}"
+    s"$label-${line + 1}:${column + 1}"
   }
 }
 
 object WeaverTestMethodTest extends TestSuiteCompanion[WeaverTestMethodTest]
-
-

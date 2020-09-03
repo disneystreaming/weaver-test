@@ -1,13 +1,13 @@
 package weaver.intellij.testsupport
 
+import scala.collection.mutable
+
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess
 import com.intellij.testFramework.PsiTestUtil
 import org.jetbrains.plugins.scala.DependencyManagerBase.{DependencyDescription, ResolvedDependency}
 import org.jetbrains.plugins.scala.{DependencyManager, DependencyManagerBase}
-
-import scala.collection.mutable
 
 case class IvyManagedLoader(dependencies: DependencyDescription*) {
   protected lazy val dependencyManager: DependencyManagerBase = DependencyManager

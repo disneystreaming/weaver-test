@@ -40,15 +40,27 @@ package object weaver {
 
   private type Predicate = TestConfig => Boolean
 
+  private object atLine {
+    def unapply(testPath: String): Option[(String, Int)] = {
+      // Can't use string interpolation in pattern (2.12)
+      val members = testPath.split(".line://")
+      if (members.size == 2) {
+        val suiteName = members(0)
+        // Can't use .toIntOption (2.12)
+        val maybeLine = scala.util.Try(members(1).toInt).toOption
+        maybeLine.map(suiteName -> _)
+      } else None
+    }
+  }
+
   private[weaver] def filterTests(suiteName: String)(
       args: List[String]): TestConfig => Boolean = {
 
     def toPredicate(filter: String): Predicate = {
       filter match {
 
-        case s"${filterSuiteName}.line://${lineNumber}"
-            if filterSuiteName == suiteName => {
-          case (_, indicator) => indicator.line.toString == lineNumber
+        case atLine(`suiteName`, line) => {
+          case (_, indicator) => indicator.line == line
         }
         case regexStr => {
           case (name, _) =>
