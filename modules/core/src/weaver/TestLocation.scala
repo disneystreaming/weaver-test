@@ -14,6 +14,6 @@ object TestLocation {
   implicit def fromContext(implicit
   sourceLocation: SourceLocation): TestLocation =
     TestLocation(sourceLocation.fileName,
-                  sourceLocation.filePath,
-                  sourceLocation.line)
+                 sourceLocation.filePath,
+                 sourceLocation.line)
 }
