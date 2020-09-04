@@ -1,16 +1,11 @@
 package weaver.monixcompat
 
-import cats.effect.Resource
-
 import weaver.framework.DogFood
 
 import monix.eval.Task
 import sbt.testing.Status
 
-object MonixSuiteTest extends MonixSuite {
-  type Res = Unit
-  override def sharedResource: Resource[Task, Unit] = Resource.pure(())
-
+object TaskSuiteTest extends SimpleTaskSuite {
   List(
     TestWithExceptionInTest,
     TestWithExceptionInExpectation,
@@ -33,13 +28,13 @@ object MonixSuiteTest extends MonixSuite {
     } yield expect(events.headOption.get.status() == Status.Failure)
   }
 
-  object TestWithExceptionInTest extends SimpleMonixSuite {
+  object TestWithExceptionInTest extends SimpleTaskSuite {
     test("example test") {
       Task.raiseError(new RuntimeException("oh no"))
     }
   }
 
-  object TestWithExceptionInExpectation extends SimpleMonixSuite {
+  object TestWithExceptionInExpectation extends SimpleTaskSuite {
     test("example test") {
       for {
         _ <- Task.unit
@@ -47,13 +42,13 @@ object MonixSuiteTest extends MonixSuite {
     }
   }
 
-  object TestWithExceptionInInitialisation extends SimpleMonixSuite {
+  object TestWithExceptionInInitialisation extends SimpleTaskSuite {
     test("example test") { _ =>
       throw new RuntimeException("oh no")
     }
   }
 
-  object TestWithFailedExpectation extends SimpleMonixSuite {
+  object TestWithFailedExpectation extends SimpleTaskSuite {
     test("example test") { _ =>
       for {
         _ <- Task.unit
