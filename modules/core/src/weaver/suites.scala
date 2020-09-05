@@ -88,16 +88,16 @@ trait MutableFSuite[F[_]] extends ConcurrentEffectSuite[F]  {
   def maxParallelism : Int = 10000
   implicit def timer: Timer[F]
 
-  protected def registerTest(id: TestName)(f: Res => F[TestOutcome]): Unit =
+  protected def registerTest(name: TestName)(f: Res => F[TestOutcome]): Unit =
     synchronized {
       if (isInitialized) throw initError()
-      testSeq = testSeq :+ ((id, f))
+      testSeq = testSeq :+ ((name, f))
     }
 
-  def pureTest(id: TestName)(run : => Expectations) :  Unit = registerTest(id)(_ => Test(id.name, effect.delay(run)))
-  def simpleTest(id:  TestName)(run: => F[Expectations]) : Unit = registerTest(id)(_ => Test(id.name, effect.suspend(run)))
-  def loggedTest(id: TestName)(run: Log[F] => F[Expectations]) : Unit = registerTest(id)(_ => Test(id.name, log => run(log)))
-  def test(id: TestName) : PartiallyAppliedTest = new PartiallyAppliedTest(id)
+  def pureTest(name: TestName)(run : => Expectations) :  Unit = registerTest(name)(_ => Test(name.name, effect.delay(run)))
+  def simpleTest(name:  TestName)(run: => F[Expectations]) : Unit = registerTest(name)(_ => Test(name.name, effect.suspend(run)))
+  def loggedTest(name: TestName)(run: Log[F] => F[Expectations]) : Unit = registerTest(name)(_ => Test(name.name, log => run(log)))
+  def test(name: TestName) : PartiallyAppliedTest = new PartiallyAppliedTest(name)
 
   class PartiallyAppliedTest(id : TestName) {
     def apply(run: => F[Expectations]) : Unit = registerTest(id)(_ => Test(id.name, run))
@@ -109,7 +109,7 @@ trait MutableFSuite[F[_]] extends ConcurrentEffectSuite[F]  {
     synchronized {
       if (!isInitialized) isInitialized = true
       val argsFilter = filterTests(this.name)(args)
-      val filteredTests = testSeq.collect { case (id, test) if argsFilter(id) => test }
+      val filteredTests = testSeq.collect { case (name, test) if argsFilter(name) => test }
       val parallism = math.max(1, maxParallelism)
       if (filteredTests.isEmpty) Stream.empty // no need to allocate resources
       else for {
