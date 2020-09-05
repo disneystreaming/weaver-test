@@ -88,18 +88,18 @@ trait MutableFSuite[F[_]] extends ConcurrentEffectSuite[F]  {
   def maxParallelism : Int = 10000
   implicit def timer: Timer[F]
 
-  protected def registerTest(id: TestId)(f: Res => F[TestOutcome]): Unit =
+  protected def registerTest(id: TestName)(f: Res => F[TestOutcome]): Unit =
     synchronized {
       if (isInitialized) throw initError()
       testSeq = testSeq :+ ((id, f))
     }
 
-  def pureTest(id: TestId)(run : => Expectations) :  Unit = registerTest(id)(_ => Test(id.name, effect.delay(run)))
-  def simpleTest(id:  TestId)(run: => F[Expectations]) : Unit = registerTest(id)(_ => Test(id.name, effect.suspend(run)))
-  def loggedTest(id: TestId)(run: Log[F] => F[Expectations]) : Unit = registerTest(id)(_ => Test(id.name, log => run(log)))
-  def test(id: TestId) : PartiallyAppliedTest = new PartiallyAppliedTest(id)
+  def pureTest(id: TestName)(run : => Expectations) :  Unit = registerTest(id)(_ => Test(id.name, effect.delay(run)))
+  def simpleTest(id:  TestName)(run: => F[Expectations]) : Unit = registerTest(id)(_ => Test(id.name, effect.suspend(run)))
+  def loggedTest(id: TestName)(run: Log[F] => F[Expectations]) : Unit = registerTest(id)(_ => Test(id.name, log => run(log)))
+  def test(id: TestName) : PartiallyAppliedTest = new PartiallyAppliedTest(id)
 
-  class PartiallyAppliedTest(id : TestId) {
+  class PartiallyAppliedTest(id : TestName) {
     def apply(run: => F[Expectations]) : Unit = registerTest(id)(_ => Test(id.name, run))
     def apply(run : Res => F[Expectations]) : Unit = registerTest(id)(res => Test(id.name, run(res)))
     def apply(run : (Res, Log[F]) => F[Expectations]) : Unit = registerTest(id)(res => Test(id.name, log => run(res, log)))
@@ -121,7 +121,7 @@ trait MutableFSuite[F[_]] extends ConcurrentEffectSuite[F]  {
       } yield result
     }
 
-  private[this] var testSeq = Seq.empty[(TestId, Res => F[TestOutcome])]
+  private[this] var testSeq = Seq.empty[(TestName, Res => F[TestOutcome])]
   private[this] var isInitialized = false
 
   private[this] def initError() =

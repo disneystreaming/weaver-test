@@ -22,16 +22,16 @@ abstract class MutableZIOSuite[Res <: Has[_]](implicit tag: Tag[Res])
 
   private[this] type Test = ZIO[Env[Res], Nothing, TestOutcome]
 
-  protected def registerTest(id: TestId)(test: Test): Unit =
+  protected def registerTest(id: TestName)(test: Test): Unit =
     synchronized {
       if (isInitialized) throw initError()
       testSeq = testSeq :+ ((id, test))
     }
 
-  def pureTest(id: TestId)(run: => Expectations): Unit =
+  def pureTest(id: TestName)(run: => Expectations): Unit =
     registerTest(id)(Test(id.name, ZIO(run)))
 
-  def test(id: TestId)(
+  def test(id: TestName)(
       run: => ZIO[PerTestEnv[Res], Throwable, Expectations]): Unit =
     registerTest(id)(Test(id.name, ZIO.fromTry(Try { run }).flatten))
 
@@ -56,7 +56,7 @@ abstract class MutableZIOSuite[Res <: Has[_]](implicit tag: Tag[Res])
       }
     }
 
-  private[this] var testSeq       = Seq.empty[(TestId, Test)]
+  private[this] var testSeq       = Seq.empty[(TestName, Test)]
   private[this] var isInitialized = false
 
   private[this] def initError() =
