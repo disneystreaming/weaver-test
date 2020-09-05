@@ -46,9 +46,6 @@ ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports"
 
 fork in Test := true
 
-// Enabling only locally
-//disablePlugins(SbtIdeaPlugin)
-
 lazy val root = project
   .in(file("."))
   .enablePlugins(ScalafixPlugin)
@@ -56,14 +53,14 @@ lazy val root = project
              frameworkJVM,
              scalacheckJVM,
              zioJVM,
-    monixJVM,
+             monixJVM,
              specs2JVM,
              intellijRunnerJVM,
              coreJS,
              frameworkJS,
              scalacheckJS,
              zioJS,
-    monixJS,
+             monixJS,
              specs2JS)
   .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.doNotPublishArtifact)
@@ -215,7 +212,7 @@ lazy val monix = crossProject(JSPlatform, JVMPlatform)
   )
 
 lazy val monixJVM = monix.jvm
-lazy val monixJS = monix.js
+lazy val monixJS  = monix.js
 
 lazy val intellijRunner = crossProject(JVMPlatform)
   .crossType(CrossType.Pure)
@@ -263,7 +260,7 @@ lazy val intellij = (project in file("modules/intellij"))
     buildInfoKeys := Seq[BuildInfoKey](name, version),
     buildInfoPackage := "weaver.build",
     semanticdbEnabled := true,
-    semanticdbVersion := scalafixSemanticdb.revision,
+    semanticdbVersion := scalafixSemanticdb.revision
   )
   .enablePlugins(SbtIdeaPlugin, BuildInfoPlugin)
   .disablePlugins(WeaverPlugin)
