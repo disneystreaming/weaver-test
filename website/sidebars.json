@@ -13,6 +13,7 @@
       "tagging",
       "scalacheck",
       "zio",
+      "monix",
       "specs2"
     ],
     "Sample reports": [
