@@ -12,7 +12,7 @@
 
 
 A test-framework built on [cats-effect](https://github.com/typelevel/cats-effect) and
-[fs2](https://github.com/functional-streams-for-scala/fs2), with [zio](https://zio.dev) interop.
+[fs2](https://github.com/functional-streams-for-scala/fs2), with [zio](https://zio.dev) and [monix](https://monix.io) interop.
 
 ## Installation
 
@@ -28,6 +28,9 @@ testFrameworks += new TestFramework("weaver.framework.TestFramework")
 
 // optionally (for ZIO usage)
 libraryDependencies +=  "com.disneystreaming" %% "weaver-zio" % "x.y.z" % Test
+
+// optionally (for Monix usage)
+libraryDependencies +=  "com.disneystreaming" %% "weaver-monix" % "x.y.z" % Test
 
 // optionally (for Scalacheck usage)
 libraryDependencies +=  "com.disneystreaming" %% "weaver-scalacheck" % "x.y.z" % Test
@@ -131,14 +134,18 @@ object MySuite extends IOSuite {
 
 #### Other suites
 
-Weaver also includes support for `ZIO`-based suites via the optional `weaver-zio` dependency.
+Weaver also includes support for 
+* `ZIO`-based suites via the optional `weaver-zio` dependency
+* `Monix`-based suites via the optional `weaver-monix` dependency
 
 | Alias | Suite name | Provided by | Use case |
 | --- | --- | --- | --- |
-| `SimpleIOSuite`  | `SimpleMutableIOSuite`       | `weaver-framework` | Each test is a standalone `IO` action
-| `IOSuite`        | `MutableIOSuite`             | `weaver-framework` | Each test needs access to a shared `Resource`
-| `SimpleZIOSuite` | `SimpleMutableZIOSuite`      | `weaver-zio`       | Each test is a standalone `ZIO` action
-| `ZIOSuite[R]`    | `MutableZIOSuite[R]`         | `weaver-zio`       | Each test needs access to a shared `ZLayer`
+| `SimpleIOSuite`   | `SimpleMutableIOSuite`       | `weaver-framework` | Each test is a standalone `IO` action
+| `IOSuite`         | `MutableIOSuite`             | `weaver-framework` | Each test needs access to a shared `Resource`
+| `SimpleZIOSuite`  | `SimpleMutableZIOSuite`      | `weaver-zio`       | Each test is a standalone `ZIO` action
+| `ZIOSuite[R]`     | `MutableZIOSuite[R]`         | `weaver-zio`       | Each test needs access to a shared `ZLayer`
+| `SimpleMonixSuite`| `SimpleMutableMonixSuite`    | `weaver-monix`     | Each test is a standalone `Task` action
+| `MonixSuite`      | `MutableMonixSuite`          | `weaver-monix`     | Each test needs access to a shared `Resource`
 
 ### Expectations (assertions)
 

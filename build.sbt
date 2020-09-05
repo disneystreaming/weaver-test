@@ -56,12 +56,14 @@ lazy val root = project
              frameworkJVM,
              scalacheckJVM,
              zioJVM,
+    monixJVM,
              specs2JVM,
              intellijRunnerJVM,
              coreJS,
              frameworkJS,
              scalacheckJS,
              zioJS,
+    monixJS,
              specs2JS)
   .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.doNotPublishArtifact)
@@ -100,7 +102,7 @@ lazy val coreJS  = core.js
 lazy val docs = project
   .in(file("modules/docs"))
   .enablePlugins(DocusaurusPlugin, MdocPlugin)
-  .dependsOn(coreJVM, frameworkJVM, scalacheckJVM, zioJVM, specs2JVM)
+  .dependsOn(coreJVM, frameworkJVM, scalacheckJVM, zioJVM, monixJVM, specs2JVM)
   .settings(
     moduleName := "docs",
     watchSources += (ThisBuild / baseDirectory).value / "docs",
@@ -198,6 +200,22 @@ lazy val zio = crossProject(JSPlatform, JVMPlatform)
 
 lazy val zioJVM = zio.jvm
 lazy val zioJS  = zio.js
+
+lazy val monix = crossProject(JSPlatform, JVMPlatform)
+  .crossType(CrossType.Pure)
+  .in(file("modules/monix"))
+  .dependsOn(core, framework % "test->compile")
+  .configure(WeaverPlugin.profile)
+  .settings(WeaverPlugin.simpleLayout)
+  .settings(
+    libraryDependencies ++= Seq(
+      "io.monix" %%% "monix" % "3.2.2"
+    ),
+    scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) }
+  )
+
+lazy val monixJVM = monix.jvm
+lazy val monixJS = monix.js
 
 lazy val intellijRunner = crossProject(JVMPlatform)
   .crossType(CrossType.Pure)
