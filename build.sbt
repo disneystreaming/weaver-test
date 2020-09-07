@@ -40,6 +40,19 @@ addCommandAlias(
   ).mkString(";", ";", "")
 )
 
+// See https://github.com/JetBrains/sbt-idea-plugin/issues/76 for
+// why this contrived sequence of actions exists ...
+addCommandAlias(
+  "releaseIntellijPlugin",
+  Seq(
+    "project root",
+    "intellij/packageArtifact",
+    "intellij/doPatchPluginXml",
+    "intellij/packageArtifactZip",
+    "intellij/publishPlugin"
+  ).mkString(";", ";", "")
+)
+
 ThisBuild / scalaVersion := WeaverPlugin.scala213
 
 ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.4.0"
@@ -242,6 +255,8 @@ import sbt._
 ThisBuild / doProjectSetup := {}
 
 lazy val intellij = (project in file("modules/intellij"))
+  .enablePlugins(SbtIdeaPlugin, BuildInfoPlugin)
+  .disablePlugins(WeaverPlugin)
   .settings(
     scalaVersion := "2.12.10",
     intellijPlugins := Seq(
@@ -263,8 +278,6 @@ lazy val intellij = (project in file("modules/intellij"))
     semanticdbEnabled := true,
     semanticdbVersion := scalafixSemanticdb.revision
   )
-  .enablePlugins(SbtIdeaPlugin, BuildInfoPlugin)
-  .disablePlugins(WeaverPlugin)
 
 lazy val intellijPluginRunner =
   createRunnerProject(intellij, "weaver-intellij-plugin-runner")

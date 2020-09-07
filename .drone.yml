@@ -46,7 +46,7 @@ steps:
 - name: publish-intellij-plugin
   image: keynmol/weaver-scala-sbt-yarn:latest
   commands:
-  - sbt intellij/publishPlugin
+  - sbt releaseIntellijPlugin
   environment:
     COURSIER_CACHE: .cache/coursier
     IJ_PLUGIN_REPO_TOKEN:
