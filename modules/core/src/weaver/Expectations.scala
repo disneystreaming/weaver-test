@@ -83,6 +83,12 @@ object Expectations {
 
   trait Helpers {
 
+    /**
+     * Expect macros
+     */
+    def expect = new Expect
+    def assert = new Expect
+
     val success: Expectations = Monoid[Expectations].empty
 
     def failure(hint: String)(implicit pos: SourceLocation): Expectations =
