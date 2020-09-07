@@ -255,6 +255,7 @@ lazy val intellij = (project in file("modules/intellij"))
     patchPluginXml := pluginXmlOptions { xml =>
       xml.version = version.value
     },
+    // packageArtifact in publishPlugin := packagePlugin.value,
     packageMethod := PackagingMethod.Standalone(),
     scalacOptions ++= (WeaverPlugin.commonCompilerOptions ++ WeaverPlugin.compilerOptions2_12_Only),
     buildInfoKeys := Seq[BuildInfoKey](name, version),
