@@ -15,7 +15,10 @@ trait BaseTaskSuite { self: ConcurrentEffectSuite[Task] =>
     new CatsConcurrentEffectForTask()(scheduler, Task.defaultOptions)
 }
 
-trait MutableTaskSuite extends MutableFSuite[Task] with BaseTaskSuite
+trait MutableTaskSuite
+    extends MutableFSuite[Task]
+    with BaseTaskSuite
+    with Expectations.Helpers
 
 trait SimpleMutableTaskSuite extends MutableTaskSuite {
   type Res = Unit
