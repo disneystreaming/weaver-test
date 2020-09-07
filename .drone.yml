@@ -43,6 +43,23 @@ steps:
   - name: sbt-cache
     path: /root/.sbt
 
+- name: publish-intellij-plugin
+  image: keynmol/weaver-scala-sbt-yarn:latest
+  commands:
+  - sbt intellij/publishPlugin
+  environment:
+    COURSIER_CACHE: .cache/coursier
+    IJ_PLUGIN_REPO_TOKEN:
+      from_secret: intellij_plugin_repo_token
+  when:
+    ref:
+      - refs/tags/v*
+  volumes:
+    - name: sbt-cache
+      path: /root/.sbt
+    - name: intellij-cache
+      path: /root/.weaver-intellijPluginIC
+
 - name: publish-site
   image: keynmol/weaver-scala-sbt-yarn:latest
   commands:
