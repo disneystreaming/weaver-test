@@ -114,7 +114,7 @@ object FailingSharedResources extends GlobalResourcesInit {
 On the two sides of (production and consumption) of the global resources, it is possible to label the resources with string values, to discriminate between several resources of the same.
 
 ```scala mdoc
-import cats.implicits._
+import cats.syntax.all._
 
 object LabelSharedResources extends GlobalResourcesInit {
   def sharedResources(store: GlobalResources.Write[IO]): Resource[IO, Unit] =

@@ -28,7 +28,6 @@ object test extends Tests {
 Add the `weaver.scalacheck.IOCheckers` mixin to use ScalaCheck within your test suite.
 
 ```scala mdoc:silent
-import cats.implicits._
 import org.scalacheck.Gen
 
 import weaver._
