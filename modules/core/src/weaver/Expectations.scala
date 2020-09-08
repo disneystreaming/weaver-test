@@ -3,7 +3,7 @@ package weaver
 import cats._
 import cats.data.Validated._
 import cats.data.{ NonEmptyList, Validated, ValidatedNel }
-import cats.implicits._
+import cats.syntax.all._
 
 case class Expectations(val run: ValidatedNel[AssertionException, Unit]) {
   self =>

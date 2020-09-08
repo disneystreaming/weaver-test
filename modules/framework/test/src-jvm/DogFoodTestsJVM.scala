@@ -3,7 +3,7 @@ package framework
 package test
 
 import cats.effect.IO
-import cats.implicits._
+import cats.syntax.all._
 
 object DogFoodSuiteJVM extends SimpleIOSuite with DogFood {
 

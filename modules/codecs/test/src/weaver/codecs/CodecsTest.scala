@@ -6,7 +6,7 @@ import scala.io.Source
 
 import cats.data.Chain
 import cats.effect.IO
-import cats.implicits._
+import cats.syntax.all._
 
 import io.circe.syntax._
 

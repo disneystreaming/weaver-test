@@ -74,7 +74,7 @@ object TestErrorFormatter {
       stackTrace: NonEmptyVector[TraceOutput],
       truncated: Boolean): Vector[String] = {
 
-    import cats.implicits._
+    import cats.syntax.all._
 
     val (snipPrefix, snipSuffix) = ("<snipped>", ".<...>")
 

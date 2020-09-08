@@ -3,7 +3,6 @@ package framework
 
 import cats.data.Chain
 import cats.effect.IO
-import cats.implicits._
 
 import sbt.testing.{ Logger => BaseLogger }
 

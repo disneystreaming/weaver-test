@@ -4,7 +4,7 @@ package scalacheck
 import cats.Show
 import cats.effect.IO
 import cats.effect.concurrent.Ref
-import cats.implicits._
+import cats.syntax.all._
 
 import org.scalacheck.rng.Seed
 import org.scalacheck.{ Arbitrary, Gen }
