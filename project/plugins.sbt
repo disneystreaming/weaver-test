@@ -1,6 +1,6 @@
 // format: off
 val ScalaJSVersion =
-  Option(System.getenv("SCALAJS_VERSION")).getOrElse("1.1.1")
+  Option(System.getenv("SCALAJS_VERSION")).getOrElse("1.2.0")
 
 addSbtPlugin("ch.epfl.scala"        % "sbt-scalafix"                  % "0.9.20")
 addSbtPlugin("org.scala-js"         % "sbt-scalajs"                   % ScalaJSVersion)
