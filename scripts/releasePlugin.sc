@@ -7,7 +7,7 @@ def release(
     tagName: String = sys.env("DRONE_TAG"),
     authKey: String = sys.env("GITHUB_TOKEN")): String = {
 
-  val uploadName: String = "weaver-intelli.zip"
+  val uploadName: String = "weaver-intellij.zip"
   println("upload.apply")
   println(uploadedFile)
   println(tagName)
