@@ -1,6 +1,6 @@
 <idea-plugin url="https://disneystreaming.github.io/weaver-test/docs/intellij">
     <id>disneystreaming.weaver-intellij</id>
-    <name>weaver-intellij</name>
+    <name>weaver-test</name>
     <version>replaced-by-build</version>
     <vendor>disneystreaming</vendor>
 
