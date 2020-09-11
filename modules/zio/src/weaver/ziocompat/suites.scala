@@ -9,7 +9,7 @@ import fs2._
 import zio._
 import zio.interop.catz._
 
-abstract class MutableZIOSuite[Res <: Has[_]](implicit tag: Tag[Res])
+abstract class BaseMutableZIOSuite[Res <: Has[_]](implicit tag: Tag[Res])
     extends ConcurrentEffectSuite[Task] {
 
   val sharedLayer: ZLayer[ZEnv, Throwable, Res]
@@ -69,7 +69,11 @@ abstract class MutableZIOSuite[Res <: Has[_]](implicit tag: Tag[Res])
   }
 }
 
-trait SimpleMutableZIOSuite extends MutableZIOSuite[Has[Unit]] {
+abstract class MutableZIOSuite[Res <: Has[_]](implicit tag: Tag[Res])
+    extends BaseMutableZIOSuite()(tag)
+    with Expectations.Helpers
+
+abstract class SimpleMutableZIOSuite extends MutableZIOSuite[Has[Unit]] {
   override val sharedLayer: zio.ZLayer[ZEnv, Throwable, Has[Unit]] =
     ZLayer.fromEffect(UIO.unit)
 }

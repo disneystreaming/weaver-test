@@ -6,7 +6,7 @@ import scala.util.control.NonFatal
 
 import cats.data.Chain
 import cats.effect.{ IO, Resource }
-import cats.implicits._
+import cats.syntax.all._
 
 import sbt.testing.{ Logger => BaseLogger, Task => BaseTask, _ }
 

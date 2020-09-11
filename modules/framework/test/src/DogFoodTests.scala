@@ -3,7 +3,7 @@ package framework
 package test
 
 import cats.data.Chain
-import cats.implicits._
+import cats.syntax.all._
 
 import sbt.testing.Status
 

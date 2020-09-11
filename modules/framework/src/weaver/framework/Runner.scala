@@ -4,7 +4,7 @@ package framework
 import cats.data.Chain
 import cats.effect.concurrent.{ Ref, Semaphore }
 import cats.effect.{ ContextShift, IO, Resource, Timer }
-import cats.implicits._
+import cats.syntax.all._
 
 import sbt.testing.{
   Logger => BaseLogger,

@@ -8,7 +8,7 @@ Weaver provides some constructs to dynamically tag tests as `ignored` or `cancel
 ```scala mdoc
 import weaver._
 import cats.effect.IO
-import cats.implicits._
+import cats.syntax.all._
 
 object MySuite extends SimpleIOSuite {
 

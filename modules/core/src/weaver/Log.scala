@@ -4,7 +4,7 @@ import java.util.concurrent.TimeUnit
 
 import cats.effect.Timer
 import cats.effect.concurrent.Ref
-import cats.implicits._
+import cats.syntax.all._
 import cats.{ Applicative, FlatMap, Monoid, MonoidK, Show, ~> }
 
 import weaver.Log.PartiallyAppliedLevel

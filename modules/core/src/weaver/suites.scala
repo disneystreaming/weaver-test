@@ -25,7 +25,7 @@ trait Suite[F[_]] extends BaseSuiteClass {
 }
 
 // format: off
-trait EffectSuite[F[_]] extends Suite[F] with Expectations.Helpers { self =>
+trait EffectSuite[F[_]] extends Suite[F]{ self =>
 
   implicit def effect : Effect[F]
 
@@ -40,12 +40,6 @@ trait EffectSuite[F[_]] extends Suite[F] with Expectations.Helpers { self =>
    */
   def ignore(reason: String)(implicit pos: SourceLocation): F[Nothing] =
     effect.raiseError(new IgnoredException(Some(reason), pos))
-
-  /**
-   * Expect macro
-   */
-  def expect = new Expect
-  def assert = new Expect
 
   override def name : String = self.getClass.getName.replace("$", "")
 
@@ -72,7 +66,7 @@ trait BaseIOSuite { self : ConcurrentEffectSuite[IO] =>
   implicit def effect : ConcurrentEffect[IO] = IO.ioConcurrentEffect
 }
 
-trait PureIOSuite extends ConcurrentEffectSuite[IO] with BaseIOSuite {
+trait PureIOSuite extends ConcurrentEffectSuite[IO] with BaseIOSuite with Expectations.Helpers {
 
   def pureTest(name: String)(run : => Expectations) : IO[TestOutcome] = Test[IO](name, IO(run))
   def simpleTest(name:  String)(run : IO[Expectations]) : IO[TestOutcome] = Test[IO](name, run)
@@ -131,9 +125,9 @@ trait MutableFSuite[F[_]] extends ConcurrentEffectSuite[F]  {
 
 }
 
-trait MutableIOSuite extends MutableFSuite[IO] with BaseIOSuite
+trait MutableIOSuite extends MutableFSuite[IO] with BaseIOSuite with Expectations.Helpers
 
-trait SimpleMutableIOSuite extends MutableIOSuite{
+trait SimpleMutableIOSuite extends MutableIOSuite {
   type Res = Unit
   def sharedResource: Resource[IO, Unit] = Resource.pure(())
 }

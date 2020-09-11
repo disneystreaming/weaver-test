@@ -5,7 +5,7 @@ import scala.util.Try
 
 import cats.effect._
 import cats.effect.concurrent.Ref
-import cats.implicits._
+import cats.syntax.all._
 import cats.{ Applicative, MonadError }
 
 import org.portablescala.reflect.annotation.EnableReflectiveInstantiation

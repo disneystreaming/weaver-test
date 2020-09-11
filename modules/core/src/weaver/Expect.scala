@@ -3,7 +3,7 @@ package weaver
 import cats.data.Validated
 import cats.data.Validated.{ Invalid, Valid }
 import cats.effect.Sync
-import cats.implicits._
+import cats.syntax.all._
 
 import com.eed3si9n.expecty._
 

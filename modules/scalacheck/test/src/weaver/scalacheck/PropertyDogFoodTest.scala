@@ -4,7 +4,7 @@ package scalacheck
 import scala.concurrent.duration._
 
 import cats.effect.IO
-import cats.implicits._
+import cats.syntax.all._
 
 import weaver.framework._
 
