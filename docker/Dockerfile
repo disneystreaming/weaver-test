@@ -19,6 +19,10 @@ RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - \
  && apt-get update -qq \
  && apt-get install -y yarn
 
+# Install ammonite
+
+RUN curl -Lo /usr/local/bin/amm https://github.com/lihaoyi/Ammonite/releases/download/2.2.0/2.12-2.2.0 && chmod +x /usr/local/bin/amm && amm --help
+
 # Test
 RUN yarn --version
 
