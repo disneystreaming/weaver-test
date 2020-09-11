@@ -18,7 +18,9 @@ object MySuite extends SimpleIOSuite {
 }
 
 object MyAnotherSuite extends SimpleIOSuite {
-  val randomString = IO(scala.util.Random.nextString(10))
+  import scala.util.Random.alphanumeric
+  
+  val randomString = IO(alphanumeric.take(10).mkString(""))
 
   simpleTest("failing test 2") {
     for {

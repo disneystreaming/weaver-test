@@ -26,8 +26,9 @@ object MySuite extends SimpleIOSuite {
 }
 
 object MyAnotherSuite extends SimpleIOSuite {
+  import scala.util.Random.alphanumeric
 
-  val randomString = IO(scala.util.Random.nextString(10))
+  val randomString = IO(alphanumeric.take(10).mkString(""))
 
   simpleTest("double reversing is identity") {
     for {
