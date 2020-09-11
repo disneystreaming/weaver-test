@@ -1,8 +1,9 @@
 <idea-plugin url="https://disneystreaming.github.io/weaver-test/docs/intellij">
-    <id>disneystreaming.weaver-intellij</id>
+    <id>disneystreaming.weaver-test</id>
     <name>weaver-test</name>
     <version>replaced-by-build</version>
     <vendor>disneystreaming</vendor>
+    <idea-version since-build="202" until-build="202.*"/>
 
     <description><![CDATA[
         Adds support for Weaver test framework (scala)
@@ -10,7 +11,6 @@
         See https://disneystreaming.github.io/weaver-test/
     ]]></description>
 
-    <idea-version since-build="202" until-build="202.*"/>
 
     <depends>org.intellij.scala</depends>
     <depends>com.intellij.modules.java</depends>

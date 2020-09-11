@@ -43,13 +43,12 @@ addCommandAlias(
 // See https://github.com/JetBrains/sbt-idea-plugin/issues/76 for
 // why this contrived sequence of actions exists ...
 addCommandAlias(
-  "releaseIntellijPlugin",
+  "packageIntellijPlugin",
   Seq(
     "project root",
     "intellij/packageArtifact",
     "intellij/doPatchPluginXml",
-    "intellij/packageArtifactZip",
-    "intellij/publishPlugin"
+    "intellij/packageArtifactZip"
   ).mkString(";", ";", "")
 )
 
@@ -276,7 +275,13 @@ lazy val intellij = (project in file("modules/intellij"))
     buildInfoKeys := Seq[BuildInfoKey](name, version),
     buildInfoPackage := "weaver.build",
     semanticdbEnabled := true,
-    semanticdbVersion := scalafixSemanticdb.revision
+    semanticdbVersion := scalafixSemanticdb.revision,
+    packageArtifactZip := {
+      val dump   = (ThisBuild / baseDirectory).value / "intellijPlugin"
+      val result = packageArtifactZip.value
+      IO.write(dump, result.getAbsolutePath)
+      result
+    }
   )
 
 lazy val intellijPluginRunner =

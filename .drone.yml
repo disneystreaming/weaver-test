@@ -43,14 +43,15 @@ steps:
   - name: sbt-cache
     path: /root/.sbt
 
+# Uploads intellij plugin to the github release
 - name: publish-intellij-plugin
   image: keynmol/weaver-scala-sbt-yarn:latest
   commands:
-  - sbt releaseIntellijPlugin
+  - sbt packageIntellijPlugin
+  - amm scripts/releasePlugin.sc $(cat $intellijPlugin)
   environment:
     COURSIER_CACHE: .cache/coursier
-    IJ_PLUGIN_REPO_TOKEN:
-      from_secret: intellij_plugin_repo_token
+    GITHUB_TOKEN:
   when:
     ref:
       - refs/tags/v*

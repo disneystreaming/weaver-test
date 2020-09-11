@@ -8,10 +8,10 @@ import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiElement
 import org.jetbrains.plugins.scala.DependencyManagerBase.DependencyDescription
-import org.junit.runner.RunWith
-import org.junit.runners.AllTests
+// import org.junit.runner.RunWith
+// import org.junit.runners.AllTests
 
-@RunWith(classOf[AllTests])
+// @RunWith(classOf[AllTests])
 class WeaverTestMethodTest extends WeaverFileSetTestCase("testMethod") {
 
   var myTestRootDisposable: TestDisposable = _
