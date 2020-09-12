@@ -1,4 +1,4 @@
-name: Publish documentation
+name: Release artifact
 
 on:
   push:
@@ -9,7 +9,7 @@ on:
 
 jobs:
   publish:
-    runs-on: ubuntu-latest
+    run-on: ubuntu-latest
     steps:
     - name: Checkout repo
       uses: actions/checkout@v2
@@ -19,11 +19,8 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: 1.8
-    - name: Set up Node.js and Yarn
-      uses: actions/setup-node@v2-beta
-      with:
-        node-version: 12
-    - name: Publish docs
-      run: sbt docs/docusaurusPublishGhpages
+    - name: Release artifact
+      run: sbt release
       env:
-        GITHUB_DEPLOY_KEY: ${{ secrets.GITHUB_DEPLOY_KEY }}
+        - SONATYPE_USER: ${{ secrets.SONATYPE_USER }}
+        - SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
