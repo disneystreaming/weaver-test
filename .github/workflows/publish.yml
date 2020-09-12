@@ -2,9 +2,9 @@ name: Publish documentation
 
 on:
   push:
-    pull_request:
     tags:
       - v*
+  pull_request
 
 jobs:
   publish:
