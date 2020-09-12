@@ -23,3 +23,7 @@ jobs:
       env:
         JAVA_OPTS: "-XX:MaxMetaspaceSize=1g -Xms1g -Xmx2g -Xss2M"
         SBT_OPTS: "-XX:+CMSClassUnloadingEnabled -XX:MaxMetaspaceSize=2g -Xmx2g"
+    - name: Publish docs
+      run: sbt docs/docusaurusPublishGhpages
+      env:
+        GIT_DEPLOY_KEY: ${{ secrets.GIT_DEPLOY_KEY }}
