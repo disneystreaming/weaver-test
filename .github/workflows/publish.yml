@@ -1,13 +1,12 @@
-name: Build and Test
+name: Publish documentation
 
 on:
   push:
-    branches:
-      - master
-  pull_request:
+    tags:
+      - v*
 
 jobs:
-  test:
+  publish:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout repo
@@ -18,8 +17,11 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: 1.8
-    - name: Run tests
-      run: sbt ci
+    - name: Set up Node.js and Yarn
+      uses: actions/setup-node@v2-beta
+      with:
+        node-version: 12
+    - name: Publish docs
+      run: sbt docs/docusaurusPublishGhpages
       env:
-        JAVA_OPTS: "-XX:MaxMetaspaceSize=1g -Xms1g -Xmx2g -Xss2M"
-        SBT_OPTS: "-XX:+CMSClassUnloadingEnabled -XX:MaxMetaspaceSize=2g -Xmx2g"
+        GITHUB_DEPLOY_KEY: ${{ secrets.GITHUB_TOKEN }}
