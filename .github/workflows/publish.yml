@@ -2,6 +2,7 @@ name: Publish documentation
 
 on:
   push:
+    pull_request:
     tags:
       - v*
 
