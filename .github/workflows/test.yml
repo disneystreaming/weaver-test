@@ -20,3 +20,6 @@ jobs:
         java-version: 1.8
     - name: Run tests
       run: sbt ci
+      env:
+        JAVA_OPTS: "-XX:MaxMetaspaceSize=1g -Xms1g -Xmx2g -Xss2M"
+        SBT_OPTS: "-XX:+CMSClassUnloadingEnabled -XX:MaxMetaspaceSize=2g -Xmx2g"
