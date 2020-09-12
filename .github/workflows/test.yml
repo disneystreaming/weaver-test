@@ -23,6 +23,10 @@ jobs:
       env:
         JAVA_OPTS: "-XX:MaxMetaspaceSize=1g -Xms1g -Xmx2g -Xss2M"
         SBT_OPTS: "-XX:+CMSClassUnloadingEnabled -XX:MaxMetaspaceSize=2g -Xmx2g"
+    - name: Set up Node.js and Yarn
+      uses: actions/setup-node@v2
+      with:
+        node-version: 12
     - name: Publish docs
       run: sbt docs/docusaurusPublishGhpages
       env:
