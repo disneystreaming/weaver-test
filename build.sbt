@@ -48,7 +48,7 @@ lazy val root = project
              frameworkJVM,
              scalacheckJVM,
              zioJVM,
-    monixJVM,
+             monixJVM,
              specs2JVM,
              codecsJVM,
              cliJVM,
@@ -56,7 +56,7 @@ lazy val root = project
              frameworkJS,
              scalacheckJS,
              zioJS,
-    monixJS,
+             monixJS,
              specs2JS)
   .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.doNotPublishArtifact)
@@ -103,9 +103,10 @@ lazy val docs = project
       "VERSION" -> version.value
     ),
     libraryDependencies ++= Seq(
-      "org.http4s" %% "http4s-dsl"          % "0.21.0",
-      "org.http4s" %% "http4s-blaze-server" % "0.21.0",
-      "org.http4s" %% "http4s-blaze-client" % "0.21.0"
+      "org.http4s"  %% "http4s-dsl"          % "0.21.0",
+      "org.http4s"  %% "http4s-blaze-server" % "0.21.0",
+      "org.http4s"  %% "http4s-blaze-client" % "0.21.0",
+      "com.lihaoyi" %% "fansi"               % "0.2.7"
     )
   )
 
@@ -200,7 +201,7 @@ lazy val monix = crossProject(JSPlatform, JVMPlatform)
   )
 
 lazy val monixJVM = monix.jvm
-lazy val monixJS = monix.js
+lazy val monixJS  = monix.js
 
 lazy val cli = crossProject(JVMPlatform)
   .crossType(CrossType.Pure)
