@@ -9,13 +9,13 @@ Weaver comes with its own Intellij plugin allowing to run suites and tests direc
 
 In Intellij, go to `preferences > plugins`, click on the cog igon and select `manage plugin repositories`
 
-![](img/intellij_repo.png)
+![](../img/intellij_repo.png)
 
 Add `https://disneystreaming.github.io/weaver-test/intellij.xml` to the list.
 
 The `weaver-intellij` plugin should now appear in the marketplace view, which lets you install/update the plugin.
 
-![](img/intellij_install.png)
+![](../img/intellij_install.png)
 
 
 ## Usage
@@ -26,10 +26,10 @@ The plugin requires your project to be using version 0.5.0-RC1 of weaver (or new
 
 When test suites are open in Intellij, the plugin adds buttons to the left of the editor (next to the line number of the suite declaration) , letting you run individual suites from the IDE.
 
-![](img/intellij_usage.png)
+![](../img/intellij_usage.png)
 
 ### Running tests
 
 The plugin also **attempts** to add buttons next on the same lines of tests, in a best-effort fashion, by detecting implicit conversions from `String` to `weaver.TestName`. When running tests this way, only tests matching the selected line will run.
 
-![](img/intellij_output.png)
+![](../img/intellij_output.png)
