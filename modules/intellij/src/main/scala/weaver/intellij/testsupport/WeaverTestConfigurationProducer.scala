@@ -24,7 +24,7 @@ class WeaverTestConfigurationProducer
       contextInfo: AbstractTestConfigurationProducer.CreateFromContextInfo): String =
     contextInfo match {
       case CreateFromContextInfo.AllInPackage(_, packageName) =>
-        s"ScalaTests in ''$packageName''"
+        s"Weaver-test in ''$packageName''"
       case ClassWithTestName(testClass, _) => testClass.name
     }
 
