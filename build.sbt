@@ -1,5 +1,7 @@
 // shadow sbt-scalajs' crossProject and CrossType from Scala.js 0.6.x
-import sbtcrossproject.CrossPlugin.autoImport.{ crossProject, CrossType }
+
+import org.jetbrains.sbtidea.Keys.createRunnerProject
+import sbtcrossproject.CrossPlugin.autoImport.{ CrossType, crossProject }
 
 addCommandAlias(
   "ci",
@@ -12,7 +14,10 @@ addCommandAlias(
     "+clean",
     "+test:compile",
     "+test",
-    "docs/docusaurusCreateSite"
+    "docs/docusaurusCreateSite",
+    "coreJVM/publishLocal",
+    "intellij/updateIntellij",
+    "intellij/test"
   ).mkString(";", ";", "")
 )
 
@@ -35,6 +40,18 @@ addCommandAlias(
   ).mkString(";", ";", "")
 )
 
+// See https://github.com/JetBrains/sbt-idea-plugin/issues/76 for
+// why this contrived sequence of actions exists ...
+addCommandAlias(
+  "packageIntellijPlugin",
+  Seq(
+    "project root",
+    "intellij/packageArtifact",
+    "intellij/doPatchPluginXml",
+    "intellij/packageArtifactZip"
+  ).mkString(";", ";", "")
+)
+
 ThisBuild / scalaVersion := WeaverPlugin.scala213
 
 ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.4.0"
@@ -48,15 +65,14 @@ lazy val root = project
              frameworkJVM,
              scalacheckJVM,
              zioJVM,
-    monixJVM,
+             monixJVM,
              specs2JVM,
-             codecsJVM,
-             cliJVM,
+             intellijRunnerJVM,
              coreJS,
              frameworkJS,
              scalacheckJS,
              zioJS,
-    monixJS,
+             monixJS,
              specs2JS)
   .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.doNotPublishArtifact)
@@ -120,7 +136,9 @@ lazy val framework = crossProject(JSPlatform, JVMPlatform)
       "io.github.cquiroz" %%% "scala-java-time-tzdb" % "2.0.0" % Test
     ),
     Test / scalacOptions ~= (_ filterNot (_ == "-Xfatal-warnings")),
-    scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) }
+    scalaJSLinkerConfig ~= {
+      _.withModuleKind(ModuleKind.CommonJSModule)
+    }
   )
   .jvmSettings(
     libraryDependencies ++= Seq(
@@ -147,7 +165,9 @@ lazy val scalacheck = crossProject(JSPlatform, JVMPlatform)
     libraryDependencies ++= Seq(
       "org.scalacheck" %%% "scalacheck" % "1.14.3"
     ),
-    scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) }
+    scalaJSLinkerConfig ~= {
+      _.withModuleKind(ModuleKind.CommonJSModule)
+    }
   )
 
 lazy val scalacheckJVM = scalacheck.jvm
@@ -163,7 +183,9 @@ lazy val specs2 = crossProject(JSPlatform, JVMPlatform)
     libraryDependencies ++= Seq(
       "org.specs2" %%% "specs2-matcher" % "4.10.3"
     ),
-    scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) }
+    scalaJSLinkerConfig ~= {
+      _.withModuleKind(ModuleKind.CommonJSModule)
+    }
   )
   .settings(WeaverPlugin.simpleLayout)
 
@@ -180,7 +202,9 @@ lazy val zio = crossProject(JSPlatform, JVMPlatform)
     libraryDependencies ++= Seq(
       "dev.zio" %%% "zio-interop-cats" % "2.1.4.0"
     ),
-    scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) }
+    scalaJSLinkerConfig ~= {
+      _.withModuleKind(ModuleKind.CommonJSModule)
+    }
   )
 
 lazy val zioJVM = zio.jvm
@@ -200,42 +224,69 @@ lazy val monix = crossProject(JSPlatform, JVMPlatform)
   )
 
 lazy val monixJVM = monix.jvm
-lazy val monixJS = monix.js
+lazy val monixJS  = monix.js
 
-lazy val cli = crossProject(JVMPlatform)
+lazy val intellijRunner = crossProject(JVMPlatform)
   .crossType(CrossType.Pure)
-  .in(file("modules/cli"))
-  .dependsOn(core, framework, codecs, framework % "test->compile")
+  .in(file("modules/intellij-runner"))
+  .dependsOn(core, framework, framework % "test->compile")
   .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.simpleLayout)
   .settings(
-    libraryDependencies ++= Seq(
-      "com.monovore"       %%% "decline-effect"         % "1.0.0",
-      "org.portable-scala" %%% "portable-scala-reflect" % "1.0.0",
-      "io.circe"           %%% "circe-parser"           % "0.13.0" % Test
-    ),
-    scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) }
+    name := "intellij-runner",
+    scalaJSLinkerConfig ~= {
+      _.withModuleKind(ModuleKind.CommonJSModule)
+    }
   )
 
-lazy val cliJVM = cli.jvm
+lazy val intellijRunnerJVM = intellijRunner.jvm
 
-// Json codecs for TestOutcome
-lazy val codecs = crossProject(JVMPlatform)
-  .crossType(CrossType.Pure)
-  .in(file("modules/codecs"))
-  .dependsOn(core, framework % "test->compile")
-  .configure(WeaverPlugin.profile)
-  .settings(WeaverPlugin.simpleLayout)
+ThisBuild / intellijBuild := "202.6948.69"
+ThisBuild / intellijPluginName := "weaver-intellij"
+
+import org.jetbrains.sbtidea.Keys._
+import org.jetbrains.sbtidea.SbtIdeaPlugin
+import sbt.Keys._
+import sbt._
+
+// Prevents sbt-idea-plugin from automatically
+// downloading intellij binaries on startup
+ThisBuild / doProjectSetup := {}
+
+lazy val intellij = (project in file("modules/intellij"))
+  .enablePlugins(SbtIdeaPlugin, BuildInfoPlugin)
+  .disablePlugins(WeaverPlugin)
   .settings(
-    name := "codecs",
-    libraryDependencies ++= Seq(
-      "io.circe" %%% "circe-core"   % "0.13.0",
-      "io.circe" %%% "circe-parser" % "0.13.0" % Test
+    scalaVersion := "2.12.10",
+    intellijPlugins := Seq(
+      "com.intellij.java".toPlugin,
+      "org.intellij.scala:2020.2.23".toPlugin
     ),
-    scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) }
+    libraryDependencies ++= Seq(
+      "io.get-coursier" %% "coursier"        % "2.0.0-RC6-24",
+      "com.novocode"     % "junit-interface" % "0.11" % Test
+    ),
+    patchPluginXml := pluginXmlOptions { xml =>
+      xml.version = version.value
+    },
+    // packageArtifact in publishPlugin := packagePlugin.value,
+    packageMethod := PackagingMethod.Standalone(),
+    scalacOptions ++= (WeaverPlugin.commonCompilerOptions ++ WeaverPlugin.compilerOptions2_12_Only),
+    buildInfoKeys := Seq[BuildInfoKey](name, version),
+    buildInfoPackage := "weaver.build",
+    semanticdbEnabled := true,
+    semanticdbVersion := scalafixSemanticdb.revision,
+    packageArtifactZip := {
+      val dump   = (ThisBuild / baseDirectory).value / "intellijPlugin"
+      val result = packageArtifactZip.value
+      IO.write(dump, result.getAbsolutePath)
+      result
+    }
   )
 
-lazy val codecsJVM = codecs.jvm
+lazy val intellijPluginRunner =
+  createRunnerProject(intellij, "weaver-intellij-plugin-runner")
+    .disablePlugins(WeaverPlugin)
 
 lazy val versionDump =
   taskKey[Unit]("Dumps the version in a file named version")

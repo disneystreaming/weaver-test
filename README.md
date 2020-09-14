@@ -110,21 +110,21 @@ import cats.effect._
 object MySuite extends IOSuite {
 
   type Res = Int
-  
+
   def sharedResource : Resource[IO, Int] = Resource
     .make(
       IO(println("Making resource"))
         .as(123)
     )(n => IO(println(s"Closing resource $n")))
-  
+
   test("test, but resource not visible"){
     expect(123 == 123)
   }
-  
+
   test("test with resource"){ n =>
     expect(n == 123)
   }
-  
+
   test("test with resource and a logger"){ (n, log) =>
     log.info("log was available")
     expect(n == 123)
@@ -134,7 +134,7 @@ object MySuite extends IOSuite {
 
 #### Other suites
 
-Weaver also includes support for 
+Weaver also includes support for
 * `ZIO`-based suites via the optional `weaver-zio` dependency
 * `Monix`-based suites via the optional `weaver-monix` dependency
 
@@ -236,12 +236,28 @@ If you want to build and run the website then you will need yarn installed:
 brew install yarn
 ```
 
+### Intellij plugin
+
+In order to develop the intellij plugin, the sequence of steps goes as follow (within sbt) :
+
+* intellij/updateIntellij // downloads the intellij runtime (~1GB)
+* coreJVM/publishLocal // required for intellij/test
+* intellij/test
+
+To run the dev version of the plugin :
+
+* intellij/clean // seems to be required after every change time
+* intellij/packagePlugin
+* intellij/runIDE // launches intellij
+
 ### PR Guidelines
 
 Please:
 - Sign the CLA
 - Write positive and negative tests
 - Include documentation
+
+
 
 ## Inspiration
 
