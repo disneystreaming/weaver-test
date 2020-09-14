@@ -3,17 +3,17 @@ id: intellij
 title: intellij plugin
 ---
 
-Weaver comes with its own Intellij plugin allowing to run suites and tests directly from the IDE
+Starting with version 0.5.0, weaver provides bespoke intellij support via  a plugin that allows to run suites and tests directly from the IDE
 
 ## Installation
 
-In Intellij, go to `preferences > plugins`, click on the cog igon and select `manage plugin repositories`
+In Intellij, go to `preferences > plugins`, click on the cog icon and select `manage plugin repositories`
 
 ![](../img/intellij_repo.png)
 
 Add `https://disneystreaming.github.io/weaver-test/intellij.xml` to the list.
 
-The `weaver-intellij` plugin should now appear in the marketplace view, which lets you install/update the plugin.
+You can now search for the `weaver-intellij` plugin in the marketplace view
 
 ![](../img/intellij_install.png)
 
