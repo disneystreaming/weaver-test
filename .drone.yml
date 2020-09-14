@@ -52,6 +52,7 @@ steps:
   environment:
     COURSIER_CACHE: .cache/coursier
     GITHUB_TOKEN:
+      from_secret: github_api_token
   when:
     ref:
       - refs/tags/v*
