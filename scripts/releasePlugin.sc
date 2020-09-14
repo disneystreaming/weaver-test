@@ -55,7 +55,7 @@ def release(
 
   // writes intellij repo data. Doesn't upload to github as it's done during
   // docusaurus publish.
-  os.write.over(os.pwd / "website" / "static" / "updatePlugins.xml",
+  os.write.over(os.pwd / "website" / "static" / "intellij.xml",
                 repo,
                 createFolders = true)
 
