@@ -90,11 +90,11 @@
 }
 </code></pre>
 <p>The report would look something like this:</p>
-<pre><code class="hljs css language-text">repl.MdocSessionAppMySuite
-+ logging for success
-
-repl.MdocSessionAppMyAnotherSuite
+<pre><code class="hljs css language-text">repl.MdocSessionAppMyAnotherSuite
 - failure should print logs
+
+repl.MdocSessionAppMySuite
++ logging for success
 
 *************FAILURES*************
 repl.MdocSessionAppMyAnotherSuite
@@ -104,12 +104,12 @@ repl.MdocSessionAppMyAnotherSuite
   } yield expect(x.length > 20)
                  | |      |
                  | 10     false
-                 롊髼ꠜ渤޺›隢甀澙畅
+                 ⼨栥ꎪ䂴ཷ黽졃灹ꨋ뫞
 
-    [INFO]  12:26:21  Starting the test...
-        time    -> 1600079181
+    [INFO]  12:42:00  Starting the test...
+        time    -> 1600080120
         purpose -> docs
-    [DEBUG] 12:26:21  Generated random string: 롊髼ꠜ渤޺›隢甀澙畅
+    [DEBUG] 12:42:00  Generated random string: ⼨栥ꎪ䂴ཷ黽졃灹ꨋ뫞
 
 Total 2, Failed 1, Passed 1, Ignored 0, Cancelled 0
 </code></pre>
