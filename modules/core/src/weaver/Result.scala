@@ -160,7 +160,7 @@ object Result {
         if (index == 0)
           color + prefix + line +
             location.fold("")(l =>
-              s" (${l.bestEffortPath.getOrElse("none")}:${l.line})")
+              s" (${l.fileRelativePath.getOrElse("none")}:${l.line})")
         else
           color + prefix + line
     }
@@ -180,7 +180,7 @@ object Result {
         if (index == 0)
           color + prefix + line +
             location.fold("")(l =>
-              s" (${l.bestEffortPath.getOrElse("none")}:${l.line})")
+              s" (${l.fileRelativePath.getOrElse("none")}:${l.line})")
         else
           color + prefix + line
     }
