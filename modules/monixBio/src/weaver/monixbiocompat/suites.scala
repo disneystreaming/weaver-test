@@ -2,6 +2,7 @@ package weaver
 package monixbiocompat
 
 import cats.effect.{ ConcurrentEffect, ContextShift, Resource, Timer }
+
 import monix.bio.{ IO, Task }
 import monix.execution.Scheduler
 

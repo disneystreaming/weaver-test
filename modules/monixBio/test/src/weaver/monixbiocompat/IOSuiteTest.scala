@@ -5,7 +5,7 @@ import weaver.framework.DogFood
 import monix.bio.Task
 import sbt.testing.Status
 
-object TaskSuiteTest extends SimpleTaskSuite {
+object IOSuiteTest extends SimpleIOSuite {
   List(
     TestWithExceptionInTest,
     TestWithExceptionInExpectation,
@@ -28,13 +28,13 @@ object TaskSuiteTest extends SimpleTaskSuite {
     } yield expect(events.headOption.get.status() == Status.Failure)
   }
 
-  object TestWithExceptionInTest extends SimpleTaskSuite {
+  object TestWithExceptionInTest extends SimpleIOSuite {
     test("example test") {
       Task.raiseError(new RuntimeException("oh no"))
     }
   }
 
-  object TestWithExceptionInExpectation extends SimpleTaskSuite {
+  object TestWithExceptionInExpectation extends SimpleIOSuite {
     test("example test") {
       for {
         _ <- Task.unit
@@ -42,13 +42,13 @@ object TaskSuiteTest extends SimpleTaskSuite {
     }
   }
 
-  object TestWithExceptionInInitialisation extends SimpleTaskSuite {
+  object TestWithExceptionInInitialisation extends SimpleIOSuite {
     test("example test") { _ =>
       throw new RuntimeException("oh no")
     }
   }
 
-  object TestWithFailedExpectation extends SimpleTaskSuite {
+  object TestWithFailedExpectation extends SimpleIOSuite {
     test("example test") { _ =>
       for {
         _ <- Task.unit
