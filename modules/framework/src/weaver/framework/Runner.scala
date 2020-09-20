@@ -65,9 +65,10 @@ final class Runner(
       val next = (loggers: Array[BaseLogger]) =>
         for {
           acquired <- semaphore.tryAcquireN(N)
-          _ <- if (acquired)
-            cleanup >> ref.get.flatMap(ReportTask.report(loggers))
-          else IO.unit
+          _ <-
+            if (acquired)
+              cleanup >> ref.get.flatMap(ReportTask.report(loggers))
+            else IO.unit
         } yield ()
 
       val loggerResource: Resource[IO, DeferredLogger] =

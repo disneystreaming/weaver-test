@@ -1,11 +1,11 @@
-package weaver.monixcompat
+package weaver.monixbiocompat
 
 import weaver.framework.DogFood
 
-import monix.eval.Task
+import monix.bio.Task
 import sbt.testing.Status
 
-object TaskSuiteTest extends SimpleTaskSuite {
+object IOSuiteTest extends SimpleIOSuite {
   List(
     TestWithExceptionInTest,
     TestWithExceptionInExpectation,
@@ -15,9 +15,14 @@ object TaskSuiteTest extends SimpleTaskSuite {
       for {
         (_, events) <- DogFood.runSuite(testSuite).to[Task]
       } yield {
-        val event = events.headOption.get
-        expect(event.status() == Status.Error) and
-          expect(event.throwable().get().getMessage == "oh no")
+        val maybeEvent = events.headOption
+        val maybeThrowable = maybeEvent.flatMap { event =>
+          if (event.throwable().isDefined()) Some(event.throwable().get())
+          else None
+        }
+        val maybeStatus = maybeEvent.map(_.status())
+        expect(maybeStatus.contains(Status.Error)) &&
+        expect(maybeThrowable.map(_.getMessage).contains("oh no"))
       }
     }
   }
@@ -25,16 +30,20 @@ object TaskSuiteTest extends SimpleTaskSuite {
   test("fail properly on failed expectations") { _ =>
     for {
       (_, events) <- DogFood.runSuite(TestWithFailedExpectation).to[Task]
-    } yield expect(events.headOption.get.status() == Status.Failure)
+    } yield {
+      val maybeEvent  = events.headOption
+      val maybeStatus = maybeEvent.map(_.status())
+      expect(maybeStatus.contains(Status.Failure))
+    }
   }
 
-  object TestWithExceptionInTest extends SimpleTaskSuite {
+  object TestWithExceptionInTest extends SimpleIOSuite {
     test("example test") {
       Task.raiseError(new RuntimeException("oh no"))
     }
   }
 
-  object TestWithExceptionInExpectation extends SimpleTaskSuite {
+  object TestWithExceptionInExpectation extends SimpleIOSuite {
     test("example test") {
       for {
         _ <- Task.unit
@@ -42,13 +51,13 @@ object TaskSuiteTest extends SimpleTaskSuite {
     }
   }
 
-  object TestWithExceptionInInitialisation extends SimpleTaskSuite {
+  object TestWithExceptionInInitialisation extends SimpleIOSuite {
     test("example test") { _ =>
       throw new RuntimeException("oh no")
     }
   }
 
-  object TestWithFailedExpectation extends SimpleTaskSuite {
+  object TestWithFailedExpectation extends SimpleIOSuite {
     test("example test") { _ =>
       for {
         _ <- Task.unit

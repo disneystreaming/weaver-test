@@ -8,11 +8,9 @@ import scala.util.{Try => STry}
 final case class SourceLocation(
   fileName: Option[String],
   filePath: Option[String],
+  fileRelativePath: Option[String],
   line: Int
-) {
-  def bestEffortPath : Option[String] =
-    FSCompat.bestEffortPath(fileName, filePath)
-}
+)
 
 object SourceLocation {
   implicit def fromContext: SourceLocation =
@@ -22,15 +20,21 @@ object SourceLocation {
     import c.universe._
 
     def fromContext: Tree = {
-      val (fileNameExpr, pathExpr, lineExpr) = getSourceLocation
+      val (fileNameExpr, pathExpr, relPathExpr, lineExpr) = getSourceLocation
       val SourceLocationSym = symbolOf[SourceLocation].companion
-      q"""$SourceLocationSym($fileNameExpr, $pathExpr, $lineExpr)"""
+      q"""$SourceLocationSym($fileNameExpr, $pathExpr, $relPathExpr, $lineExpr)"""
     }
 
     private def getSourceLocation = {
-      val line = c.Expr[Int](Literal(Constant(c.enclosingPosition.line)))
+      val pwd  = java.nio.file.Paths.get("").toAbsolutePath
       val file = STry(Option(c.enclosingPosition.source.file.file)).toOption.flatten
-      (wrapOption(file.map(_.getName)), wrapOption(file.map(_.getPath)), line)
+      val path = file.map(_.getPath)
+      val relativePath = file.map { f =>
+        pwd.relativize(f.toPath()).toString()
+      }
+
+      val line = c.Expr[Int](Literal(Constant(c.enclosingPosition.line)))
+      (wrapOption(file.map(_.getName)), wrapOption(path), wrapOption(relativePath), line)
     }
 
     private def wrapOption[A](opt: Option[A]): c.Expr[Option[A]] =

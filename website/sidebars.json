@@ -14,6 +14,7 @@
       "scalacheck",
       "zio",
       "monix",
+      "monix_bio",
       "specs2"
     ],
     "Sample reports": [

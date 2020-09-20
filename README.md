@@ -32,6 +32,9 @@ libraryDependencies +=  "com.disneystreaming" %% "weaver-zio" % "x.y.z" % Test
 // optionally (for Monix usage)
 libraryDependencies +=  "com.disneystreaming" %% "weaver-monix" % "x.y.z" % Test
 
+// optionally (for Monix BIO usage)
+libraryDependencies +=  "com.disneystreaming" %% "weaver-monix-bio" % "x.y.z" % Test
+
 // optionally (for Scalacheck usage)
 libraryDependencies +=  "com.disneystreaming" %% "weaver-scalacheck" % "x.y.z" % Test
 
@@ -137,6 +140,7 @@ object MySuite extends IOSuite {
 Weaver also includes support for
 * `ZIO`-based suites via the optional `weaver-zio` dependency
 * `Monix`-based suites via the optional `weaver-monix` dependency
+* `Monix BIO`-based suites via the optional `weaver-monix-bio` dependency
 
 | Alias | Suite name | Provided by | Use case |
 | --- | --- | --- | --- |
@@ -144,8 +148,10 @@ Weaver also includes support for
 | `IOSuite`         | `MutableIOSuite`             | `weaver-framework` | Each test needs access to a shared `Resource`
 | `SimpleZIOSuite`  | `SimpleMutableZIOSuite`      | `weaver-zio`       | Each test is a standalone `ZIO` action
 | `ZIOSuite[R]`     | `MutableZIOSuite[R]`         | `weaver-zio`       | Each test needs access to a shared `ZLayer`
-| `SimpleMonixSuite`| `SimpleMutableMonixSuite`    | `weaver-monix`     | Each test is a standalone `Task` action
-| `MonixSuite`      | `MutableMonixSuite`          | `weaver-monix`     | Each test needs access to a shared `Resource`
+| `SimpleTaskSuite` | `SimpleMutableTaskSuite`     | `weaver-monix`     | Each test is a standalone `Task` action
+| `TaskSuite`       | `MutableTaskSuite`           | `weaver-monix`     | Each test needs access to a shared `Resource`
+| `SimpleIOSuite`   | `SimpleMutableIOSuite`       | `weaver-monix-bio` | Each test is a standalone `Task` action
+| `IOSuite`         | `MutableIOSuite`             | `weaver-monix-bio` | Each test needs access to a shared `Resource`
 
 ### Expectations (assertions)
 
