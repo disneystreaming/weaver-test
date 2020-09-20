@@ -48,7 +48,7 @@ steps:
   image: keynmol/weaver-scala-sbt-yarn:latest
   commands:
   - sbt packageIntellijPlugin
-  - amm scripts/releasePlugin.sc $(cat $intellijPlugin)
+  - amm scripts/releasePlugin.sc $(cat intellijPlugin)
   environment:
     COURSIER_CACHE: .cache/coursier
     GITHUB_TOKEN:
