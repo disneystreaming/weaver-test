@@ -45,15 +45,17 @@ trait MutableIOSuite
     with BaseIOSuite
     with Expectations.Helpers {
   override def test(name: String): PartiallyAppliedTest =
-    new PartiallyAppliedTest {
-      val testName: String = name
-      override def apply(run: => Task[Expectations]): Unit =
-        registerTest(testName)(_ => Test(testName, run))
-      override def apply(run: Res => Task[Expectations]): Unit =
-        registerTest(testName)(res => Test(testName, run(res)))
-      override def apply(run: (Res, Log[Task]) => Task[Expectations]): Unit =
-        registerTest(testName)(res => Test(testName, log => run(res, log)))
-    }
+    new SubPartiallyAppliedTest(name)
+
+  class SubPartiallyAppliedTest(name: String)
+      extends super.PartiallyAppliedTest(name) {
+    override def apply(run: => Task[Expectations]): Unit =
+      registerTest(name)(_ => Test(name, run))
+    override def apply(run: Res => Task[Expectations]): Unit =
+      registerTest(name)(res => Test(name, run(res)))
+    override def apply(run: (Res, Log[Task]) => Task[Expectations]): Unit =
+      registerTest(name)(res => Test(name, log => run(res, log)))
+  }
 }
 
 trait SimpleMutableIOSuite extends MutableIOSuite {

@@ -91,13 +91,12 @@ trait MutableFSuite[F[_]] extends ConcurrentEffectSuite[F]  {
   def pureTest(name: String)(run : => Expectations) :  Unit = registerTest(name)(_ => Test(name, effect.delay(run)))
   def simpleTest(name:  String)(run: => F[Expectations]) : Unit = registerTest(name)(_ => Test(name, effect.suspend(run)))
   def loggedTest(name: String)(run: Log[F] => F[Expectations]) : Unit = registerTest(name)(_ => Test(name, log => run(log)))
-  def test(name: String) : PartiallyAppliedTest = new PartiallyAppliedTest { val testName: String = name }
+  def test(name: String) : PartiallyAppliedTest = new PartiallyAppliedTest(name)
 
-  trait PartiallyAppliedTest {
-    def testName: String
-    def apply(run: => F[Expectations]) : Unit = registerTest(testName)(_ => Test(testName, run))
-    def apply(run : Res => F[Expectations]) : Unit = registerTest(testName)(res => Test(testName, run(res)))
-    def apply(run : (Res, Log[F]) => F[Expectations]) : Unit = registerTest(testName)(res => Test(testName, log => run(res, log)))
+  class PartiallyAppliedTest(name: String) {
+    def apply(run: => F[Expectations]) : Unit = registerTest(name)(_ => Test(name, run))
+    def apply(run : Res => F[Expectations]) : Unit = registerTest(name)(res => Test(name, run(res)))
+    def apply(run : (Res, Log[F]) => F[Expectations]) : Unit = registerTest(name)(res => Test(name, log => run(res, log)))
   }
 
   override def spec(args: List[String]) : Stream[F, TestOutcome] =
