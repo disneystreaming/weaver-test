@@ -3,6 +3,8 @@ package monixbiocompat
 
 import scala.concurrent.duration.{ MILLISECONDS, _ }
 
+import cats.data.Chain
+import cats.effect.concurrent.Ref
 import cats.effect.{ ConcurrentEffect, ContextShift, Resource, Timer }
 
 import monix.bio.{ IO, Task }
@@ -14,10 +16,6 @@ trait BaseIOSuite { self: ConcurrentEffectSuite[Task] =>
   implicit def cs: ContextShift[Task]         = IO.contextShift(scheduler)
   implicit def effect: ConcurrentEffect[Task] = IO.catsEffect(scheduler)
 }
-
-import cats.data.Chain
-import cats.effect.concurrent.Ref
-import cats.syntax.all._
 
 /**
  * Individual test runner for Monix BIO's `IO[Throwable, A]` that properly handles unexpected errors,
@@ -33,8 +31,7 @@ object Test {
       res <- IO
         .defer(f(Log.collected[Task, Chain](ref)))
         .map(Result.fromAssertion)
-        .redeemCauseWith(c => IO.raiseError(c.toThrowable), IO.now)
-        .handleError(ex => Result.from(ex))
+        .redeemCause(c => Result.from(c.toThrowable), identity)
       end  <- IO.clock.realTime(MILLISECONDS)
       logs <- ref.get
     } yield TestOutcome(name, (end - start).millis, res, logs)
