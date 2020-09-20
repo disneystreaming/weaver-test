@@ -44,17 +44,17 @@ trait MutableIOSuite
     extends MutableFSuite[Task]
     with BaseIOSuite
     with Expectations.Helpers {
-  override def test(name: String): PartiallyAppliedTest =
+  override def test(name: TestName): PartiallyAppliedTest =
     new SubPartiallyAppliedTest(name)
 
-  class SubPartiallyAppliedTest(name: String)
+  class SubPartiallyAppliedTest(name: TestName)
       extends super.PartiallyAppliedTest(name) {
     override def apply(run: => Task[Expectations]): Unit =
-      registerTest(name)(_ => Test(name, run))
+      registerTest(name)(_ => Test(name.name, run))
     override def apply(run: Res => Task[Expectations]): Unit =
-      registerTest(name)(res => Test(name, run(res)))
+      registerTest(name)(res => Test(name.name, run(res)))
     override def apply(run: (Res, Log[Task]) => Task[Expectations]): Unit =
-      registerTest(name)(res => Test(name, log => run(res, log)))
+      registerTest(name)(res => Test(name.name, log => run(res, log)))
   }
 }
 
