@@ -99,7 +99,7 @@ lazy val coreJS  = core.js
 lazy val docs = project
   .in(file("modules/docs"))
   .enablePlugins(DocusaurusPlugin, MdocPlugin)
-  .dependsOn(coreJVM, frameworkJVM, scalacheckJVM, zioJVM, monixJVM, specs2JVM)
+  .dependsOn(coreJVM, frameworkJVM, scalacheckJVM, zioJVM, monixJVM, monixBioJVM, specs2JVM)
   .settings(
     moduleName := "docs",
     watchSources += (ThisBuild / baseDirectory).value / "docs",
