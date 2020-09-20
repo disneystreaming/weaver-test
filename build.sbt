@@ -44,20 +44,24 @@ fork in Test := true
 lazy val root = project
   .in(file("."))
   .enablePlugins(ScalafixPlugin)
-  .aggregate(coreJVM,
-             frameworkJVM,
-             scalacheckJVM,
-             zioJVM,
-             monixJVM,
-             specs2JVM,
-             codecsJVM,
-             cliJVM,
-             coreJS,
-             frameworkJS,
-             scalacheckJS,
-             zioJS,
-             monixJS,
-             specs2JS)
+  .aggregate(
+    coreJVM,
+    frameworkJVM,
+    scalacheckJVM,
+    zioJVM,
+    monixJVM,
+    monixBioJVM,
+    specs2JVM,
+    codecsJVM,
+    cliJVM,
+    coreJS,
+    frameworkJS,
+    scalacheckJS,
+    zioJS,
+    monixJS,
+    monixBioJS,
+    specs2JS
+  )
   .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.doNotPublishArtifact)
   .settings(
@@ -95,7 +99,7 @@ lazy val coreJS  = core.js
 lazy val docs = project
   .in(file("modules/docs"))
   .enablePlugins(DocusaurusPlugin, MdocPlugin)
-  .dependsOn(coreJVM, frameworkJVM, scalacheckJVM, zioJVM, monixJVM, specs2JVM)
+  .dependsOn(coreJVM, frameworkJVM, scalacheckJVM, zioJVM, monixJVM, monixBioJVM, specs2JVM)
   .settings(
     moduleName := "docs",
     watchSources += (ThisBuild / baseDirectory).value / "docs",
@@ -202,6 +206,22 @@ lazy val monix = crossProject(JSPlatform, JVMPlatform)
 
 lazy val monixJVM = monix.jvm
 lazy val monixJS  = monix.js
+
+lazy val monixBio = crossProject(JSPlatform, JVMPlatform)
+  .crossType(CrossType.Pure)
+  .in(file("modules/monixBio"))
+  .dependsOn(core, framework % "test->compile")
+  .configure(WeaverPlugin.profile)
+  .settings(WeaverPlugin.simpleLayout)
+  .settings(
+    libraryDependencies ++= Seq(
+      "io.monix" %%% "monix-bio" % "1.0.0"
+    ),
+    scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) }
+  )
+
+lazy val monixBioJVM = monixBio.jvm
+lazy val monixBioJS  = monixBio.js
 
 lazy val cli = crossProject(JVMPlatform)
   .crossType(CrossType.Pure)

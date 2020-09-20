@@ -93,7 +93,7 @@ trait MutableFSuite[F[_]] extends ConcurrentEffectSuite[F]  {
   def loggedTest(name: String)(run: Log[F] => F[Expectations]) : Unit = registerTest(name)(_ => Test(name, log => run(log)))
   def test(name: String) : PartiallyAppliedTest = new PartiallyAppliedTest(name)
 
-  class PartiallyAppliedTest(name : String) {
+  class PartiallyAppliedTest(name: String) {
     def apply(run: => F[Expectations]) : Unit = registerTest(name)(_ => Test(name, run))
     def apply(run : Res => F[Expectations]) : Unit = registerTest(name)(res => Test(name, run(res)))
     def apply(run : (Res, Log[F]) => F[Expectations]) : Unit = registerTest(name)(res => Test(name, log => run(res, log)))
