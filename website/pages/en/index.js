@@ -120,7 +120,7 @@ class Index extends React.Component {
           contents={[{
             title: "Quick demo",
             content: "Despite the scenario containing a 1 second sleep and two http calls, running it 100 times takes 4.5 seconds, when it would take more than 3 minutes sequentially",
-            image: `${baseUrl}img/frontpage.webp`,
+            image: `${baseUrl}img/frontpage.mp4`,
             imageAlign: "left",
           }]} />
       </Container>
