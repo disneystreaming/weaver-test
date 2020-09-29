@@ -91,7 +91,7 @@ An example of how to do this:
 import cats.effect.{ IO, Resource }
 import weaver.{ GlobalResources, GlobalResourcesInit, IOSuite }
 
-object SharedResources extends GlobalResourcesInit {
+object MyResources extends GlobalResourcesInit {
   override def sharedResources(store: GlobalResources.Write[IO]): Resource[IO, Unit] =
     baseResources.flatMap(store.putR(_))
 
@@ -106,7 +106,7 @@ object SharedResources extends GlobalResourcesInit {
 }
 
 class MySuite(globalResources: GlobalResources) extends IOSuite {
-  import SharedResources._
+  import MyResources._
 
   override type Res = String
 
