@@ -82,21 +82,21 @@ trait MutableFSuite[F[_]] extends ConcurrentEffectSuite[F]  {
   def maxParallelism : Int = 10000
   implicit def timer: Timer[F]
 
-  protected def registerTest(name: String)(f: Res => F[TestOutcome]): Unit =
+  protected def registerTest(name: TestName)(f: Res => F[TestOutcome]): Unit =
     synchronized {
       if (isInitialized) throw initError()
       testSeq = testSeq :+ (name -> f)
     }
 
-  def pureTest(name: String)(run : => Expectations) :  Unit = registerTest(name)(_ => Test(name, effect.delay(run)))
-  def simpleTest(name:  String)(run: => F[Expectations]) : Unit = registerTest(name)(_ => Test(name, effect.suspend(run)))
-  def loggedTest(name: String)(run: Log[F] => F[Expectations]) : Unit = registerTest(name)(_ => Test(name, log => run(log)))
-  def test(name: String) : PartiallyAppliedTest = new PartiallyAppliedTest(name)
+  def pureTest(name: TestName)(run : => Expectations) :  Unit = registerTest(name)(_ => Test(name.name, effect.delay(run)))
+  def simpleTest(name:  TestName)(run: => F[Expectations]) : Unit = registerTest(name)(_ => Test(name.name, effect.suspend(run)))
+  def loggedTest(name: TestName)(run: Log[F] => F[Expectations]) : Unit = registerTest(name)(_ => Test(name.name, log => run(log)))
+  def test(name: TestName) : PartiallyAppliedTest = new PartiallyAppliedTest(name)
 
-  class PartiallyAppliedTest(name: String) {
-    def apply(run: => F[Expectations]) : Unit = registerTest(name)(_ => Test(name, run))
-    def apply(run : Res => F[Expectations]) : Unit = registerTest(name)(res => Test(name, run(res)))
-    def apply(run : (Res, Log[F]) => F[Expectations]) : Unit = registerTest(name)(res => Test(name, log => run(res, log)))
+  class PartiallyAppliedTest(name : TestName) {
+    def apply(run: => F[Expectations]) : Unit = registerTest(name)(_ => Test(name.name, run))
+    def apply(run : Res => F[Expectations]) : Unit = registerTest(name)(res => Test(name.name, run(res)))
+    def apply(run : (Res, Log[F]) => F[Expectations]) : Unit = registerTest(name)(res => Test(name.name, log => run(res, log)))
   }
 
   override def spec(args: List[String]) : Stream[F, TestOutcome] =
@@ -115,7 +115,7 @@ trait MutableFSuite[F[_]] extends ConcurrentEffectSuite[F]  {
       } yield result
     }
 
-  private[this] var testSeq = Seq.empty[(String, Res => F[TestOutcome])]
+  private[this] var testSeq = Seq.empty[(TestName, Res => F[TestOutcome])]
   private[this] var isInitialized = false
 
   private[this] def initError() =

@@ -1,0 +1,26 @@
+import weaver.SimpleIOSuite
+
+object MyTest extends SimpleIOSuite {
+  pureTest("t1") {
+    expect(true)
+  }
+  simpleTest("t2"){
+    expect(true)
+  }
+  loggedTest("t3"){ _=>
+    expect(true)
+  }
+  test("pure") {
+    expect(true)
+  }
+  test("resource") { _:Res =>
+    expect(true)
+  }
+}
+
+-----
+pureTest-4:3
+simpleTest-7:3
+loggedTest-10:3
+test-13:3
+test-16:3

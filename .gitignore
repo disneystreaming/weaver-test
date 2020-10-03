@@ -53,7 +53,9 @@ website/i18n/*
 .bloop
 .vscode
 .metals
+.ammonite
 project/metals.sbt
 
-# Version file
+# File dumps
 version
+intellijPlugin

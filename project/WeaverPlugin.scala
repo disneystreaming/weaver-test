@@ -26,13 +26,6 @@ object WeaverPlugin extends AutoPlugin {
   lazy val supportedScalaVersions = List(scala212, scala213)
 
   /** @see [[sbt.AutoPlugin]] */
-  override val buildSettings = Seq(
-    addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1"),
-    addCompilerPlugin(
-      "org.typelevel" %% "kind-projector" % "0.11.0" cross CrossVersion.full)
-  )
-
-  /** @see [[sbt.AutoPlugin]] */
   override val projectSettings = Seq(
     moduleName := s"weaver-${name.value}",
     crossScalaVersions := supportedScalaVersions,
@@ -55,7 +48,11 @@ object WeaverPlugin extends AutoPlugin {
     testFrameworks := Seq(new TestFramework("weaver.framework.TestFramework")),
     // https://scalacenter.github.io/scalafix/docs/users/installation.html
     semanticdbEnabled := true,
-    semanticdbVersion := scalafixSemanticdb.revision
+    semanticdbVersion := scalafixSemanticdb.revision,
+    addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1"),
+    addCompilerPlugin(
+      "org.typelevel" %% "kind-projector" % "0.11.0" cross CrossVersion.full
+    )
   ) ++ coverageSettings ++ publishSettings
 
   def compilerOptions(scalaVersion: String) = {

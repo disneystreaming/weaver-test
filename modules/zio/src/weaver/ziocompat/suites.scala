@@ -22,18 +22,18 @@ abstract class BaseMutableZIOSuite[Res <: Has[_]](implicit tag: Tag[Res])
 
   private[this] type Test = ZIO[Env[Res], Nothing, TestOutcome]
 
-  protected def registerTest(name: String)(test: Test): Unit =
+  protected def registerTest(name: TestName)(test: Test): Unit =
     synchronized {
       if (isInitialized) throw initError()
-      testSeq = testSeq :+ (name -> test)
+      testSeq = testSeq :+ ((name, test))
     }
 
-  def pureTest(name: String)(run: => Expectations): Unit =
-    registerTest(name)(Test(name, ZIO(run)))
+  def pureTest(name: TestName)(run: => Expectations): Unit =
+    registerTest(name)(Test(name.name, ZIO(run)))
 
-  def test(name: String)(
+  def test(name: TestName)(
       run: => ZIO[PerTestEnv[Res], Throwable, Expectations]): Unit =
-    registerTest(name)(Test(name, ZIO.fromTry(Try { run }).flatten))
+    registerTest(name)(Test(name.name, ZIO.fromTry(Try { run }).flatten))
 
   override def spec(args: List[String]): Stream[Task, TestOutcome] =
     synchronized {
@@ -56,7 +56,7 @@ abstract class BaseMutableZIOSuite[Res <: Has[_]](implicit tag: Tag[Res])
       }
     }
 
-  private[this] var testSeq       = Seq.empty[(String, Test)]
+  private[this] var testSeq       = Seq.empty[(TestName, Test)]
   private[this] var isInitialized = false
 
   private[this] def initError() =
