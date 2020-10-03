@@ -2,8 +2,9 @@ package weaver
 
 import cats._
 import cats.data.Validated._
-import cats.data.{ NonEmptyList, Validated, ValidatedNel }
+import cats.data.{ Validated, ValidatedNel }
 import cats.syntax.all._
+import cats.effect.Sync
 
 case class Expectations(val run: ValidatedNel[AssertionException, Unit]) {
   self =>
@@ -30,14 +31,21 @@ case class Expectations(val run: ValidatedNel[AssertionException, Unit]) {
         Expectations(otherL.orElse(otherR).orElse(otherL.product(otherR).void))
     }
 
+  def failFast[F[_]: Sync]: F[Unit] =
+    this.run match {
+      case Invalid(e) => Sync[F].raiseError(e.head)
+      case Valid(_)   => Sync[F].unit
+    }
+
+  /**
+   * Relocates the failures at the currently available implicit location.
+   */
+  def relocate(implicit loc: SourceLocation): Expectations =
+    Expectations(run.leftMap(_.map(_.copy(location = loc))))
+
 }
 
 object Expectations {
-
-  implicit def fromSingle(e: SingleExpectation)(
-      implicit loc: SourceLocation): Expectations =
-    Expectations(
-      e.run.leftMap(str => NonEmptyList.one(new AssertionException(str, loc))))
 
   /**
    * Trick to convert from multiplicative assertion to additive assertion

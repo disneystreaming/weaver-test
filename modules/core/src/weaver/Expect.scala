@@ -1,45 +1,32 @@
 package weaver
 
-import cats.data.Validated
-import cats.data.Validated.{ Invalid, Valid }
-import cats.effect.Sync
 import cats.syntax.all._
+import cats.data.ValidatedNel
 
 import com.eed3si9n.expecty._
 
-case class SingleExpectation(run: Validated[String, Unit]) {
-  def and(other: Expectations)(implicit loc: SourceLocation) =
-    Expectations.fromSingle(this).and(other)
-  def &&(other: Expectations)(implicit loc: SourceLocation) =
-    Expectations.fromSingle(this).and(other)
-  def or(other: Expectations)(implicit loc: SourceLocation) =
-    Expectations.fromSingle(this).or(other)
-  def ||(other: Expectations)(implicit loc: SourceLocation) =
-    Expectations.fromSingle(this).or(other)
-  def xor(other: Expectations)(implicit loc: SourceLocation) =
-    Expectations.fromSingle(this).xor(other)
+class Expect
+    extends Recorder[Boolean, Expectations]
+    with UnaryRecorder[Boolean, Expectations] {
 
-  def toExpectations(implicit loc: SourceLocation) =
-    Expectations.fromSingle(this)
+  def all(recordings: Boolean*): Expectations =
+    macro VarargsRecorderMacro.apply[Boolean, Expectations]
 
-  def failFast[F[_]: Sync](implicit loc: SourceLocation): F[Unit] =
-    this.run match {
-      case Invalid(e) => Sync[F].raiseError(new AssertionException(e, loc))
-      case Valid(_)   => Sync[F].unit
+  class ExpectyListener extends RecorderListener[Boolean, Expectations] {
+    def sourceLocation(loc: Location): SourceLocation = {
+      val name = loc.path.split("/").lastOption
+      SourceLocation(name, Some(loc.path), Some(loc.relativePath), loc.line)
     }
-}
 
-class Expect extends Recorder[Boolean, SingleExpectation] {
-
-  class ExpectyListener extends RecorderListener[Boolean, SingleExpectation] {
     override def expressionRecorded(
         recordedExpr: RecordedExpression[Boolean],
         recordedMessage: Function0[String]): Unit = {}
 
     override def recordingCompleted(
         recording: Recording[Boolean],
-        recordedMessage: Function0[String]): SingleExpectation = {
-      val res = recording.recordedExprs.foldMap[Validated[String, Unit]] {
+        recordedMessage: Function0[String]): Expectations = {
+      type Exp = ValidatedNel[AssertionException, Unit]
+      val res = recording.recordedExprs.foldMap[Exp] {
         expr =>
           lazy val rendering: String =
             new ExpressionRenderer(showTypes = false).render(expr)
@@ -51,10 +38,11 @@ class Expect extends Recorder[Boolean, SingleExpectation] {
                 (if (msg == "") ""
                  else ": " + msg)
             val fullMessage = header + "\n\n" + rendering
-            fullMessage.invalid
-          } else ().valid
+            val sourceLoc   = sourceLocation(expr.location)
+            new AssertionException(fullMessage, sourceLoc).invalidNel
+          } else ().validNel
       }
-      SingleExpectation(res)
+      Expectations(res)
     }
   }
 

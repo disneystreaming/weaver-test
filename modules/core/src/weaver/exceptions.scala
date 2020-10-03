@@ -18,9 +18,9 @@ sealed abstract class WeaverTestException(
     location: SourceLocation)
     extends WeaverException(message, cause, location)
 
-final class AssertionException(
-    val message: String,
-    val location: SourceLocation)
+final case class AssertionException(
+    message: String,
+    location: SourceLocation)
     extends WeaverTestException(message, None, location)
 
 final class IgnoredException(

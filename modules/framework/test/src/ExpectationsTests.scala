@@ -21,4 +21,12 @@ object ExpectationsTests extends SimpleIOSuite {
     not(expect(2 == 1) xor expect(1 == 2))
   }
 
+  pureTest("all") {
+    expect.all(
+      1 == 1,
+      "a" + "b" == "ab",
+      true || false
+    )
+  }
+
 }

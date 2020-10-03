@@ -17,6 +17,10 @@ object MySuite2 extends SimpleIOSuite {
     expect(1 != 2) and expect(2 != 1) or expect(2 != 3)
   }
 
+  pureTest("Varargs composition") {
+    expect.all(1 + 1 == 2, 2 + 2 == 4, 4 * 2 == 8)
+  }
+
   pureTest("Foldable operations") {
     val list = List(1,2,3)
     import cats.instances.list._
