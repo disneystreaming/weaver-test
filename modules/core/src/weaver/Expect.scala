@@ -1,7 +1,7 @@
 package weaver
 
-import cats.syntax.all._
 import cats.data.ValidatedNel
+import cats.syntax.all._
 
 import com.eed3si9n.expecty._
 
