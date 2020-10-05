@@ -2,10 +2,9 @@ package weaver
 
 import cats._
 import cats.data.Validated._
-import cats.data.{ Validated, ValidatedNel }
+import cats.data.{NonEmptyList, Validated, ValidatedNel}
 import cats.effect.Sync
 import cats.syntax.all._
-import cats.data.NonEmptyList
 
 case class Expectations(val run: ValidatedNel[AssertionException, Unit]) {
   self =>

@@ -1,13 +1,12 @@
 package weaver.specs2compat
 
 import cats.Monoid
-import cats.data.Validated
+import cats.data.{NonEmptyList, Validated}
 import cats.effect.IO
 
 import weaver.{ AssertionException, EffectSuite, Expectations, SourceLocation }
 
 import org.specs2.matcher.{ MatchResult, MustMatchers }
-import cats.data.NonEmptyList
 
 trait Matchers[F[_]] extends MustMatchers {
   self: EffectSuite[F] =>

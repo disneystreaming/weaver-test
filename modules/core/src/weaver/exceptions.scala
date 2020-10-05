@@ -1,6 +1,7 @@
 package weaver
 
 import scala.util.control.NonFatal
+
 import cats.data.NonEmptyList
 
 abstract class WeaverException(

@@ -1,10 +1,9 @@
 package weaver
 
-import cats.data.ValidatedNel
+import cats.data.{NonEmptyList, ValidatedNel}
 import cats.syntax.all._
 
 import com.eed3si9n.expecty._
-import cats.data.NonEmptyList
 
 class Expect
     extends Recorder[Boolean, Expectations]
