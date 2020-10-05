@@ -27,10 +27,10 @@ object TracingTests extends SimpleIOSuite {
 
     result.run match {
       case Invalid(e) =>
-        val locations = e.head.location.toList
+        val locations = e.head.locations.toList
         val paths     = locations.map(_.fileRelativePath).map(standardise)
         forall(paths)(p => expect(p == thisFile)) &&
-        expect(locations.map(_.line) == List(38, 23, 24, 25))
+        expect(locations.map(_.line) == List(39, 24, 25, 26))
       case Valid(_) => failure("Should have been invalid")
     }
   }
