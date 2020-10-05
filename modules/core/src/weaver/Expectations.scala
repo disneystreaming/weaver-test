@@ -5,6 +5,7 @@ import cats.data.Validated._
 import cats.data.{ Validated, ValidatedNel }
 import cats.effect.Sync
 import cats.syntax.all._
+import cats.data.NonEmptyList
 
 case class Expectations(val run: ValidatedNel[AssertionException, Unit]) {
   self =>
@@ -38,10 +39,12 @@ case class Expectations(val run: ValidatedNel[AssertionException, Unit]) {
     }
 
   /**
-   * Relocates the failures at the currently available implicit location.
+   * Adds the specified location to the list of locations that will
+   * be reported if an expectation is failed.
    */
-  def relocate(implicit loc: SourceLocation): Expectations =
-    Expectations(run.leftMap(_.map(_.copy(location = loc))))
+  def traced(loc: SourceLocation): Expectations =
+    Expectations(run.leftMap(_.map(e =>
+      e.copy(locations = e.locations.append(loc)))))
 
 }
 
@@ -80,7 +83,8 @@ object Expectations {
       override def empty: Additive =
         Additive(
           Expectations(
-            Validated.invalidNel(new AssertionException("empty", loc))))
+            Validated.invalidNel(new AssertionException("empty",
+                                                        NonEmptyList.of(loc)))))
 
       override def combine(x: Additive, y: Additive): Additive =
         Additive(
@@ -100,7 +104,9 @@ object Expectations {
     val success: Expectations = Monoid[Expectations].empty
 
     def failure(hint: String)(implicit pos: SourceLocation): Expectations =
-      Expectations(Validated.invalidNel(new AssertionException(hint, pos)))
+      Expectations(Validated.invalidNel(new AssertionException(
+        hint,
+        NonEmptyList.of(pos))))
 
     def succeed[A]: A => Expectations = _ => success
 

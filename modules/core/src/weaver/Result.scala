@@ -14,7 +14,7 @@ object Result {
     case Valid(_) => Success
     case Invalid(failed) =>
       Failures(failed.map(ex =>
-        Result.Failure(ex.message, Some(ex), Some(ex.location))))
+        Result.Failure(ex.message, Some(ex), ex.locations.toList)))
   }
 
   final case object Success extends Result {
@@ -25,7 +25,7 @@ object Result {
       extends Result {
 
     def formatted: Option[String] = {
-      reason.map(msg => indent(msg, Some(location), Console.YELLOW, TAB2))
+      reason.map(msg => indent(msg, List(location), Console.YELLOW, TAB2))
     }
   }
 
@@ -33,7 +33,7 @@ object Result {
       extends Result {
 
     def formatted: Option[String] = {
-      reason.map(msg => indent(msg, Some(location), Console.YELLOW, TAB2))
+      reason.map(msg => indent(msg, List(location), Console.YELLOW, TAB2))
     }
   }
 
@@ -62,7 +62,7 @@ object Result {
   final case class Failure(
       msg: String,
       source: Option[Throwable],
-      location: Option[SourceLocation])
+      location: List[SourceLocation])
       extends Result {
 
     def formatted: Option[String] =
@@ -85,7 +85,10 @@ object Result {
 
       val stackTraceLimit = if (location.isDefined) Some(10) else None
 
-      Some(formatError(description, Some(source), location, stackTraceLimit))
+      Some(formatError(description,
+                       Some(source),
+                       location.toList,
+                       stackTraceLimit))
     }
   }
 
@@ -94,7 +97,7 @@ object Result {
   def from(error: Throwable): Result = {
     error match {
       case ex: AssertionException =>
-        Result.Failure(ex.message, Some(ex), Some(ex.location))
+        Result.Failure(ex.message, Some(ex), ex.locations.toList)
       case ex: IgnoredException =>
         Result.Ignored(ex.reason, ex.location)
       case ex: CanceledException =>
@@ -109,7 +112,7 @@ object Result {
   private def formatError(
       msg: String,
       source: Option[Throwable],
-      location: Option[SourceLocation],
+      location: List[SourceLocation],
       traceLimit: Option[Int]): String = {
 
     val stackTrace = source.fold("") { ex =>
@@ -131,7 +134,7 @@ object Result {
       val errorOutputLines = stackTraceLines ++ causeStackTraceLines
 
       if (errorOutputLines.nonEmpty) {
-        indent(errorOutputLines.mkString(EOL), None, Console.RED, TAB2)
+        indent(errorOutputLines.mkString(EOL), Nil, Console.RED, TAB2)
       } else ""
     }
 
@@ -151,7 +154,7 @@ object Result {
 
   private def formatDescription(
       message: String,
-      location: Option[SourceLocation],
+      location: List[SourceLocation],
       color: String,
       prefix: String): String = {
 
@@ -159,8 +162,9 @@ object Result {
       case (line, index) =>
         if (index == 0)
           color + prefix + line +
-            location.fold("")(l =>
-              s" (${l.fileRelativePath.getOrElse("none")}:${l.line})")
+            location
+              .map(l => s" (${l.fileRelativePath}:${l.line})")
+              .mkString("\n")
         else
           color + prefix + line
     }
@@ -170,7 +174,7 @@ object Result {
 
   private def indent(
       message: String,
-      location: Option[SourceLocation],
+      location: List[SourceLocation],
       color: String,
       width: Tabulation): String = {
 
@@ -179,8 +183,9 @@ object Result {
         val prefix = if (line.trim == "") "" else width.prefix
         if (index == 0)
           color + prefix + line +
-            location.fold("")(l =>
-              s" (${l.fileRelativePath.getOrElse("none")}:${l.line})")
+            location
+              .map(l => s" (${l.fileRelativePath}:${l.line})")
+              .mkString("\n")
         else
           color + prefix + line
     }

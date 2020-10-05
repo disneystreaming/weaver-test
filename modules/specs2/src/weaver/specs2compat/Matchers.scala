@@ -7,6 +7,7 @@ import cats.effect.IO
 import weaver.{ AssertionException, EffectSuite, Expectations, SourceLocation }
 
 import org.specs2.matcher.{ MatchResult, MustMatchers }
+import cats.data.NonEmptyList
 
 trait Matchers[F[_]] extends MustMatchers {
   self: EffectSuite[F] =>
@@ -21,7 +22,7 @@ trait Matchers[F[_]] extends MustMatchers {
     } else {
       Expectations(Validated.invalidNel(new AssertionException(
         m.toResult.message,
-        pos)))
+        NonEmptyList.of(pos))))
     }
 
   implicit def toExpectationsF[A](

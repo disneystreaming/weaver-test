@@ -4,6 +4,7 @@ import cats.data.ValidatedNel
 import cats.syntax.all._
 
 import com.eed3si9n.expecty._
+import cats.data.NonEmptyList
 
 class Expect
     extends Recorder[Boolean, Expectations]
@@ -14,8 +15,7 @@ class Expect
 
   class ExpectyListener extends RecorderListener[Boolean, Expectations] {
     def sourceLocation(loc: Location): SourceLocation = {
-      val name = loc.path.split("/").lastOption
-      SourceLocation(name, Some(loc.path), Some(loc.relativePath), loc.line)
+      SourceLocation(loc.path, loc.relativePath, loc.line)
     }
 
     override def expressionRecorded(
@@ -39,7 +39,8 @@ class Expect
                  else ": " + msg)
             val fullMessage = header + "\n\n" + rendering
             val sourceLoc   = sourceLocation(expr.location)
-            new AssertionException(fullMessage, sourceLoc).invalidNel
+            val sourceLocs  = NonEmptyList.of(sourceLoc)
+            new AssertionException(fullMessage, sourceLocs).invalidNel
           } else ().validNel
       }
       Expectations(res)

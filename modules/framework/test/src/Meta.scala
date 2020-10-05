@@ -136,9 +136,8 @@ object Meta {
     }
 
     implicit val sourceLocation: SourceLocation = SourceLocation(
-      Some("DogFoodTests.scala"),
-      None,
-      Some("src/main/DogFoodTests.scala"),
+      "src/main/DogFoodTests.scala",
+      "src/main/DogFoodTests.scala",
       5)
   }
 

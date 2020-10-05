@@ -25,7 +25,7 @@ trait Suite[F[_]] extends BaseSuiteClass {
 }
 
 // format: off
-trait EffectSuite[F[_]] extends Suite[F]{ self =>
+trait EffectSuite[F[_]] extends Suite[F] with SourceLocation.Here { self =>
 
   implicit def effect : Effect[F]
 
