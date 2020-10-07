@@ -11,7 +11,7 @@ steps:
   - echo Built $(cat version)
   environment:
     COURSIER_CACHE: .cache/coursier
-    JAVA_OPTS: "-XX:+UseG1GC -XX:MaxMetaspaceSize=2g -Xms1g -Xmx2g -Xss2M -XX:+CMSClassUnloadingEnabled"
+    SBT_OPTS: "-XX:+UseG1GC -XX:MaxMetaspaceSize=2g -Xms1g -Xmx2g -Xss2M -XX:+CMSClassUnloadingEnabled"
   volumes:
     - name: sbt-cache
       path: /root/.sbt
@@ -27,7 +27,7 @@ steps:
   - sbt release
   environment:
     COURSIER_CACHE: .cache/coursier
-    JAVA_OPTS: "-XX:+UseG1GC -XX:MaxMetaspaceSize=2g -Xms1g -Xmx2g -Xss2M -XX:+CMSClassUnloadingEnabled"
+    SBT_OPTS: "-XX:+UseG1GC -XX:MaxMetaspaceSize=2g -Xms1g -Xmx2g -Xss2M -XX:+CMSClassUnloadingEnabled"
     SONATYPE_USER:
       from_secret: sonatype_username
     SONATYPE_PASSWORD:
@@ -51,7 +51,7 @@ steps:
   - amm scripts/releasePlugin.sc $(cat intellijPlugin)
   environment:
     COURSIER_CACHE: .cache/coursier
-    JAVA_OPTS: "-XX:+UseG1GC -XX:MaxMetaspaceSize=2g -Xms1g -Xmx2g -Xss2M -XX:+CMSClassUnloadingEnabled"
+    SBT_OPTS: "-XX:+UseG1GC -XX:MaxMetaspaceSize=2g -Xms1g -Xmx2g -Xss2M -XX:+CMSClassUnloadingEnabled"
     GITHUB_TOKEN:
       from_secret: github_api_token
   when:
@@ -72,7 +72,7 @@ steps:
   - echo done publishing website
   environment:
     COURSIER_CACHE: .cache/coursier
-    JAVA_OPTS: "-XX:+UseG1GC -XX:MaxMetaspaceSize=2g -Xms1g -Xmx2g -Xss2M -XX:+CMSClassUnloadingEnabled"
+    SBT_OPTS: "-XX:+UseG1GC -XX:MaxMetaspaceSize=2g -Xms1g -Xmx2g -Xss2M -XX:+CMSClassUnloadingEnabled"
     GIT_USER: $DRONE_COMMIT_AUTHOR
     GITHUB_DEPLOY_KEY:
       from_secret: github_deploy_key
