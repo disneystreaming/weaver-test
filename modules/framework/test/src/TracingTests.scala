@@ -2,8 +2,7 @@ package weaver
 package framework
 package test
 
-import cats.data.Validated.Invalid
-import cats.data.Validated.Valid
+import cats.data.Validated.{ Invalid, Valid }
 
 object TracingTests extends SimpleIOSuite {
 

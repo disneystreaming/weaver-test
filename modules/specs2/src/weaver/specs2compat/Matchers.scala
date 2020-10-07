@@ -1,7 +1,7 @@
 package weaver.specs2compat
 
 import cats.Monoid
-import cats.data.{NonEmptyList, Validated}
+import cats.data.{ NonEmptyList, Validated }
 import cats.effect.IO
 
 import weaver.{ AssertionException, EffectSuite, Expectations, SourceLocation }

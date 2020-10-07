@@ -1,6 +1,6 @@
 package weaver
 
-import cats.data.{NonEmptyList, ValidatedNel}
+import cats.data.{ NonEmptyList, ValidatedNel }
 import cats.syntax.all._
 
 import com.eed3si9n.expecty._
