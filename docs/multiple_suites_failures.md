@@ -19,14 +19,16 @@ object MySuite extends SimpleIOSuite {
 
 object MyAnotherSuite extends SimpleIOSuite {
   import scala.util.Random.alphanumeric
-  
+
   val randomString = IO(alphanumeric.take(10).mkString(""))
 
   simpleTest("failing test 2") {
     for {
       x <- randomString
-    } yield expect(x.length > 10)
+    } yield check(x).traced(here)
   }
+
+  def check(x : String) = expect(x.length > 10)
 }
 ```
 
