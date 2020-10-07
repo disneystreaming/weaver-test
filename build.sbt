@@ -78,10 +78,10 @@ lazy val root = project
     specs2JS)
   .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.doNotPublishArtifact)
-  .settings(
-    // Try really hard to not execute tasks in parallel
-    Global / concurrentRestrictions := Tags.limitAll(1) :: Nil
-  )
+// .settings(
+//   // Try really hard to not execute tasks in parallel
+// Global / concurrentRestrictions := Tags.limitAll(1) :: Nil
+// )
 
 lazy val core = crossProject(JSPlatform, JVMPlatform)
   .crossType(CrossType.Pure)
