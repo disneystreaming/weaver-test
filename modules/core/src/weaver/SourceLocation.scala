@@ -3,16 +3,24 @@ package weaver
 // kudos to https://github.com/monix/minitest
 // format: off
 import scala.reflect.macros.whitebox
-import scala.util.{Try => STry}
 
 final case class SourceLocation(
-  fileName: Option[String],
-  filePath: Option[String],
-  fileRelativePath: Option[String],
+  filePath: String,
+  fileRelativePath: String,
   line: Int
-)
+){
+  def fileName : Option[String] = filePath.split("/").lastOption
+}
 
 object SourceLocation {
+
+  trait Here {
+    /**
+      * Pulls source location without being affected by implicit scope.
+      */
+    def here: SourceLocation = macro Macros.fromContext
+  }
+
   implicit def fromContext: SourceLocation =
     macro Macros.fromContext
 
@@ -20,32 +28,24 @@ object SourceLocation {
     import c.universe._
 
     def fromContext: Tree = {
-      val (fileNameExpr, pathExpr, relPathExpr, lineExpr) = getSourceLocation
+      val (pathExpr, relPathExpr, lineExpr) = getSourceLocation
       val SourceLocationSym = symbolOf[SourceLocation].companion
-      q"""$SourceLocationSym($fileNameExpr, $pathExpr, $relPathExpr, $lineExpr)"""
+      q"""$SourceLocationSym($pathExpr, $relPathExpr, $lineExpr)"""
     }
 
     private def getSourceLocation = {
       val pwd  = java.nio.file.Paths.get("").toAbsolutePath
-      val file = STry(Option(c.enclosingPosition.source.file.file)).toOption.flatten
-      val path = file.map(_.getPath)
-      val relativePath = file.map { f =>
-        pwd.relativize(f.toPath()).toString()
-      }
+      val p = c.enclosingPosition.source.path
+      val abstractFile = c.enclosingPosition.source.file
+
+      val rp = if (!abstractFile.isVirtual){
+        pwd.relativize(abstractFile.file.toPath()).toString()
+      } else p
 
       val line = c.Expr[Int](Literal(Constant(c.enclosingPosition.line)))
-      (wrapOption(file.map(_.getName)), wrapOption(path), wrapOption(relativePath), line)
+      (p, rp, line)
     }
 
-    private def wrapOption[A](opt: Option[A]): c.Expr[Option[A]] =
-      c.Expr[Option[A]](
-        opt match {
-          case None =>
-            q"""_root_.scala.None"""
-          case Some(value) =>
-            val v = c.Expr[A](Literal(Constant(value)))
-            q"""_root_.scala.Option($v)"""
-        })
   }
 }
 // format: on

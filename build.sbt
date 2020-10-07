@@ -78,10 +78,10 @@ lazy val root = project
     specs2JS)
   .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.doNotPublishArtifact)
-  .settings(
-    // Try really hard to not execute tasks in parallel
-    Global / concurrentRestrictions := Tags.limitAll(1) :: Nil
-  )
+// .settings(
+//   // Try really hard to not execute tasks in parallel
+// Global / concurrentRestrictions := Tags.limitAll(1) :: Nil
+// )
 
 lazy val core = crossProject(JSPlatform, JVMPlatform)
   .crossType(CrossType.Pure)
@@ -92,7 +92,7 @@ lazy val core = crossProject(JSPlatform, JVMPlatform)
     libraryDependencies ++= Seq(
       "co.fs2"               %%% "fs2-core"               % "2.4.4",
       "org.typelevel"        %%% "cats-effect"            % "2.2.0",
-      "com.eed3si9n.expecty" %%% "expecty"                % "0.13.0",
+      "com.eed3si9n.expecty" %%% "expecty"                % "0.14.1",
       "org.portable-scala"   %%% "portable-scala-reflect" % "1.0.0"
     )
   )
@@ -209,7 +209,7 @@ lazy val zio = crossProject(JSPlatform, JVMPlatform)
   .settings(WeaverPlugin.simpleLayout)
   .settings(
     libraryDependencies ++= Seq(
-      "dev.zio" %%% "zio-interop-cats" % "2.2.0.0"
+      "dev.zio" %%% "zio-interop-cats" % "2.2.0.1"
     ),
     scalaJSLinkerConfig ~= {
       _.withModuleKind(ModuleKind.CommonJSModule)

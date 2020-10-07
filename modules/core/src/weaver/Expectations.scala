@@ -3,6 +3,7 @@ package weaver
 import cats._
 import cats.data.Validated._
 import cats.data.{ NonEmptyList, Validated, ValidatedNel }
+import cats.effect.Sync
 import cats.syntax.all._
 
 case class Expectations(val run: ValidatedNel[AssertionException, Unit]) {
@@ -30,14 +31,23 @@ case class Expectations(val run: ValidatedNel[AssertionException, Unit]) {
         Expectations(otherL.orElse(otherR).orElse(otherL.product(otherR).void))
     }
 
+  def failFast[F[_]: Sync]: F[Unit] =
+    this.run match {
+      case Invalid(e) => Sync[F].raiseError(e.head)
+      case Valid(_)   => Sync[F].unit
+    }
+
+  /**
+   * Adds the specified location to the list of locations that will
+   * be reported if an expectation is failed.
+   */
+  def traced(loc: SourceLocation): Expectations =
+    Expectations(run.leftMap(_.map(e =>
+      e.copy(locations = e.locations.append(loc)))))
+
 }
 
 object Expectations {
-
-  implicit def fromSingle(e: SingleExpectation)(
-      implicit loc: SourceLocation): Expectations =
-    Expectations(
-      e.run.leftMap(str => NonEmptyList.one(new AssertionException(str, loc))))
 
   /**
    * Trick to convert from multiplicative assertion to additive assertion
@@ -72,7 +82,8 @@ object Expectations {
       override def empty: Additive =
         Additive(
           Expectations(
-            Validated.invalidNel(new AssertionException("empty", loc))))
+            Validated.invalidNel(new AssertionException("empty",
+                                                        NonEmptyList.of(loc)))))
 
       override def combine(x: Additive, y: Additive): Additive =
         Additive(
@@ -92,7 +103,9 @@ object Expectations {
     val success: Expectations = Monoid[Expectations].empty
 
     def failure(hint: String)(implicit pos: SourceLocation): Expectations =
-      Expectations(Validated.invalidNel(new AssertionException(hint, pos)))
+      Expectations(Validated.invalidNel(new AssertionException(
+        hint,
+        NonEmptyList.of(pos))))
 
     def succeed[A]: A => Expectations = _ => success
 

@@ -122,7 +122,7 @@ object DogFoodSuite extends SimpleIOSuite with DogFood {
         |  of
         |  multiline
         |  (failure)
-        |  assertion failed (src/main/DogFoodTests.scala:5)
+        |  assertion failed (modules/framework/test/src/Meta.scala:30)
         |
         |  expect(1 == 2)
         |
@@ -220,7 +220,9 @@ object DogFoodSuite extends SimpleIOSuite with DogFood {
       .mkString("\n")
   }
 
-  private def expectEqual(expected: String, actual: String): Expectations = {
+  private def expectEqual(
+      expected: String,
+      actual: String)(implicit loc: SourceLocation): Expectations = {
     if (expected.trim != actual.trim) {
       val report = multiLineComparisonReport(expected.trim, actual.trim)
 
