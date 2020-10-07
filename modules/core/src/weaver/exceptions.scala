@@ -2,6 +2,8 @@ package weaver
 
 import scala.util.control.NonFatal
 
+import cats.data.NonEmptyList
+
 abstract class WeaverException(
     message: String,
     cause: Option[Throwable],
@@ -18,10 +20,10 @@ sealed abstract class WeaverTestException(
     location: SourceLocation)
     extends WeaverException(message, cause, location)
 
-final class AssertionException(
-    val message: String,
-    val location: SourceLocation)
-    extends WeaverTestException(message, None, location)
+final case class AssertionException(
+    message: String,
+    locations: NonEmptyList[SourceLocation])
+    extends WeaverTestException(message, None, locations.head)
 
 final class IgnoredException(
     val reason: Option[String],

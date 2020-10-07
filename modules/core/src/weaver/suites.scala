@@ -25,7 +25,7 @@ trait Suite[F[_]] extends BaseSuiteClass {
 }
 
 // format: off
-trait EffectSuite[F[_]] extends Suite[F]{ self =>
+trait EffectSuite[F[_]] extends Suite[F] with SourceLocation.Here { self =>
 
   implicit def effect : Effect[F]
 
@@ -47,9 +47,6 @@ trait EffectSuite[F[_]] extends Suite[F]{ self =>
 
   def run(args : List[String])(report : TestOutcome => IO[Unit]) : IO[Unit] =
     spec(args).evalMap(testOutcome => effect.liftIO(report(testOutcome))).compile.drain.toIO.adaptErr(adaptRunError)
-
-  implicit def singleExpectationConversion(e: SingleExpectation)(implicit loc: SourceLocation): F[Expectations] =
-    Expectations.fromSingle(e).pure[F]
 
   implicit def expectationsConversion(e: Expectations): F[Expectations] =
     e.pure[F]

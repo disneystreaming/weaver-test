@@ -37,24 +37,14 @@ package object codecs {
   }
 
   implicit val sourceLocationEncoder: Encoder[SourceLocation] =
-    Encoder.forProduct4[SourceLocation,
-                        Option[String],
-                        Option[String],
-                        Option[String],
-                        Int](
-      "fileName",
+    Encoder.forProduct3[SourceLocation, String, String, Int](
       "filePath",
       "fileRelativePath",
       "line"
-    )(sl => (sl.fileName, sl.filePath, sl.fileRelativePath, sl.line))
+    )(sl => (sl.filePath, sl.fileRelativePath, sl.line))
 
   implicit val sourceLocationDecoder: Decoder[SourceLocation] =
-    Decoder.forProduct4[SourceLocation,
-                        Option[String],
-                        Option[String],
-                        Option[String],
-                        Int](
-      "fileName",
+    Decoder.forProduct3[SourceLocation, String, String, Int](
       "filePath",
       "fileRelativePath",
       "line"

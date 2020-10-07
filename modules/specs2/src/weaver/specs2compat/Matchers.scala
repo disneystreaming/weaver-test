@@ -1,7 +1,7 @@
 package weaver.specs2compat
 
 import cats.Monoid
-import cats.data.Validated
+import cats.data.{ NonEmptyList, Validated }
 import cats.effect.IO
 
 import weaver.{ AssertionException, EffectSuite, Expectations, SourceLocation }
@@ -21,7 +21,7 @@ trait Matchers[F[_]] extends MustMatchers {
     } else {
       Expectations(Validated.invalidNel(new AssertionException(
         m.toResult.message,
-        pos)))
+        NonEmptyList.of(pos))))
     }
 
   implicit def toExpectationsF[A](

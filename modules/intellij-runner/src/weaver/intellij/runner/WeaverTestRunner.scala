@@ -2,7 +2,7 @@ package weaver.intellij.runner
 
 import cats.effect.concurrent.Ref
 import cats.effect.{ ExitCode, IO, IOApp }
-import cats.implicits._
+import cats.syntax.all._
 
 import weaver._
 
