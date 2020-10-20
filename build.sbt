@@ -54,7 +54,7 @@ addCommandAlias(
 
 ThisBuild / scalaVersion := WeaverPlugin.scala213
 
-ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.4.2"
+ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.4.3"
 
 fork in Test := true
 
