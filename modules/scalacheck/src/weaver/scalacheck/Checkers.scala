@@ -1,10 +1,10 @@
 package weaver
 package scalacheck
 
-import cats.Show
 import cats.effect.IO
 import cats.effect.concurrent.Ref
 import cats.syntax.all._
+import cats.{ Monad, Show }
 
 import org.scalacheck.rng.Seed
 import org.scalacheck.{ Arbitrary, Gen }
@@ -23,11 +23,24 @@ trait Checkers[F[_]] {
 
   def forall[A1: Arbitrary: Show](f: A1 => Prop)(
       implicit loc: SourceLocation): F[Expectations] =
-    forall(implicitly[Arbitrary[A1]].arbitrary)(f)
+    forallEff(implicitly[Arbitrary[A1]].arbitrary)(f)
+
+  def forall[A1: Arbitrary: Show](f: A1 => Expectations)(
+      implicit loc: SourceLocation,
+      m: Monad[F]): F[Expectations] =
+    forallEff(implicitly[Arbitrary[A1]].arbitrary)(f andThen m.pure)
 
   def forall[A1: Arbitrary: Show, A2: Arbitrary: Show](f: (A1, A2) => Prop)(
       implicit loc: SourceLocation): F[Expectations] =
-    forall(implicitly[Arbitrary[(A1, A2)]].arbitrary)(f.tupled)
+    forallEff(implicitly[Arbitrary[(A1, A2)]].arbitrary)(f.tupled)
+
+  def forall[A1: Arbitrary: Show, A2: Arbitrary: Show](f: (
+      A1,
+      A2) => Expectations)(
+      implicit loc: SourceLocation,
+      m: Monad[F]): F[Expectations] =
+    forallEff(implicitly[Arbitrary[(A1, A2)]].arbitrary)(
+      f.tupled andThen m.pure)
 
   def forall[A1: Arbitrary: Show, A2: Arbitrary: Show, A3: Arbitrary: Show](
       f: (A1, A2, A3) => Prop)(
@@ -35,7 +48,18 @@ trait Checkers[F[_]] {
     implicit val tuple3Show: Show[(A1, A2, A3)] = {
       case (a1, a2, a3) => s"(${a1.show},${a2.show},${a3.show})"
     }
-    forall(implicitly[Arbitrary[(A1, A2, A3)]].arbitrary)(f.tupled)
+    forallEff(implicitly[Arbitrary[(A1, A2, A3)]].arbitrary)(f.tupled)
+  }
+
+  def forall[A1: Arbitrary: Show, A2: Arbitrary: Show, A3: Arbitrary: Show](
+      f: (A1, A2, A3) => Expectations)(
+      implicit loc: SourceLocation,
+      m: Monad[F]): F[Expectations] = {
+    implicit val tuple3Show: Show[(A1, A2, A3)] = {
+      case (a1, a2, a3) => s"(${a1.show},${a2.show},${a3.show})"
+    }
+    forallEff(implicitly[Arbitrary[(A1, A2, A3)]].arbitrary)(
+      f.tupled andThen m.pure)
   }
 
   def forall[
@@ -48,7 +72,22 @@ trait Checkers[F[_]] {
     implicit val tuple3Show: Show[(A1, A2, A3, A4)] = {
       case (a1, a2, a3, a4) => s"(${a1.show},${a2.show},${a3.show},${a4.show})"
     }
-    forall(implicitly[Arbitrary[(A1, A2, A3, A4)]].arbitrary)(f.tupled)
+    forallEff(implicitly[Arbitrary[(A1, A2, A3, A4)]].arbitrary)(f.tupled)
+  }
+
+  def forall[
+      A1: Arbitrary: Show,
+      A2: Arbitrary: Show,
+      A3: Arbitrary: Show,
+      A4: Arbitrary: Show
+  ](f: (A1, A2, A3, A4) => Expectations)(
+      implicit loc: SourceLocation,
+      m: Monad[F]): F[Expectations] = {
+    implicit val tuple3Show: Show[(A1, A2, A3, A4)] = {
+      case (a1, a2, a3, a4) => s"(${a1.show},${a2.show},${a3.show},${a4.show})"
+    }
+    forallEff(implicitly[Arbitrary[(A1, A2, A3, A4)]].arbitrary)(
+      f.tupled andThen m.pure)
   }
 
   def forall[
@@ -63,7 +102,24 @@ trait Checkers[F[_]] {
       case (a1, a2, a3, a4, a5) =>
         s"(${a1.show},${a2.show},${a3.show},${a4.show},${a5.show})"
     }
-    forall(implicitly[Arbitrary[(A1, A2, A3, A4, A5)]].arbitrary)(f.tupled)
+    forallEff(implicitly[Arbitrary[(A1, A2, A3, A4, A5)]].arbitrary)(f.tupled)
+  }
+
+  def forall[
+      A1: Arbitrary: Show,
+      A2: Arbitrary: Show,
+      A3: Arbitrary: Show,
+      A4: Arbitrary: Show,
+      A5: Arbitrary: Show
+  ](f: (A1, A2, A3, A4, A5) => Expectations)(
+      implicit loc: SourceLocation,
+      m: Monad[F]): F[Expectations] = {
+    implicit val tuple3Show: Show[(A1, A2, A3, A4, A5)] = {
+      case (a1, a2, a3, a4, a5) =>
+        s"(${a1.show},${a2.show},${a3.show},${a4.show},${a5.show})"
+    }
+    forallEff(implicitly[Arbitrary[(A1, A2, A3, A4, A5)]].arbitrary)(
+      f.tupled andThen m.pure)
   }
 
   def forall[
@@ -79,15 +135,44 @@ trait Checkers[F[_]] {
       case (a1, a2, a3, a4, a5, a6) =>
         s"(${a1.show},${a2.show},${a3.show},${a4.show},${a5.show},${a6.show})"
     }
-    forall(implicitly[Arbitrary[(A1, A2, A3, A4, A5, A6)]].arbitrary)(f.tupled)
+    forallEff(implicitly[Arbitrary[(A1, A2, A3, A4, A5, A6)]].arbitrary)(
+      f.tupled)
+  }
+
+  def forall[
+      A1: Arbitrary: Show,
+      A2: Arbitrary: Show,
+      A3: Arbitrary: Show,
+      A4: Arbitrary: Show,
+      A5: Arbitrary: Show,
+      A6: Arbitrary: Show
+  ](f: (A1, A2, A3, A4, A5, A6) => Expectations)(
+      implicit loc: SourceLocation,
+      m: Monad[F]): F[Expectations] = {
+    implicit val tuple3Show: Show[(A1, A2, A3, A4, A5, A6)] = {
+      case (a1, a2, a3, a4, a5, a6) =>
+        s"(${a1.show},${a2.show},${a3.show},${a4.show},${a5.show},${a6.show})"
+    }
+    forallEff(implicitly[Arbitrary[(A1, A2, A3, A4, A5, A6)]].arbitrary)(
+      f.tupled andThen m.pure)
   }
 
   /** ScalaCheck test parameters instance. */
   val numbers = fs2.Stream.iterate(1)(_ + 1)
 
+  private def forallEff[A: Show](gen: Gen[A])(f: A => Prop)(
+      implicit loc: SourceLocation): F[Expectations] =
+    Ref[F].of(Status.start[A]).flatMap(forall_(gen, f))
+
   def forall[A: Show](gen: Gen[A])(f: A => Prop)(
       implicit loc: SourceLocation): F[Expectations] =
     Ref[F].of(Status.start[A]).flatMap(forall_(gen, f))
+
+  def forall[A](gen: Gen[A])(f: A => Expectations)(
+      implicit s: Show[A],
+      loc: SourceLocation,
+      m: Monad[F]): F[Expectations] =
+    Ref[F].of(Status.start[A]).flatMap(forall_(gen, f andThen m.pure))
 
   private def forall_[A: Show](gen: Gen[A], f: A => Prop)(
       state: Ref[F, Status[A]])(

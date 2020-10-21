@@ -24,13 +24,13 @@ trait Matchers[F[_]] extends MustMatchers {
         NonEmptyList.of(pos))))
     }
 
-  implicit def toExpectationsF[A](
-      m: MatchResult[A]
-  )(
-      implicit pos: SourceLocation
-  ): F[Expectations] = effect.pure {
-    toExpectations(m)
-  }
+  // implicit def toExpectationsF[A](
+  //     m: MatchResult[A]
+  // )(
+  //     implicit pos: SourceLocation
+  // ): F[Expectations] = effect.pure {
+  //   toExpectations(m)
+  // }
 
 }
 

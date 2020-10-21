@@ -1,5 +1,6 @@
 package weaver
 
+import cats.Monad
 import cats.effect.implicits._
 import cats.effect.{
   ConcurrentEffect,
@@ -47,9 +48,6 @@ trait EffectSuite[F[_]] extends Suite[F] with SourceLocation.Here { self =>
 
   def run(args : List[String])(report : TestOutcome => IO[Unit]) : IO[Unit] =
     spec(args).evalMap(testOutcome => effect.liftIO(report(testOutcome))).compile.drain.toIO.adaptErr(adaptRunError)
-
-  implicit def expectationsConversion(e: Expectations): F[Expectations] =
-    e.pure[F]
 }
 
 trait ConcurrentEffectSuite[F[_]] extends EffectSuite[F] {
@@ -85,12 +83,22 @@ trait MutableFSuite[F[_]] extends ConcurrentEffectSuite[F]  {
       testSeq = testSeq :+ (name -> f)
     }
 
-  def pureTest(name: TestName)(run : => Expectations) :  Unit = registerTest(name)(_ => Test(name.name, effect.delay(run)))
-  def simpleTest(name:  TestName)(run: => F[Expectations]) : Unit = registerTest(name)(_ => Test(name.name, effect.suspend(run)))
+  def pureTest(name: TestName)(run: => Expectations) :  Unit = registerTest(name)(_ => Test(name.name, effect.delay(run)))
+  def simpleTest(name: TestName) = new PartiallyAppliedSimpleTest(name)
+
+  class PartiallyAppliedSimpleTest(name: TestName) {
+    // this definition helps avoid type erasure
+    def apply(run: => Expectations)(implicit m: Monad[F]): Unit = registerTest(name)(_ => Test(name.name, m.pure(run)))
+    def apply(run: => F[Expectations]) : Unit = registerTest(name)(_ => Test(name.name, run))
+  }
+
   def loggedTest(name: TestName)(run: Log[F] => F[Expectations]) : Unit = registerTest(name)(_ => Test(name.name, log => run(log)))
+
   def test(name: TestName) : PartiallyAppliedTest = new PartiallyAppliedTest(name)
 
   class PartiallyAppliedTest(name : TestName) {
+    // this definition helps avoid type erasure
+    def apply(run: => Expectations)(implicit m: Monad[F]): Unit = registerTest(name)(_ => Test(name.name, m.pure(run)))
     def apply(run: => F[Expectations]) : Unit = registerTest(name)(_ => Test(name.name, run))
     def apply(run : Res => F[Expectations]) : Unit = registerTest(name)(res => Test(name.name, run(res)))
     def apply(run : (Res, Log[F]) => F[Expectations]) : Unit = registerTest(name)(res => Test(name.name, log => run(res, log)))
