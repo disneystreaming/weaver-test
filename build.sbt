@@ -172,7 +172,7 @@ lazy val scalacheck = crossProject(JSPlatform, JVMPlatform)
   .settings(WeaverPlugin.simpleLayout)
   .settings(
     libraryDependencies ++= Seq(
-      "org.scalacheck" %%% "scalacheck" % "1.15.0"
+      "org.scalacheck" %%% "scalacheck" % "1.15.1"
     ),
     scalaJSLinkerConfig ~= {
       _.withModuleKind(ModuleKind.CommonJSModule)
