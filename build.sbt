@@ -227,7 +227,7 @@ lazy val monix = crossProject(JSPlatform, JVMPlatform)
   .settings(WeaverPlugin.simpleLayout)
   .settings(
     libraryDependencies ++= Seq(
-      "io.monix" %%% "monix" % "3.2.2"
+      "io.monix" %%% "monix" % "3.3.0"
     ),
     scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) }
   )
