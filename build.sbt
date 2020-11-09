@@ -90,7 +90,7 @@ lazy val core = crossProject(JSPlatform, JVMPlatform)
   .settings(WeaverPlugin.simpleLayout)
   .settings(
     libraryDependencies ++= Seq(
-      "co.fs2"               %%% "fs2-core"               % "2.4.4",
+      "co.fs2"               %%% "fs2-core"               % "2.4.5",
       "org.typelevel"        %%% "cats-effect"            % "2.2.0",
       "com.eed3si9n.expecty" %%% "expecty"                % "0.14.1",
       "org.portable-scala"   %%% "portable-scala-reflect" % "1.0.0"
