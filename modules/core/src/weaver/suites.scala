@@ -56,7 +56,7 @@ trait ConcurrentEffectSuite[F[_]] extends EffectSuite[F] {
   implicit def effect : ConcurrentEffect[F]
 }
 
-trait BaseIOSuite { self : ConcurrentEffectSuite[IO] =>
+trait BaseIOSuite extends ConcurrentEffectSuite[IO] {
   val ec = scala.concurrent.ExecutionContext.global
   implicit def timer : Timer[IO] = IO.timer(ec)
   implicit def cs : ContextShift[IO] = IO.contextShift(ec)
