@@ -90,7 +90,7 @@ final class Task(
         .flatMap { suite =>
           loggers.foreach(_.info(cyan(task.fullyQualifiedName())))
           suite
-            .run(args)(report)
+            .runIO(args)(report)
             .map(_ => loggers.foreach(_.info(EOL)))
         }
         .handleErrorWith {

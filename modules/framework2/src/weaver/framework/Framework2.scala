@@ -3,10 +3,16 @@ package weaver.framework
 import weaver.{ Platform, discard }
 
 import sbt.testing.{ Framework => BaseFramework, Runner => BaseRunner, _ }
+import scala.concurrent.ExecutionContext
+import cats.effect.IO
+import cats.effect.ContextShift
 
 class Framework2 extends BaseFramework {
 
   def name(): String = "weaver"
+
+  implicit val contextShift: ContextShift[IO] =
+    IO.contextShift(ExecutionContext.global)
 
   def fingerprints(): Array[Fingerprint] =
     if (Platform.isJVM) {
@@ -41,6 +47,12 @@ object TestFramework {
     val isModule                           = true
     def requireNoArgConstructor(): Boolean = true
     def superclassName(): String           = "weaver.BaseIOSuite"
+  }
+
+  object GlobalResourcesFingerprint extends WeaverFingerprint {
+    val isModule                           = true
+    def requireNoArgConstructor(): Boolean = true
+    def superclassName(): String           = "weaver.GlobalResourcesInit"
   }
 
   trait WeaverFingerprint extends SubclassFingerprint {

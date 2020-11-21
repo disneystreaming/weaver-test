@@ -3,23 +3,19 @@ package weaver
 import scala.util.control.NoStackTrace
 
 import org.portablescala.reflect.Reflect
+import scala.reflect.ClassTag
 
 package object framework {
 
-  def suiteFromModule(
+  def loadModuleAs[T](
       qualifiedName: String,
-      loader: ClassLoader): BaseIOSuite =
-    castToSuite(loadModule(qualifiedName, loader))
+      loader: ClassLoader)(implicit T: ClassTag[T]): T =
+    cast[T](loadModule(qualifiedName, loader))
 
-  // def suiteFromGlobalResourcesSharingClass(
-  //   qualifiedName: String,
-  //   globalResources: GlobalResources,
-  //   loader: ClassLoader): IO[EffectSuite[Any]] =
-  // castToSuite(makeInstance(qualifiedName, globalResources, loader))
-
-  private def castToSuite(any: Any): BaseIOSuite = any match {
-    case suite: BaseIOSuite =>
-      suite
+  private def cast[T](any: Any)(
+      implicit T: ClassTag[T]): T = any match {
+    case suite if T.runtimeClass.isInstance(suite) =>
+      suite.asInstanceOf[T]
     case other =>
       throw new Exception(s"$other is not an effect suite") with NoStackTrace
   }
@@ -34,6 +30,12 @@ package object framework {
     }
 
   }
+
+  // def suiteFromGlobalResourcesSharingClass(
+  //   qualifiedName: String,
+  //   globalResources: GlobalResources,
+  //   loader: ClassLoader): IO[EffectSuite[Any]] =
+  // castToSuite(makeInstance(qualifiedName, globalResources, loader))
 
   // private def makeInstance(
   //     name: String,
