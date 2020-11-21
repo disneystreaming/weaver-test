@@ -12,12 +12,11 @@ object FooSuite extends IOSuite {
       IO(println(s"Releasing $s")))
   }
 
-  for (i <- 1 to 20) {
+  for (i <- 1 to 5) {
     test(s"Test $i") { res =>
       val time = scala.util.Random.nextInt(50)
       IO.sleep(time.millis) *> IO {
-        if (i % 2 == 0) expect(1 == 2)
-        else succeed("yep")
+        expect(i % 2 == 0)
       }
     }
   }

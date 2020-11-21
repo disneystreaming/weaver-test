@@ -111,33 +111,52 @@ class SbtTask(
       eventHandler: EventHandler,
       loggers: Array[Logger]): Array[Task] = {
     start.success(())
+
     var finished: Boolean = false
+    
     while (!finished) {
       val nextEvent = Option(queue.poll())
-      nextEvent.foreach {
-        case SuiteStarted(name) =>
-          loggers.foreach { logger =>
-            logger.info(name)
-          }
-        case RunFinished(failed) =>
-          // log aggregated failures
-          finished = true
-          loggers.foreach { logger =>
-            failed.toList.foreach { o =>
-              logger.error(s"FAILED: ${o._1}:\n${o._2.name}")
-            }
-          }
-        case SuiteFinished(_) =>
-          finished = true
-        case TestFinished(outcome) =>
-          loggers.foreach { logger => logger.info(outcome.name) }
-        // log test and send event
+      
+      nextEvent.foreach{
+        case _: SuiteFinished | _:RunFinished => finished = true
+        case _ => ()
       }
+
+      nextEvent.foreach(Reporter.log(_, loggers))
     }
+
     Array()
   }
 
   def tags(): Array[String] = Array()
+}
+
+object Reporter {
+  def log(event: SuiteEvent, loggers: Array[Logger]): Unit = event match {
+    case SuiteStarted(name) =>
+      loggers.foreach { logger =>
+        logger.info(cyan(name))
+      }
+    case RunFinished(failed) =>
+      if (failed.nonEmpty) {
+        loggers.foreach(
+          _.info(red("*************") + "FAILURES" + red("**************")))
+      }
+      failed.groupBy(_._1.name).foreach {
+        case (suiteName, events) =>
+          loggers.foreach(_.info(cyan(suiteName)))
+          for ((_, event) <- events.iterator) {
+            loggers.foreach(_.error(event.formatted(TestOutcome.Verbose)))
+          }
+          loggers.foreach(_.info(""))
+      }
+    case TestFinished(outcome) =>
+      loggers.foreach { logger =>
+        logger.info(outcome.formatted(TestOutcome.Summary))
+      }
+
+    case _: SuiteFinished => ()
+  }
 }
 
 object SbtTask {
