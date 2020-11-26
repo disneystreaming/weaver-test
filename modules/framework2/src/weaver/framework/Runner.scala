@@ -2,68 +2,59 @@ package weaver
 package framework
 
 import sbt.testing._
+import cats.data.Chain
 import cats.syntax.all._
 import cats.effect._
 import cats.effect.concurrent._
 import cats.effect.syntax.all._
 
 import java.util.concurrent.ConcurrentLinkedQueue
-import cats.data.Chain
-import cats.Parallel
-import scala.reflect.ClassTag
 import java.util.concurrent.atomic.AtomicBoolean
 
-final class CatsIORunner(
-    args: Array[String],
-    remoteArgs: Array[String],
-    classLoader: ClassLoader)(implicit CS: ContextShift[IO])
-    extends AbstractRunner[IO, BaseIOSuite](args, remoteArgs, classLoader) {
-
-  def runBackground(tasks: List[IOTask]): Unit =
-    cancelToken = run(tasks).unsafeRunCancelable(_ => ())
-
-  private var cancelToken: IO[Unit] = null
-
-  def done(): String = {
-    isDone.set(true)
-    cancelToken.unsafeRunSync()
-    System.lineSeparator()
-  }
-
-}
-
-abstract class AbstractRunner[F[_], T <: EffectSuite[F]](
+class WeaverRunner[F[_]](
     val args: Array[String],
     val remoteArgs: Array[String],
-    classLoader: ClassLoader)(
-    implicit F: Concurrent[F],
-    Par: Parallel[F],
-    CS: ContextShift[F],
-    T: ClassTag[T])
-    extends Runner {
+    suiteLoader: SuiteLoader[F],
+    unsafeRun: UnsafeRun[F]
+) extends Runner {
+
+  import unsafeRun._
+
+  private var cancelToken: F[Unit] = unsafeRun.void
+
+  override def done(): String = {
+    isDone.set(true)
+    unsafeRun.sync(cancelToken)
+    System.lineSeparator()
+  }
 
   // Flag meant to be raised if build-tool call `done`
   protected val isDone: AtomicBoolean = new AtomicBoolean(false)
 
-  def runBackground(tasks: List[IOTask]): Unit
+  private def runBackground(tasks: List[IOTask]): Unit =
+    cancelToken = unsafeRun.background(run(tasks))
 
   def tasks(list: Array[TaskDef]): Array[Task] = {
 
-    val (ioTasks, sbtTasks) = list.map[(IOTask, Task)] { taskDef =>
-      val promise = scala.concurrent.Promise[Unit]()
-      val queue   = new ConcurrentLinkedQueue[SuiteEvent]()
+    val tasksAndSuites = list.map { taskDef =>
+      taskDef -> suiteLoader(taskDef)
+    }.collect { case (taskDef, Some(suite)) => (taskDef, suite) }
 
-      val suite  = loadModuleAs[T](taskDef.fullyQualifiedName(), classLoader)
-      val broker = new ConcurrentQueueEventBroker(queue)
+    val (ioTasks, sbtTasks) = tasksAndSuites.collect[(IOTask, Task)] {
+      case (taskDef, suiteLoader.ModuleSuite(suite)) =>
+        val promise = scala.concurrent.Promise[Unit]()
+        val queue   = new ConcurrentLinkedQueue[SuiteEvent]()
 
-      val ioTask =
-        IOTask(suite,
-               args.toList,
-               Async.fromFuture(F.delay(promise.future)),
-               broker)
+        val broker = new ConcurrentQueueEventBroker(queue)
 
-      val sbtTask = SbtTask(taskDef, promise, queue)
-      (ioTask, sbtTask)
+        val ioTask =
+          IOTask(suite,
+                 args.toList,
+                 Async.fromFuture(concurrent.delay(promise.future)),
+                 broker)
+
+        val sbtTask = SbtTask(taskDef, promise, queue)
+        (ioTask, sbtTask)
     }.unzip
 
     runBackground(ioTasks.toList)
@@ -227,10 +218,3 @@ abstract class AbstractRunner[F[_], T <: EffectSuite[F]](
 }
 
 final case class SuiteName(name: String) extends AnyVal
-
-sealed trait SuiteEvent
-case class SuiteStarted(name: String)         extends SuiteEvent
-case class TestFinished(outcome: TestOutcome) extends SuiteEvent
-case class SuiteFinished(name: String)        extends SuiteEvent
-case class RunFinished(failedOutcomes: Chain[(SuiteName, TestOutcome)])
-    extends SuiteEvent

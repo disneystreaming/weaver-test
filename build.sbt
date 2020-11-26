@@ -171,7 +171,7 @@ lazy val foo = crossProject(JVMPlatform)
   .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.simpleLayout)
   .settings(
-    testFrameworks := Seq(new TestFramework("weaver.framework.Framework2")),
+    testFrameworks := Seq(new TestFramework("weaver.framework.CatsFramework")),
     Test / scalacOptions ~= (_ filterNot (_ == "-Xfatal-warnings"))
   )
   .jvmSettings(
