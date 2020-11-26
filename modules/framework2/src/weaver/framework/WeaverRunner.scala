@@ -31,35 +31,48 @@ class WeaverRunner[F[_]](
   // Flag meant to be raised if build-tool call `done`
   protected val isDone: AtomicBoolean = new AtomicBoolean(false)
 
-  private def runBackground(tasks: List[IOTask]): Unit =
-    cancelToken = unsafeRun.background(run(tasks))
+  private def runBackground(
+      globalResources: List[GlobalResourcesInit[F]],
+      tasks: List[IOTask]): Unit =
+    cancelToken = unsafeRun.background(run(globalResources, tasks))
 
-  def tasks(list: Array[TaskDef]): Array[Task] = {
+  def tasks(taskDefs: Array[TaskDef]): Array[Task] = {
 
-    val tasksAndSuites = list.map { taskDef =>
+    val tasksAndSuites = taskDefs.toList.map { taskDef =>
       taskDef -> suiteLoader(taskDef)
     }.collect { case (taskDef, Some(suite)) => (taskDef, suite) }
 
+    def makeTasks(
+        taskDef: TaskDef,
+        mkSuite: GlobalResources.Read[F] => EffectSuite[F]): (IOTask, Task) = {
+      val promise = scala.concurrent.Promise[Unit]()
+      val queue   = new ConcurrentLinkedQueue[SuiteEvent]()
+      val broker  = new ConcurrentQueueEventBroker(queue)
+
+      val ioTask =
+        IOTask(mkSuite,
+               args.toList,
+               Async.fromFuture(concurrent.delay(promise.future)),
+               broker)
+
+      val sbtTask = SbtTask(taskDef, promise, queue)
+      (ioTask, sbtTask)
+    }
+
     val (ioTasks, sbtTasks) = tasksAndSuites.collect[(IOTask, Task)] {
       case (taskDef, suiteLoader.ModuleSuite(suite)) =>
-        val promise = scala.concurrent.Promise[Unit]()
-        val queue   = new ConcurrentLinkedQueue[SuiteEvent]()
-
-        val broker = new ConcurrentQueueEventBroker(queue)
-
-        val ioTask =
-          IOTask(suite,
-                 args.toList,
-                 Async.fromFuture(concurrent.delay(promise.future)),
-                 broker)
-
-        val sbtTask = SbtTask(taskDef, promise, queue)
-        (ioTask, sbtTask)
+        makeTasks(taskDef, _ => suite)
+      case (taskDef, suiteLoader.ResourcesSharingSuite(mkSuite)) =>
+        makeTasks(taskDef, mkSuite)
     }.unzip
 
-    runBackground(ioTasks.toList)
+    val globalResources = tasksAndSuites.collect {
+      case (_, suiteLoader.GlobalResourcesRef(init)) => init
+    }.toList
 
-    sbtTasks
+    runBackground(globalResources, ioTasks.toList)
+
+    sbtTasks.toArray
   }
 
   def serializeTask(task: Task, serializer: TaskDef => String): String = ???
@@ -68,40 +81,55 @@ class WeaverRunner[F[_]](
       task: String,
       deserializer: String => TaskDef): Task = ???
 
-  def run(tasks: List[IOTask]): F[Unit] = {
+  private def run(
+      globalResources: List[GlobalResourcesInit[F]],
+      tasks: List[IOTask]): F[Unit] = {
     import cats.syntax.all._
 
-    for {
-      ref <- Ref.of[F, Chain[(SuiteName, TestOutcome)]](Chain.empty)
-      sem <- Semaphore[F](tasks.size.toLong)
-      _   <- tasks.parTraverse(_.run(ref, sem, tasks.size.toLong))
-    } yield ()
+    resourceMap(globalResources).use { read =>
+      for {
+        ref <- Ref.of[F, Chain[(SuiteName, TestOutcome)]](Chain.empty)
+        sem <- Semaphore[F](tasks.size.toLong)
+        _   <- tasks.parTraverse(_.run(read, ref, sem, tasks.size.toLong))
+      } yield ()
+    }
   }
 
-  case class IOTask(
-      suite: EffectSuite[F],
+  private def resourceMap(
+      globalResources: List[GlobalResourcesInit[F]]
+  ): Resource[F, GlobalResources.Read[F]] =
+    Resource.liftF(GlobalResources.createMap[F]).flatTap { write =>
+      globalResources.traverse(_.sharedResources(write)).void
+    }
+
+  private case class IOTask(
+      mkSuite: GlobalResources.Read[F] => EffectSuite[F],
       args: List[String],
       start: F[Unit],
       broker: SuiteEventBroker) {
     def run(
+        globalResources: GlobalResources.Read[F],
         outcomes: Ref[F, Chain[(SuiteName, TestOutcome)]],
         semaphore: Semaphore[F],
-        N: Long): F[Unit] = semaphore.withPermit {
-      for {
-        _ <- start // waiting for SBT to tell us to start
-        _ <- broker.send(SuiteStarted(suite.name))
-        _ <- suite
-          .run(args) { testOutcome =>
-            outcomes.update(
-              _.append(SuiteName(suite.name) -> testOutcome)).whenA(
-              testOutcome.status.isFailed) *>
-              broker.send(TestFinished(testOutcome))
-          } // todo : error handling
-      } yield ()
-    }.guarantee {
-      semaphore.tryAcquireN(N).flatMap {
-        case true  => outcomes.get.flatMap(o => broker.send(RunFinished(o)))
-        case false => broker.send(SuiteFinished(suite.name))
+        N: Long): F[Unit] = {
+      val suite = mkSuite(globalResources)
+      semaphore.withPermit {
+        for {
+          _ <- start // waiting for SBT to tell us to start
+          _ <- broker.send(SuiteStarted(suite.name))
+          _ <- suite
+            .run(args) { testOutcome =>
+              outcomes.update(
+                _.append(SuiteName(suite.name) -> testOutcome)).whenA(
+                testOutcome.status.isFailed) *>
+                broker.send(TestFinished(testOutcome))
+            } // todo : error handling
+        } yield ()
+      }.guarantee {
+        semaphore.tryAcquireN(N).flatMap {
+          case true  => outcomes.get.flatMap(o => broker.send(RunFinished(o)))
+          case false => broker.send(SuiteFinished(suite.name))
+        }
       }
     }
   }

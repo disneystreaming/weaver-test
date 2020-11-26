@@ -19,9 +19,9 @@ object WeaverFingerprints {
 }
 
 /**
-  * Contains reference of the classes the build tool will be looking for when
-  * searching for tests
-  */
+ * Contains reference of the classes the build tool will be looking for when
+ * searching for tests
+ */
 trait WeaverFingerprints[F[_]] {
 
   type SuiteClass <: EffectSuite[F]
@@ -42,7 +42,9 @@ trait WeaverFingerprints[F[_]] {
           case ResourceSharingSuiteFingerpring.matches() =>
             val cst: GlobalResources.Read[F] => SuiteClass =
               // inherently unsafe, as it assumes the user doesn't
-              loadConstructor[GlobalResources.Read[F], SuiteClass](classLoader)
+              loadConstructor[GlobalResources.Read[F], SuiteClass](
+                taskDef.fullyQualifiedName,
+                classLoader)
             Some(ResourcesSharingSuite(cst))
           case GlobalResourcesFingerprint.matches() =>
             val module =

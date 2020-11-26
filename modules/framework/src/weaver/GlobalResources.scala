@@ -20,7 +20,7 @@ import org.portablescala.reflect.annotation.EnableReflectiveInstantiation
  * equivalent to a JVM class)
  *
  * Stored resources can be retrieved in test suites, by having your suite sport a constructor
- * that takes a [[GlobalResource]] instance.
+ * that takes a [[GlobalResource.Read]] instance.
  */
 @EnableReflectiveInstantiation
 trait GlobalResourcesInit {

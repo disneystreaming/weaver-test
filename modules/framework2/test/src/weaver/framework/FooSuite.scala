@@ -34,3 +34,20 @@ object FooSuite2 extends SimpleIOSuite {
   }
 
 }
+
+object FooGlobal extends IOGlobalResourcesInit {
+  def sharedResources(store: GlobalResources.Write[IO]): Resource[IO, Unit] =
+    store.putR("hello world")
+}
+
+class FooUsingGlobal(read: GlobalResources.Read[IO]) extends IOSuite {
+
+  type Res = String
+
+  override def sharedResource: Resource[IO, String] = read.getOrFailR[String]()
+
+  test("global resources still work") { res =>
+    IO(expect(res == "hello world"))
+  }
+
+}

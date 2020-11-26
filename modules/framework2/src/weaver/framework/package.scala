@@ -7,10 +7,11 @@ import scala.reflect.ClassTag
 
 package object framework {
 
-  protected[framework] def loadConstructor[A, C](loader: ClassLoader)(
+  protected[framework] def loadConstructor[A, C](
+      qualifiedName: String,
+      loader: ClassLoader)(
       implicit A: ClassTag[A],
       C: ClassTag[C]): A => C = {
-    val qualifiedName = C.runtimeClass.getName()
     Reflect.lookupInstantiatableClass(qualifiedName) match {
       case None =>
         throw new Exception(s"Could not find class $qualifiedName")
@@ -34,9 +35,9 @@ package object framework {
   }
 
   protected[framework] def loadModule(
-      name: String,
+      qualifiedName: String,
       loader: ClassLoader): Any = {
-    val moduleName = name + "$"
+    val moduleName = qualifiedName + "$"
     Reflect.lookupLoadableModuleClass(moduleName) match {
       case None =>
         throw new Exception(s"Could not load object $moduleName")
