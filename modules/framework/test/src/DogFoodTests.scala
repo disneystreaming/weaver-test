@@ -8,33 +8,34 @@ import cats.syntax.all._
 import sbt.testing.Status
 
 object DogFoodSuite extends SimpleIOSuite {
+
   val dogFood = new DogFood(new CatsFramework)
   import dogFood._
 
-  // simpleTest("test suite reports successes events") {
-  //   runSuite(Meta.MutableSuiteTest).map {
-  //     case (_, events) => forall(events)(isSuccess)
-  //   }
-  // }
+  simpleTest("test suite reports successes events") {
+    runSuite(Meta.MutableSuiteTest).map {
+      case (_, events) => forall(events)(isSuccess)
+    }
+  }
 
-  // simpleTest(
-  //   "the framework reports exceptions occurring during suite initialisation") {
-  //   runSuite("weaver.framework.test.Meta$CrashingSuite").map {
-  //     case (logs, events) =>
-  //       val errorLogs = extractLogEventAfterFailures(logs) {
-  //         case LoggedEvent.Error(msg) => msg
-  //       }
+  simpleTest(
+    "the framework reports exceptions occurring during suite initialisation") {
+    runSuite("weaver.framework.test.Meta$CrashingSuite").map {
+      case (logs, events) =>
+        val errorLogs = extractLogEventAfterFailures(logs) {
+          case LoggedEvent.Error(msg) => msg
+        }
 
-  //       exists(events.headOption) { event =>
-  //         val name = event.fullyQualifiedName()
-  //         expect(name == "weaver.framework.test.Meta$CrashingSuite") and
-  //           expect(event.status() == Status.Error)
-  //       } and exists(errorLogs) { log =>
-  //         expect(log.contains("Unexpected failure")) and
-  //           expect(log.contains("Boom"))
-  //       }
-  //   }
-  // }
+        exists(events.headOption) { event =>
+          val name = event.fullyQualifiedName()
+          expect(name == "weaver.framework.test.Meta$CrashingSuite") and
+            expect(event.status() == Status.Error)
+        } and exists(errorLogs) { log =>
+          expect(log.contains("Unexpected failure")) and
+            expect(log.contains("Boom"))
+        }
+    }
+  }
 
   simpleTest(
     "test suite outputs failed test names alongside successes in status report") {
@@ -43,7 +44,7 @@ object DogFoodSuite extends SimpleIOSuite {
         val statusReport = outputBeforeFailures(logs).mkString_("\n").trim()
 
         val expected = """
-        |weaver.framework.test.Meta$FailingTestStatusReporting
+        |weaver.framework.test.MetaFailingTestStatusReporting
         |+ I succeeded
         |- I failed
         |+ I succeeded again
@@ -54,146 +55,146 @@ object DogFoodSuite extends SimpleIOSuite {
     }
   }
 
-  // simpleTest("test suite outputs logs for failed tests") {
-  //   runSuite(Meta.FailingSuiteWithlogs).map {
-  //     case (logs, _) =>
-  //       val expected =
-  //         s"""
-  //           |- failure
-  //           |  expected (src/main/DogFoodTests.scala:5)
-  //           |
-  //           |    [INFO]  12:54:35 [DogFoodTests.scala:5] this test
-  //           |    [ERROR] 12:54:35 [DogFoodTests.scala:5] has failed
-  //           |    [DEBUG] 12:54:35 [DogFoodTests.scala:5] with context
-  //           |        a       -> b
-  //           |        token   -> <something>
-  //           |        request -> true
-  //           |""".stripMargin.trim
+  simpleTest("test suite outputs logs for failed tests") {
+    runSuite(Meta.FailingSuiteWithlogs).map {
+      case (logs, _) =>
+        val expected =
+          s"""
+            |- failure
+            |  expected (src/main/DogFoodTests.scala:5)
+            |
+            |    [INFO]  12:54:35 [DogFoodTests.scala:5] this test
+            |    [ERROR] 12:54:35 [DogFoodTests.scala:5] has failed
+            |    [DEBUG] 12:54:35 [DogFoodTests.scala:5] with context
+            |        a       -> b
+            |        token   -> <something>
+            |        request -> true
+            |""".stripMargin.trim
 
-  //       val actual = extractLogEventAfterFailures(logs) {
-  //         case LoggedEvent.Error(msg) => msg
-  //       }.get
+        val actual = extractLogEventAfterFailures(logs) {
+          case LoggedEvent.Error(msg) => msg
+        }.get
 
-  //       expectEqual(expected, actual)
-  //   }
-  // }
+        expectEqual(expected, actual)
+    }
+  }
 
-  // simpleTest("test suite outputs stack traces of exception causes") {
-  //   runSuite(Meta.ErroringWithCauses).map {
-  //     case (logs, _) =>
-  //       val actual = extractLogEventAfterFailures(logs) {
-  //         case LoggedEvent.Error(msg) => msg
-  //       }.get
+  simpleTest("test suite outputs stack traces of exception causes") {
+    runSuite(Meta.ErroringWithCauses).map {
+      case (logs, _) =>
+        val actual = extractLogEventAfterFailures(logs) {
+          case LoggedEvent.Error(msg) => msg
+        }.get
 
-  //       val expected =
-  //         """
-  //         |- erroring with causes
-  //         |  Meta$CustomException: surfaced error
-  //         |
-  //         |  DogFoodTests.scala:15    my.package.MyClass#MyMethod
-  //         |  DogFoodTests.scala:20    my.package.ClassOfDifferentLength#method$new$1
-  //         |
-  //         |  Caused by: weaver.framework.test.Meta$CustomException: first cause
-  //         |
-  //         |  DogFoodTests.scala:15    my.package.MyClass#MyMethod
-  //         |  DogFoodTests.scala:20    my.package.ClassOfDifferentLength#method$new$1
-  //         |  <snipped>                cats.effect.internals.<...>
-  //         |  <snipped>                java.util.concurrent.<...>
-  //         |
-  //         |  Caused by: weaver.framework.test.Meta$CustomException: root
-  //         |
-  //         |  DogFoodTests.scala:15    my.package.MyClass#MyMethod
-  //         |  DogFoodTests.scala:20    my.package.ClassOfDifferentLength#method$new$1
-  //         |  <snipped>                cats.effect.internals.<...>
-  //         |  <snipped>                java.util.concurrent.<...>
-  //         |
-  //         |""".stripMargin.trim
+        val expected =
+          """
+          |- erroring with causes
+          |  Meta$CustomException: surfaced error
+          |
+          |  DogFoodTests.scala:15    my.package.MyClass#MyMethod
+          |  DogFoodTests.scala:20    my.package.ClassOfDifferentLength#method$new$1
+          |
+          |  Caused by: weaver.framework.test.Meta$CustomException: first cause
+          |
+          |  DogFoodTests.scala:15    my.package.MyClass#MyMethod
+          |  DogFoodTests.scala:20    my.package.ClassOfDifferentLength#method$new$1
+          |  <snipped>                cats.effect.internals.<...>
+          |  <snipped>                java.util.concurrent.<...>
+          |
+          |  Caused by: weaver.framework.test.Meta$CustomException: root
+          |
+          |  DogFoodTests.scala:15    my.package.MyClass#MyMethod
+          |  DogFoodTests.scala:20    my.package.ClassOfDifferentLength#method$new$1
+          |  <snipped>                cats.effect.internals.<...>
+          |  <snipped>                java.util.concurrent.<...>
+          |
+          |""".stripMargin.trim
 
-  //       expectEqual(expected, actual)
-  //   }
-  // }
+        expectEqual(expected, actual)
+    }
+  }
 
-  // simpleTest("failures with multi-line test name are rendered correctly") {
-  //   runSuite(Meta.Rendering).map {
-  //     case (logs, _) =>
-  //       val actual = extractLogEventAfterFailures(logs) {
-  //         case LoggedEvent.Error(msg) => msg
-  //       }.get
+  simpleTest("failures with multi-line test name are rendered correctly") {
+    runSuite(Meta.Rendering).map {
+      case (logs, _) =>
+        val actual = extractLogEventAfterFailures(logs) {
+          case LoggedEvent.Error(msg) => msg
+        }.get
 
-  //       val expected = """
-  //       |- lots
-  //       |  of
-  //       |  multiline
-  //       |  (failure)
-  //       |  assertion failed (modules/framework/test/src/Meta.scala:30)
-  //       |
-  //       |  expect(1 == 2)
-  //       |
-  //       """.stripMargin.trim
+        val expected = """
+        |- lots
+        |  of
+        |  multiline
+        |  (failure)
+        |  assertion failed (modules/framework/test/src/Meta.scala:30)
+        |
+        |  expect(1 == 2)
+        |
+        """.stripMargin.trim
 
-  //       expectEqual(expected, actual)
-  //   }
-  // }
+        expectEqual(expected, actual)
+    }
+  }
 
-  // simpleTest("successes with multi-line test name are rendered correctly") {
-  //   runSuite(Meta.Rendering).map {
-  //     case (logs, _) =>
-  //       val actual =
-  //         extractLogEventBeforeFailures(logs) {
-  //           case LoggedEvent.Info(msg) if msg.contains("(success)") => msg
-  //         }.get
+  simpleTest("successes with multi-line test name are rendered correctly") {
+    runSuite(Meta.Rendering).map {
+      case (logs, _) =>
+        val actual =
+          extractLogEventBeforeFailures(logs) {
+            case LoggedEvent.Info(msg) if msg.contains("(success)") => msg
+          }.get
 
-  //       val expected = """
-  //       |+ lots
-  //       |  of
-  //       |  multiline
-  //       |  (success)
-  //       """.stripMargin.trim
+        val expected = """
+        |+ lots
+        |  of
+        |  multiline
+        |  (success)
+        """.stripMargin.trim
 
-  //       expectEqual(expected, actual)
-  //   }
-  // }
+        expectEqual(expected, actual)
+    }
+  }
 
-  // simpleTest("ignored tests with multi-line test name are rendered correctly") {
-  //   runSuite(Meta.Rendering).map {
-  //     case (logs, _) =>
-  //       val actual =
-  //         extractLogEventBeforeFailures(logs) {
-  //           case LoggedEvent.Info(msg) if msg.contains("(ignored)") => msg
-  //         }.get
+  simpleTest("ignored tests with multi-line test name are rendered correctly") {
+    runSuite(Meta.Rendering).map {
+      case (logs, _) =>
+        val actual =
+          extractLogEventBeforeFailures(logs) {
+            case LoggedEvent.Info(msg) if msg.contains("(ignored)") => msg
+          }.get
 
-  //       val expected = """
-  //       |- lots
-  //       |  of
-  //       |  multiline
-  //       |  (ignored) !!! IGNORED !!!
-  //       |  Ignore me (src/main/DogFoodTests.scala:5)
-  //       """.stripMargin.trim
+        val expected = """
+        |- lots
+        |  of
+        |  multiline
+        |  (ignored) !!! IGNORED !!!
+        |  Ignore me (src/main/DogFoodTests.scala:5)
+        """.stripMargin.trim
 
-  //       expectEqual(expected, actual)
-  //   }
-  // }
+        expectEqual(expected, actual)
+    }
+  }
 
-  // simpleTest(
-  //   "cancelled tests with multi-line test name are rendered correctly") {
-  //   runSuite(Meta.Rendering).map {
-  //     case (logs, _) =>
-  //       val actual =
-  //         extractLogEventBeforeFailures(logs) {
-  //           case LoggedEvent.Info(msg) if msg.contains("(cancelled)") => msg
-  //         }.get
+  simpleTest(
+    "cancelled tests with multi-line test name are rendered correctly") {
+    runSuite(Meta.Rendering).map {
+      case (logs, _) =>
+        val actual =
+          extractLogEventBeforeFailures(logs) {
+            case LoggedEvent.Info(msg) if msg.contains("(cancelled)") => msg
+          }.get
 
-  //       val expected = """
-  //       |- lots
-  //       |  of
-  //       |  multiline
-  //       |  (cancelled) !!! CANCELLED !!!
-  //       |  I was cancelled :( (src/main/DogFoodTests.scala:5)
-  //       """.stripMargin.trim
+        val expected = """
+        |- lots
+        |  of
+        |  multiline
+        |  (cancelled) !!! CANCELLED !!!
+        |  I was cancelled :( (src/main/DogFoodTests.scala:5)
+        """.stripMargin.trim
 
-  //       expectEqual(expected, actual)
-  //   }
-  // }
+        expectEqual(expected, actual)
+    }
+  }
 
   private def multiLineComparisonReport(expectedS: String, actual: String) = {
     val expectedLines = expectedS.split("\n").map(Option.apply).toVector

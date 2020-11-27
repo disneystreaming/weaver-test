@@ -9,8 +9,10 @@ private[weaver] trait DogFoodCompat[F[_]] { self: DogFood[F] =>
 
   import self.framework.unsafeRun._
 
-  def runTasksCompat(eventHandler: EventHandler, logger: Logger)(
-      tasks: Array[SbtTask]): F[Unit] = {
+  def runTasksCompat(
+      eventHandler: EventHandler,
+      logger: Logger)(tasks: Array[SbtTask]): F[Unit] = {
+
     val continuation: Array[SbtTask] => Unit = { tasks =>
       val _ = background(runTasksCompat(eventHandler, logger)(tasks))
     }

@@ -5,9 +5,9 @@ import scala.concurrent.duration._
 import scala.reflect.ClassTag
 
 import cats.data.Chain
-import cats.effect.concurrent.Ref
 import cats.kernel.Eq
 import cats.syntax.all._
+import cats.effect.syntax.all._
 
 import sbt.testing.{
   Event => SbtEvent,
@@ -16,10 +16,10 @@ import sbt.testing.{
   _
 }
 
-// import Platform._
+import Platform._
 import cats.effect.Resource
 import cats.effect.Sync
-import cats.effect.syntax.all._
+import cats.effect.Blocker
 
 // Functionality to test how the frameworks react to successful and failing tests/suites
 class DogFood[F[_]](val framework: WeaverFramework[F])
@@ -31,27 +31,27 @@ class DogFood[F[_]](val framework: WeaverFramework[F])
   // ScalaJS executes asynchronously, therefore we need to wait
   // for some time before getting the logs back. On JVM platform
   // we do not need to wait, since the suite will run synchronously
-  // private val patience: Option[FiniteDuration] = PlatformCompat.platform match {
-  //   case JS  => 2.seconds.some
-  //   case JVM => none
-  // }
+  private val patience: Option[FiniteDuration] = PlatformCompat.platform match {
+    case JS  => 2.seconds.some
+    case JVM => none
+  }
 
   // // Method used to run test-suites
-  def runSuites(suites: Fingerprinted*): F[State] = {
-    for {
-      logRef   <- Ref.of[F, Chain[LoggedEvent]](Chain[LoggedEvent]())
-      eventRef <- Ref.of[F, Chain[SbtEvent]](Chain[SbtEvent]())
-      eventHandler = new MemoryEventHandler(eventRef)
-      logger       = new MemoryLogger(logRef)
-      _ <- getTasks(suites)
-        .use(runTasks(eventHandler, logger))
-        .race(timer.sleep(2.seconds).as(Sync[F].delay(println("raced !")))) // TODO investigate why this deadlocks without the race ? (possible mis-use of thread pool ?)
-      logs   <- logRef.get
-      events <- eventRef.get
-    } yield {
-      (logs, events)
+  def runSuites(suites: Fingerprinted*): F[State] =
+    Blocker.apply[F].use { implicit blocker =>
+      for {
+        eventHandler <- concurrent.delay(new MemoryEventHandler())
+        logger       <- concurrent.delay(new MemoryLogger())
+        _ <- getTasks(suites)
+          .use(runTasks(eventHandler, logger, blocker))
+          .race(timer.sleep(2.seconds))
+        _      <- patience.fold(concurrent.unit)(timer.sleep)
+        logs   <- logger.get
+        events <- eventHandler.get
+      } yield {
+        (logs, events)
+      }
     }
-  }
 
   // Method used to run a test-suite
   def runSuite(suiteName: String): F[State] =
@@ -86,9 +86,12 @@ class DogFood[F[_]](val framework: WeaverFramework[F])
       Sync[F].delay(runner.tasks(taskDefs))
     }
 
-  private def runTasks(eventHandler: EventHandler, logger: Logger)(
+  private def runTasks(
+      eventHandler: EventHandler,
+      logger: Logger,
+      blocker: Blocker)(
       tasks: Array[SbtTask]): F[Unit] =
-    runTasksCompat(eventHandler, logger)(tasks)
+    runTasksCompat(eventHandler, logger, blocker)(tasks)
 
   def globalInit(g: GlobalResourcesInit[F]): Fingerprinted =
     Fingerprinted.GlobalInit(g.getClass.getName.dropRight(1))
@@ -117,37 +120,38 @@ class DogFood[F[_]](val framework: WeaverFramework[F])
     case class SharingSuite(fullyQualifiedName: String) extends Fingerprinted
   }
 
-  private class MemoryLogger(events: Ref[F, Chain[LoggedEvent]])
-      extends Logger {
+  private class MemoryLogger() extends Logger {
+
+    val logs = scala.collection.mutable.ListBuffer.empty[LoggedEvent]
+
     override def ansiCodesSupported(): Boolean = false
 
     override def error(msg: String): Unit =
-      unsafeModifyRefChain(events, LoggedEvent.Error(msg))
+      logs += LoggedEvent.Error(msg)
 
     override def warn(msg: String): Unit =
-      unsafeModifyRefChain(events, LoggedEvent.Warn(msg))
+      logs += LoggedEvent.Warn(msg)
 
     override def info(msg: String): Unit =
-      unsafeModifyRefChain(events, LoggedEvent.Info(msg))
+      logs += LoggedEvent.Info(msg)
 
     override def debug(msg: String): Unit =
-      unsafeModifyRefChain(events, LoggedEvent.Debug(msg))
+      logs += LoggedEvent.Debug(msg)
 
     override def trace(t: Throwable): Unit =
-      unsafeModifyRefChain(events, LoggedEvent.Trace(t))
+      logs += LoggedEvent.Trace(t)
+
+    def get: F[Chain[LoggedEvent]] =
+      concurrent.delay(Chain.fromSeq(logs.toList))
   }
 
-  private def unsafeModifyRefChain[A](
-      ref: Ref[F, Chain[A]],
-      el: A): Unit = {
-    framework.unsafeRun.sync(ref.update(chain => chain :+ el))
-  }
+  private class MemoryEventHandler() extends EventHandler {
+    val events = scala.collection.mutable.ListBuffer.empty[SbtEvent]
 
-  private class MemoryEventHandler(
-      events: Ref[F, Chain[SbtEvent]])
-      extends EventHandler {
     override def handle(event: SbtEvent): Unit =
-      unsafeModifyRefChain(events, event)
+      events += event
+
+    def get: F[Chain[SbtEvent]] = concurrent.delay(Chain.fromSeq(events.toList))
   }
 
 }

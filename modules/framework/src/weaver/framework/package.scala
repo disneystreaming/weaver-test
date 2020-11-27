@@ -31,7 +31,9 @@ package object framework {
     case suite if T.runtimeClass.isInstance(suite) =>
       suite.asInstanceOf[T]
     case other =>
-      throw new Exception(s"$other is not an effect suite") with NoStackTrace
+      throw new Exception(
+        s"$other is not an instance of ${T.runtimeClass.getName()}")
+        with NoStackTrace
   }
 
   protected[framework] def loadModule(

@@ -4,7 +4,7 @@ package test
 
 import cats.effect.{ IO, Resource }
 
-object SharedResources extends GlobalResourcesInit[IO] {
+object SharedResources extends IOGlobalResourcesInit {
   def sharedResources(store: GlobalResources.Write[IO]): Resource[IO, Unit] =
     for {
       foo <- Resource.pure[IO, String]("hello world!")
