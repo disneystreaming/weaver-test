@@ -1,20 +1,22 @@
 package weaver
 package framework
 
-import cats.effect.IO
 import cats.syntax.all._
 
 import sbt.testing.{ Task => SbtTask, _ }
 
-private[weaver] object DogFoodCompat {
+private[weaver] trait DogFoodCompat[F[_]] { self: DogFood[F] =>
 
-  def runTasks(eventHandler: EventHandler, logger: Logger)(
-      tasks: Array[SbtTask]): IO[Unit] = {
-    val continuation: Array[SbtTask] => Unit =
-      tasks => runTasks(eventHandler, logger)(tasks).unsafeRunAsyncAndForget()
+  import self.framework.unsafeRun._
 
-    tasks.toVector.foldMap { task =>
-      IO(task.execute(eventHandler, Array(logger), continuation))
+  def runTasksCompat(eventHandler: EventHandler, logger: Logger)(
+      tasks: Array[SbtTask]): F[Unit] = {
+    val continuation: Array[SbtTask] => Unit = { tasks =>
+      val _ = background(runTasksCompat(eventHandler, logger)(tasks))
     }
+
+    tasks.toVector.traverse { task =>
+      concurrent.delay(task.execute(eventHandler, Array(logger), continuation))
+    }.void
   }
 }

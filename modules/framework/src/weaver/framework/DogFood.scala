@@ -6,9 +6,8 @@ import scala.reflect.ClassTag
 
 import cats.data.Chain
 import cats.effect.concurrent.Ref
-import cats.effect.{ IO, Timer }
 import cats.kernel.Eq
-import cats.syntax.option._
+import cats.syntax.all._
 
 import sbt.testing.{
   Event => SbtEvent,
@@ -17,44 +16,49 @@ import sbt.testing.{
   _
 }
 
-import TestFramework._
-import Fingerprinted._
-import Platform._
+// import Platform._
+import cats.effect.Resource
+import cats.effect.Sync
+import cats.effect.syntax.all._
 
 // Functionality to test how the frameworks react to successful and failing tests/suites
-trait DogFood {
-  type State = (Chain[LoggedEvent], Chain[SbtEvent])
+class DogFood[F[_]](val framework: WeaverFramework[F])
+    extends DogFoodCompat[F] {
+  import framework.unsafeRun._
 
-  private val timer: Timer[IO] =
-    IO.timer(scala.concurrent.ExecutionContext.global)
+  type State = (Chain[LoggedEvent], Chain[SbtEvent])
 
   // ScalaJS executes asynchronously, therefore we need to wait
   // for some time before getting the logs back. On JVM platform
   // we do not need to wait, since the suite will run synchronously
-  private val patience: Option[FiniteDuration] = PlatformCompat.platform match {
-    case JS  => 2.seconds.some
-    case JVM => none
-  }
+  // private val patience: Option[FiniteDuration] = PlatformCompat.platform match {
+  //   case JS  => 2.seconds.some
+  //   case JVM => none
+  // }
 
-  // Method used to run test-suites
-  def runSuites(suites: Fingerprinted*) =
+  // // Method used to run test-suites
+  def runSuites(suites: Fingerprinted*): F[State] = {
     for {
-      logRef   <- Ref.of[IO, Chain[LoggedEvent]](Chain[LoggedEvent]())
-      eventRef <- Ref.of[IO, Chain[SbtEvent]](Chain[SbtEvent]())
-      eventHandler = new DogFood.MemoryEventHandler(eventRef)
-      logger       = new DogFood.MemoryLogger(logRef)
-      _      <- runTasks(eventHandler, logger)(getTasks(suites))
-      _      <- patience.fold(IO.unit)(timer.sleep)
+      logRef   <- Ref.of[F, Chain[LoggedEvent]](Chain[LoggedEvent]())
+      eventRef <- Ref.of[F, Chain[SbtEvent]](Chain[SbtEvent]())
+      eventHandler = new MemoryEventHandler(eventRef)
+      logger       = new MemoryLogger(logRef)
+      _ <- getTasks(suites)
+        .use(runTasks(eventHandler, logger))
+        .race(timer.sleep(2.seconds).as(Sync[F].delay(println("raced !")))) // TODO investigate why this deadlocks without the race ? (possible mis-use of thread pool ?)
       logs   <- logRef.get
       events <- eventRef.get
-    } yield (logs, events)
+    } yield {
+      (logs, events)
+    }
+  }
 
   // Method used to run a test-suite
-  def runSuite(suiteName: String) =
+  def runSuite(suiteName: String): F[State] =
     runSuites(Fingerprinted.ModuleSuite(suiteName))
 
   // Method used to run a test-suite
-  def runSuite[F[_]](suite: EffectSuite[F]): IO[State] =
+  def runSuite(suite: EffectSuite[F]): F[State] =
     runSuite(suite.getClass.getName.dropRight(1))
 
   def isSuccess(event: sbt.testing.Event)(
@@ -67,51 +71,53 @@ trait DogFood {
     }
   }
 
-  // todo: ensure none of these contain side effects
-  private def getTasks(suites: Seq[Fingerprinted]): Array[SbtTask] = {
-    val tf     = new TestFramework
-    val cl     = PlatformCompat.getClassLoader(this.getClass())
-    val runner = tf.runner(Array(), Array(), cl)
-    val taskDefs: Array[TaskDef] = suites.toArray.map { s =>
-      new TaskDef(s.fullyQualifiedName,
-                  s.fingerprint,
-                  true,
-                  Array(new SuiteSelector))
+  private def getTasks(
+      suites: Seq[Fingerprinted]): Resource[F, Array[SbtTask]] =
+    Resource.make(Sync[F].delay {
+      val cl = PlatformCompat.getClassLoader(this.getClass())
+      framework.runner(Array(), Array(), cl)
+    })(runner => Sync[F].delay(runner.done()).void).evalMap { runner =>
+      val taskDefs: Array[TaskDef] = suites.toArray.map { s =>
+        new TaskDef(s.fullyQualifiedName,
+                    s.fingerprint,
+                    true,
+                    Array(new SuiteSelector))
+      }
+      Sync[F].delay(runner.tasks(taskDefs))
     }
-    runner.tasks(taskDefs)
-  }
 
   private def runTasks(eventHandler: EventHandler, logger: Logger)(
-      tasks: Array[SbtTask]): IO[Unit] =
-    DogFoodCompat.runTasks(eventHandler, logger)(tasks)
+      tasks: Array[SbtTask]): F[Unit] =
+    runTasksCompat(eventHandler, logger)(tasks)
 
-}
-
-sealed trait Fingerprinted {
-  def fullyQualifiedName: String
-  def fingerprint: WeaverFingerprint = this match {
-    case ModuleSuite(_)  => TestFramework.ModuleFingerprint
-    case GlobalInit(_)   => TestFramework.GlobalResourcesFingerprint
-    case SharingSuite(_) => TestFramework.GlobalResourcesSharingFingerprint
-  }
-}
-object Fingerprinted {
-  def globalInit(g: GlobalResourcesInit): Fingerprinted =
-    GlobalInit(g.getClass.getName.dropRight(1))
-  def moduleSuite[F[_]](g: EffectSuite[F]): Fingerprinted =
-    ModuleSuite(g.getClass.getName.dropRight(1))
+  def globalInit(g: GlobalResourcesInit[F]): Fingerprinted =
+    Fingerprinted.GlobalInit(g.getClass.getName.dropRight(1))
+  def moduleSuite(g: EffectSuite[F]): Fingerprinted =
+    Fingerprinted.ModuleSuite(g.getClass.getName.dropRight(1))
   def sharingSuite[S <: BaseSuiteClass](
       implicit ct: ClassTag[S]): Fingerprinted =
-    SharingSuite(ct.runtimeClass.getName())
+    Fingerprinted.SharingSuite(ct.runtimeClass.getName())
 
-  case class ModuleSuite(fullyQualifiedName: String)  extends Fingerprinted
-  case class GlobalInit(fullyQualifiedName: String)   extends Fingerprinted
-  case class SharingSuite(fullyQualifiedName: String) extends Fingerprinted
-}
+  sealed trait Fingerprinted {
+    import framework.fp
 
-object DogFood extends DogFood {
+    def fullyQualifiedName: String
+    def fingerprint: fp.WeaverFingerprint = {
+      import Fingerprinted._
+      this match {
+        case ModuleSuite(_)  => fp.SuiteFingerprint
+        case GlobalInit(_)   => fp.GlobalResourcesFingerprint
+        case SharingSuite(_) => fp.ResourceSharingSuiteFingerprint
+      }
+    }
+  }
+  private object Fingerprinted {
+    case class ModuleSuite(fullyQualifiedName: String)  extends Fingerprinted
+    case class GlobalInit(fullyQualifiedName: String)   extends Fingerprinted
+    case class SharingSuite(fullyQualifiedName: String) extends Fingerprinted
+  }
 
-  private[framework] class MemoryLogger(events: Ref[IO, Chain[LoggedEvent]])
+  private class MemoryLogger(events: Ref[F, Chain[LoggedEvent]])
       extends Logger {
     override def ansiCodesSupported(): Boolean = false
 
@@ -131,11 +137,14 @@ object DogFood extends DogFood {
       unsafeModifyRefChain(events, LoggedEvent.Trace(t))
   }
 
-  private def unsafeModifyRefChain[A](ref: Ref[IO, Chain[A]], el: A): Unit = {
-    ref.update(chain => chain :+ el).unsafeRunSync()
+  private def unsafeModifyRefChain[A](
+      ref: Ref[F, Chain[A]],
+      el: A): Unit = {
+    framework.unsafeRun.sync(ref.update(chain => chain :+ el))
   }
 
-  private[framework] class MemoryEventHandler(events: Ref[IO, Chain[SbtEvent]])
+  private class MemoryEventHandler(
+      events: Ref[F, Chain[SbtEvent]])
       extends EventHandler {
     override def handle(event: SbtEvent): Unit =
       unsafeModifyRefChain(events, event)

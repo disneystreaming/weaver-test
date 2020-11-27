@@ -7,7 +7,7 @@ import monix.eval.Task
 import monix.eval.instances._
 import monix.execution.Scheduler
 
-trait BaseTaskSuite { self: ConcurrentEffectSuite[Task] =>
+trait BaseTaskSuite { self: EffectSuite[Task] =>
   val scheduler: Scheduler            = monix.execution.Scheduler.global
   implicit def timer: Timer[Task]     = Task.timer(scheduler)
   implicit def cs: ContextShift[Task] = Task.contextShift(scheduler)

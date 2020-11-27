@@ -2,68 +2,48 @@ package weaver
 
 import scala.util.control.NoStackTrace
 
-import cats.effect.IO
-
 import org.portablescala.reflect.Reflect
+import scala.reflect.ClassTag
 
 package object framework {
 
-  type DeferredLogger = (String, Event) => IO[Unit]
-
-  def suiteFromModule(
+  protected[framework] def loadConstructor[A, C](
       qualifiedName: String,
-      loader: ClassLoader): IO[EffectSuite[Any]] =
-    castToSuite(loadModule(qualifiedName, loader))
+      loader: ClassLoader)(
+      implicit A: ClassTag[A],
+      C: ClassTag[C]): A => C = {
+    Reflect.lookupInstantiatableClass(qualifiedName) match {
+      case None =>
+        throw new Exception(s"Could not find class $qualifiedName")
+          with NoStackTrace
+      case Some(cls) => cls.getConstructor(A.runtimeClass) match {
+          case None =>
+            val message =
+              s"${cls.runtimeClass} is a class. It should either be an object, or have a constructor that takes a single parameter of type ${A.runtimeClass.getName()}"
+            throw new Exception(message) with scala.util.control.NoStackTrace
+          case Some(cst) => (a: A) => cast[C](cst.newInstance(a))
+        }
+    }
+  }
 
-  def suiteFromGlobalResourcesSharingClass(
-      qualifiedName: String,
-      globalResources: GlobalResources,
-      loader: ClassLoader): IO[EffectSuite[Any]] =
-    castToSuite(makeInstance(qualifiedName, globalResources, loader))
-
-  private def castToSuite(io: IO[Any]): IO[EffectSuite[Any]] = io.flatMap {
-    case ref: EffectSuite[_] => IO.pure(ref)
+  protected[framework] def cast[T](any: Any)(
+      implicit T: ClassTag[T]): T = any match {
+    case suite if T.runtimeClass.isInstance(suite) =>
+      suite.asInstanceOf[T]
     case other =>
-      IO.raiseError {
-        new Exception(s"$other is not an effect suite") with NoStackTrace
-      }
+      throw new Exception(s"$other is not an effect suite") with NoStackTrace
   }
 
-  def loadModule(name: String, loader: ClassLoader): IO[Any] = {
-    val moduleName = name + "$"
-    IO(Reflect.lookupLoadableModuleClass(moduleName))
-      .flatMap {
-        case None =>
-          IO.raiseError(
-            new Exception(s"Could not load object $moduleName")
-              with NoStackTrace
-          )
-        case Some(cls) => IO(cls.loadModule())
-      }
-  }
-
-  private def makeInstance(
-      name: String,
-      globalResources: GlobalResources,
-      loader: ClassLoader): IO[Any] = {
-    IO(Reflect.lookupInstantiatableClass(name, loader))
-      .flatMap {
-        case None =>
-          IO.raiseError(
-            new Exception(s"Could not load class $name")
-              with scala.util.control.NoStackTrace
-          )
-        case Some(cls) =>
-          IO(cls.getConstructor(classOf[GlobalResources])).flatMap {
-            case None =>
-              val message =
-                s"${cls.runtimeClass} is a class. It should either be an object, or have a constructor that takes a single parameter of type weaver.GlobalResources"
-              IO.raiseError(new Exception(message)
-                with scala.util.control.NoStackTrace)
-            case Some(cst) =>
-              IO(cst.newInstance(globalResources))
-          }
-      }
+  protected[framework] def loadModule(
+      qualifiedName: String,
+      loader: ClassLoader): Any = {
+    val moduleName = qualifiedName + "$"
+    Reflect.lookupLoadableModuleClass(moduleName) match {
+      case None =>
+        throw new Exception(s"Could not load object $moduleName")
+          with NoStackTrace
+      case Some(cls) => cls.loadModule()
+    }
   }
 
 }

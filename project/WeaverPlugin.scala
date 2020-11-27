@@ -45,7 +45,6 @@ object WeaverPlugin extends AutoPlugin {
     ),
     // https://github.com/sbt/sbt/issues/2654
     incOptions := incOptions.value.withLogRecompileOnMacro(false),
-    testFrameworks := Seq(new TestFramework("weaver.framework.TestFramework")),
     // https://scalacenter.github.io/scalafix/docs/users/installation.html
     semanticdbEnabled := true,
     semanticdbVersion := scalafixSemanticdb.revision,

@@ -70,7 +70,7 @@ lazy val root = project
     specs2JVM,
     intellijRunnerJVM,
     coreJS,
-    frameworkJS,
+    // frameworkJS,
     scalacheckJS,
     zioJS,
     monixJS,
@@ -141,6 +141,7 @@ lazy val framework = crossProject(JSPlatform, JVMPlatform)
   .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.simpleLayout)
   .settings(
+    testFrameworks := Seq(new TestFramework("weaver.framework.CatsFramework")),
     libraryDependencies ++= Seq(
       "io.github.cquiroz" %%% "scala-java-time-tzdb" % "2.0.0" % Test
     ),
@@ -162,26 +163,7 @@ lazy val framework = crossProject(JSPlatform, JVMPlatform)
   )
 
 lazy val frameworkJVM = framework.jvm
-lazy val frameworkJS  = framework.js
-
-lazy val foo = crossProject(JVMPlatform)
-  .crossType(CrossType.Pure)
-  .in(file("modules/framework2"))
-  .dependsOn(core)
-  .configure(WeaverPlugin.profile)
-  .settings(WeaverPlugin.simpleLayout)
-  .settings(
-    testFrameworks := Seq(new TestFramework("weaver.framework.CatsFramework")),
-    Test / scalacOptions ~= (_ filterNot (_ == "-Xfatal-warnings"))
-  )
-  .jvmSettings(
-    libraryDependencies ++= Seq(
-      "org.scala-sbt"  % "test-interface" % "1.0",
-      "org.scala-js" %%% "scalajs-stubs"  % "1.0.0" % "provided"
-    )
-  )
-
-lazy val fooJVM = foo.jvm
+// lazy val frameworkJS  = framework.js
 
 lazy val scalacheck = crossProject(JSPlatform, JVMPlatform)
   .crossType(CrossType.Pure)

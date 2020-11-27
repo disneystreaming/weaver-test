@@ -5,10 +5,10 @@ import weaver.{ Platform, discard }
 
 import sbt.testing.{ Framework => BaseFramework, Runner => BaseRunner, _ }
 
-class AbstractFramework[F[_]](
+class WeaverFramework[F[_]](
     suffix: String,
-    weaverFingerprints: WeaverFingerprints[F],
-    unsafeRun: UnsafeRun[F])
+    val fp: WeaverFingerprints[F],
+    val unsafeRun: UnsafeRun[F])
     extends BaseFramework {
 
   def name(): String = s"weaver-$suffix"
@@ -18,12 +18,12 @@ class AbstractFramework[F[_]](
   def fingerprints(): Array[Fingerprint] =
     if (Platform.isJVM) {
       Array(
-        weaverFingerprints.GlobalResourcesFingerprint,
-        weaverFingerprints.SuiteFingerprint,
-        weaverFingerprints.ResourceSharingSuiteFingerpring
+        fp.GlobalResourcesFingerprint,
+        fp.SuiteFingerprint,
+        fp.ResourceSharingSuiteFingerprint
       )
     } else {
-      Array(weaverFingerprints.SuiteFingerprint)
+      Array(fp.SuiteFingerprint)
     }
 
   def runner(
@@ -33,7 +33,7 @@ class AbstractFramework[F[_]](
     new WeaverRunner[F](
       args,
       remoteArgs,
-      weaverFingerprints.suiteLoader(testClassLoader),
+      fp.suiteLoader(testClassLoader),
       unsafeRun)
   }
 

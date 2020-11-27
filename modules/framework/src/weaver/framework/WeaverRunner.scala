@@ -26,15 +26,20 @@ class WeaverRunner[F[_]](
     isDone.set(true)
     unsafeRun.sync(cancelToken)
     System.lineSeparator()
+
   }
+
+  // Required on js
+  def receiveMessage(msg: String): Option[String] = None
 
   // Flag meant to be raised if build-tool call `done`
   protected val isDone: AtomicBoolean = new AtomicBoolean(false)
 
   private def runBackground(
       globalResources: List[GlobalResourcesInit[F]],
-      tasks: List[IOTask]): Unit =
+      tasks: List[IOTask]): Unit = {
     cancelToken = unsafeRun.background(run(globalResources, tasks))
+  }
 
   def tasks(taskDefs: Array[TaskDef]): Array[Task] = {
 
@@ -85,7 +90,6 @@ class WeaverRunner[F[_]](
       globalResources: List[GlobalResourcesInit[F]],
       tasks: List[IOTask]): F[Unit] = {
     import cats.syntax.all._
-
     resourceMap(globalResources).use { read =>
       for {
         ref <- Ref.of[F, Chain[(SuiteName, TestOutcome)]](Chain.empty)
@@ -98,8 +102,8 @@ class WeaverRunner[F[_]](
   private def resourceMap(
       globalResources: List[GlobalResourcesInit[F]]
   ): Resource[F, GlobalResources.Read[F]] =
-    Resource.liftF(GlobalResources.createMap[F]).flatTap { write =>
-      globalResources.traverse(_.sharedResources(write)).void
+    Resource.liftF(GlobalResources.createMap[F]).flatTap { map =>
+      globalResources.traverse(_.sharedResources(map)).void
     }
 
   private case class IOTask(
@@ -117,13 +121,12 @@ class WeaverRunner[F[_]](
         for {
           _ <- start // waiting for SBT to tell us to start
           _ <- broker.send(SuiteStarted(suite.name))
-          _ <- suite
-            .run(args) { testOutcome =>
-              outcomes.update(
-                _.append(SuiteName(suite.name) -> testOutcome)).whenA(
-                testOutcome.status.isFailed) *>
-                broker.send(TestFinished(testOutcome))
-            } // todo : error handling
+          _ <- suite.run(args) { testOutcome =>
+            outcomes.update(
+              _.append(SuiteName(suite.name) -> testOutcome)).whenA(
+              testOutcome.status.isFailed) *>
+              broker.send(TestFinished(testOutcome))
+          } // todo : error handling
         } yield ()
       }.guarantee {
         semaphore.tryAcquireN(N).flatMap {
@@ -150,6 +153,7 @@ class WeaverRunner[F[_]](
       start: scala.concurrent.Promise[Unit],
       queue: java.util.concurrent.ConcurrentLinkedQueue[SuiteEvent])
       extends Task {
+
     def execute(
         eventHandler: EventHandler,
         loggers: Array[Logger]): Array[Task] = {

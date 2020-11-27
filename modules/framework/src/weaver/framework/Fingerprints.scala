@@ -33,17 +33,17 @@ trait WeaverFingerprints[F[_]] {
     new SuiteLoader[F] {
 
       def apply(taskDef: TaskDef): Option[SuiteRef] =
-        taskDef.fingerprint match {
+        taskDef.fingerprint() match {
           case SuiteFingerprint.matches() =>
             val module =
               loadModule(taskDef.fullyQualifiedName(), classLoader)
             val suite = cast(module)(SuiteClass)
             Some(ModuleSuite(suite))
-          case ResourceSharingSuiteFingerpring.matches() =>
+          case ResourceSharingSuiteFingerprint.matches() =>
             val cst: GlobalResources.Read[F] => SuiteClass =
               // inherently unsafe, as it assumes the user doesn't
               loadConstructor[GlobalResources.Read[F], SuiteClass](
-                taskDef.fullyQualifiedName,
+                taskDef.fullyQualifiedName(),
                 classLoader)
             Some(ResourcesSharingSuite(cst))
           case GlobalResourcesFingerprint.matches() =>
@@ -69,7 +69,7 @@ trait WeaverFingerprints[F[_]] {
    * A fingerprint that searches only for classes extending [[weaver.EffectSuite]].
    * that have a constructor that takes a single [[weaver.GlobalResources.Read]] parameter.
    */
-  object ResourceSharingSuiteFingerpring extends WeaverFingerprint {
+  object ResourceSharingSuiteFingerprint extends WeaverFingerprint {
     val isModule                           = false
     def requireNoArgConstructor(): Boolean = false
     def superclassName(): String           = SuiteClass.runtimeClass.getName

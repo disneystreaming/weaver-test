@@ -5,16 +5,36 @@ import scala.concurrent.duration.{ MILLISECONDS, _ }
 
 import cats.data.Chain
 import cats.effect.concurrent.Ref
-import cats.effect.{ ConcurrentEffect, ContextShift, Resource, Timer }
+import cats.effect.{ ContextShift, Resource, Timer }
 
 import monix.bio.{ IO, Task }
 import monix.execution.Scheduler
+import cats.effect.Concurrent
+import cats.Parallel
 
-trait BaseIOSuite { self: ConcurrentEffectSuite[Task] =>
-  val scheduler: Scheduler                    = monix.execution.Scheduler.global
-  implicit def timer: Timer[Task]             = IO.timer(scheduler)
-  implicit def cs: ContextShift[Task]         = IO.contextShift(scheduler)
-  implicit def effect: ConcurrentEffect[Task] = IO.catsEffect(scheduler)
+object MonixBioUnsafeRun extends UnsafeRun[Task] {
+  implicit val scheduler: Scheduler = monix.execution.Scheduler.global
+
+  implicit val concurrent: Concurrent[monix.bio.Task] = IO.catsEffect(scheduler)
+  implicit val parallel: Parallel[monix.bio.Task]     = IO.catsParallel
+  implicit val contextShift: ContextShift[monix.bio.Task] =
+    IO.contextShift(scheduler)
+  implicit val timer: Timer[monix.bio.Task] = IO.timer(scheduler)
+  def void: monix.bio.Task[Unit]            = IO.unit
+  def background(task: monix.bio.Task[Unit]): monix.bio.Task[Unit] = {
+    val cancelToken = task.runAsync { _ => () }(scheduler)
+    monix.bio.Task(cancelToken.cancel())
+  }
+  def sync(task: monix.bio.Task[Unit]): Unit = task.runSyncUnsafe()
+}
+
+trait BaseIOSuite extends RunnableSuite[Task] {
+  override val unsafeRun = MonixBioUnsafeRun
+
+  implicit protected def scheduler: Scheduler         = unsafeRun.scheduler
+  implicit protected def timer: Timer[Task]           = unsafeRun.timer
+  implicit protected def contextShift: ContextShift[Task] =
+    unsafeRun.contextShift
 }
 
 /**
@@ -60,5 +80,5 @@ trait MutableIOSuite
 
 trait SimpleMutableIOSuite extends MutableIOSuite {
   type Res = Unit
-  def sharedResource: Resource[Task, Unit] = Resource.pure(())
+  def sharedResource: Resource[Task, Unit] = Resource.pure[Task, Unit](())
 }

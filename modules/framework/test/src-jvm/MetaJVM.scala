@@ -12,7 +12,7 @@ import cats.effect._
 object MetaJVM {
   object MutableSuiteTest extends MutableSuiteTest
 
-  object GlobalStub extends GlobalResourcesInit {
+  object GlobalStub extends GlobalResourcesInit[IO] {
     def sharedResources(store: GlobalResources.Write[IO]): Resource[IO, Unit] =
       Resource.make(makeTmpFile)(deleteFile).flatMap { file =>
         store.putR(file)
@@ -22,10 +22,10 @@ object MetaJVM {
     def deleteFile(file: java.io.File) = IO(file.delete()).void
   }
 
-  class TmpFileSuite(global: GlobalResources) extends IOSuite {
+  class TmpFileSuite(global: GlobalResources.Read[IO]) extends IOSuite {
     type Res = File
     def sharedResource: Resource[IO, File] =
-      global.in[IO].getOrFailR[File]()
+      global.getOrFailR[File]()
 
     test("electric boo") { (file, log) =>
       for {

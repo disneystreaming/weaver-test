@@ -10,7 +10,7 @@ import zio._
 import zio.interop.catz._
 
 abstract class BaseMutableZIOSuite[Res <: Has[_]](implicit tag: Tag[Res])
-    extends ConcurrentEffectSuite[Task] {
+    extends EffectSuite[Task] {
 
   val sharedLayer: ZLayer[ZEnv, Throwable, Res]
 

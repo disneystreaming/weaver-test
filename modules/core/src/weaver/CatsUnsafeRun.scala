@@ -1,23 +1,16 @@
 package weaver
-package framework
 
-import cats.effect.IO
-import cats.effect.ContextShift
-
+import cats.effect.{ IO, ContextShift }
 import scala.concurrent.ExecutionContext
-
-class CatsFramework
-    extends AbstractFramework("cats-effect", CatsFingerprints, CatsUnsafeRun)
-
-object CatsFingerprints
-    extends WeaverFingerprints.Mixin[IO, BaseIOSuite, IOGlobalResourcesInit]
-
-trait IOGlobalResourcesInit extends GlobalResourcesInit[IO]
+import cats.effect.Timer
 
 object CatsUnsafeRun extends UnsafeRun[IO] {
 
   implicit val contextShift: ContextShift[IO] =
     IO.contextShift(ExecutionContext.global)
+  implicit val timer: Timer[IO] =
+    IO.timer(ExecutionContext.global)
+
   implicit val concurrent = IO.ioConcurrentEffect
   implicit val parallel   = IO.ioParallel
 

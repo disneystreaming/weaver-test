@@ -9,6 +9,7 @@ import cats.syntax.all._
 import cats.{ Applicative, MonadError }
 
 import org.portablescala.reflect.annotation.EnableReflectiveInstantiation
+import cats.FlatMap
 
 /**
  * Top-level instances of this trait are detected by the framework and used to manage
@@ -20,15 +21,13 @@ import org.portablescala.reflect.annotation.EnableReflectiveInstantiation
  * equivalent to a JVM class)
  *
  * Stored resources can be retrieved in test suites, by having your suite sport a constructor
- * that takes a [[GlobalResource.Read]] instance.
+ * that takes a [[GlobalResource]] instance.
  */
 @EnableReflectiveInstantiation
-trait GlobalResourcesInit {
-  def sharedResources(store: GlobalResources.Write[IO]): Resource[IO, Unit]
-}
+trait GlobalResourceBase
 
-trait GlobalResources {
-  def in[F[_]: LiftIO]: GlobalResources.Read[F]
+trait GlobalResourcesInit[F[_]] extends GlobalResourceBase {
+  def sharedResources(store: GlobalResources.Write[F]): Resource[F, Unit]
 }
 
 object GlobalResources {
@@ -66,30 +65,24 @@ object GlobalResources {
 
   }
 
-  protected[weaver] val createMap: IO[GlobalResources with Write[IO]] =
-    Ref[IO]
+  protected[weaver] def createMap[F[_]: Sync]: F[Read[F] with Write[F]] =
+    Ref[F]
       .of(Map.empty[(Option[String], ResourceTag[_]), Any])
       .map(new ResourceMap(_))
 
-  private class ResourceMap(
-      ref: Ref[IO, Map[(Option[String], ResourceTag[_]), Any]])
-      extends Read[IO]
-      with Write[IO]
-      with GlobalResources { self =>
+  private class ResourceMap[F[_]: FlatMap](
+      ref: Ref[F, Map[(Option[String], ResourceTag[_]), Any]])
+      extends Read[F]
+      with Write[F] { self =>
 
     def put[A](value: A, label: Option[String])(
-        implicit rt: ResourceTag[A]): IO[Unit] =
+        implicit rt: ResourceTag[A]): F[Unit] =
       ref.update(_ + ((label, rt) -> value))
 
     def get[A](label: Option[String])(
-        implicit rt: ResourceTag[A]): IO[Option[A]] =
+        implicit rt: ResourceTag[A]): F[Option[A]] =
       ref.get.map(_.get(label -> rt).flatMap(rt.cast))
 
-    def in[F[_]: LiftIO]: Read[F] = new Read[F] {
-      def get[A](label: Option[String])(implicit
-      rt: ResourceTag[A]): F[Option[A]] =
-        LiftIO[F].liftIO(self.get[A](label))
-    }
   }
 
   case class ResourceNotFound(label: Option[String], typeDesc: String)
