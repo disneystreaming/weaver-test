@@ -2,7 +2,7 @@
 val ScalaJSVersion =
   Option(System.getenv("SCALAJS_VERSION")).getOrElse("1.3.1")
 
-addSbtPlugin("ch.epfl.scala"        % "sbt-scalafix"                  % "0.9.23")
+addSbtPlugin("ch.epfl.scala"        % "sbt-scalafix"                  % "0.9.24")
 addSbtPlugin("org.scala-js"         % "sbt-scalajs"                   % ScalaJSVersion)
 addSbtPlugin("org.portable-scala"   % "sbt-scalajs-crossproject"      % "1.0.0")
 addSbtPlugin("com.jsuereth"         % "sbt-pgp"                       % "2.0.1")
