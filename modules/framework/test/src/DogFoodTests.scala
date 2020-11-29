@@ -6,21 +6,24 @@ import cats.data.Chain
 import cats.syntax.all._
 
 import sbt.testing.Status
+import cats.effect.{ IO, Resource }
 
-object DogFoodSuite extends SimpleIOSuite {
+object DogFoodSuite extends IOSuite {
 
-  val dogFood = new DogFood(new CatsFramework)
-  import dogFood._
+  type Res = DogFood[IO]
+  def sharedResource: Resource[IO, DogFood[IO]] =
+    DogFood.make(new CatsFramework)
 
-  simpleTest("test suite reports successes events") {
+  test("test suite reports successes events") { dogfood =>
+    import dogfood._
     runSuite(Meta.MutableSuiteTest).map {
       case (_, events) => forall(events)(isSuccess)
     }
   }
 
-  simpleTest(
+  test(
     "the framework reports exceptions occurring during suite initialisation") {
-    runSuite("weaver.framework.test.Meta$CrashingSuite").map {
+    _.runSuite("weaver.framework.test.Meta$CrashingSuite").map {
       case (logs, events) =>
         val errorLogs = extractLogEventAfterFailures(logs) {
           case LoggedEvent.Error(msg) => msg
@@ -37,9 +40,9 @@ object DogFoodSuite extends SimpleIOSuite {
     }
   }
 
-  simpleTest(
+  test(
     "test suite outputs failed test names alongside successes in status report") {
-    runSuite(Meta.FailingTestStatusReporting).map {
+    _.runSuite(Meta.FailingTestStatusReporting).map {
       case (logs, _) =>
         val statusReport = outputBeforeFailures(logs).mkString_("\n").trim()
 
@@ -55,8 +58,8 @@ object DogFoodSuite extends SimpleIOSuite {
     }
   }
 
-  simpleTest("test suite outputs logs for failed tests") {
-    runSuite(Meta.FailingSuiteWithlogs).map {
+  test("test suite outputs logs for failed tests") {
+    _.runSuite(Meta.FailingSuiteWithlogs).map {
       case (logs, _) =>
         val expected =
           s"""
@@ -79,8 +82,8 @@ object DogFoodSuite extends SimpleIOSuite {
     }
   }
 
-  simpleTest("test suite outputs stack traces of exception causes") {
-    runSuite(Meta.ErroringWithCauses).map {
+  test("test suite outputs stack traces of exception causes") {
+    _.runSuite(Meta.ErroringWithCauses).map {
       case (logs, _) =>
         val actual = extractLogEventAfterFailures(logs) {
           case LoggedEvent.Error(msg) => msg
@@ -114,8 +117,8 @@ object DogFoodSuite extends SimpleIOSuite {
     }
   }
 
-  simpleTest("failures with multi-line test name are rendered correctly") {
-    runSuite(Meta.Rendering).map {
+  test("failures with multi-line test name are rendered correctly") {
+    _.runSuite(Meta.Rendering).map {
       case (logs, _) =>
         val actual = extractLogEventAfterFailures(logs) {
           case LoggedEvent.Error(msg) => msg
@@ -136,8 +139,8 @@ object DogFoodSuite extends SimpleIOSuite {
     }
   }
 
-  simpleTest("successes with multi-line test name are rendered correctly") {
-    runSuite(Meta.Rendering).map {
+  test("successes with multi-line test name are rendered correctly") {
+    _.runSuite(Meta.Rendering).map {
       case (logs, _) =>
         val actual =
           extractLogEventBeforeFailures(logs) {
@@ -155,8 +158,8 @@ object DogFoodSuite extends SimpleIOSuite {
     }
   }
 
-  simpleTest("ignored tests with multi-line test name are rendered correctly") {
-    runSuite(Meta.Rendering).map {
+  test("ignored tests with multi-line test name are rendered correctly") {
+    _.runSuite(Meta.Rendering).map {
       case (logs, _) =>
         val actual =
           extractLogEventBeforeFailures(logs) {
@@ -175,9 +178,9 @@ object DogFoodSuite extends SimpleIOSuite {
     }
   }
 
-  simpleTest(
+  test(
     "cancelled tests with multi-line test name are rendered correctly") {
-    runSuite(Meta.Rendering).map {
+    _.runSuite(Meta.Rendering).map {
       case (logs, _) =>
         val actual =
           extractLogEventBeforeFailures(logs) {

@@ -4,11 +4,13 @@ package test
 
 import cats.effect.IO
 import cats.syntax.all._
+import cats.effect.Resource
 
-object DogFoodSuiteJVM extends SimpleIOSuite {
+object DogFoodSuiteJVM extends IOSuite {
 
-  val dogFood = new DogFood(new CatsFramework)
-  import dogFood._
+  type Res = DogFood[IO]
+  def sharedResource: Resource[IO, DogFood[IO]] =
+    DogFood.make(new CatsFramework)
 
   // This tests the global resource sharing mechanism by running a suite that
   // acquires a temporary file that gets created during global resource initialisation.
@@ -17,7 +19,8 @@ object DogFoodSuiteJVM extends SimpleIOSuite {
   // We then recover the location of the file, which happens after the dogfooding framework finishes
   // its run. At this point, the file should have been deleted by the global resource initialisation
   // mechanism, which we test for.
-  simpleTest("global sharing suites") {
+  test("global sharing suites") { dogfood =>
+    import dogfood._
     runSuites(moduleSuite(Meta.MutableSuiteTest),
               sharingSuite[MetaJVM.TmpFileSuite],
               globalInit(MetaJVM.GlobalStub)).flatMap {

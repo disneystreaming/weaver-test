@@ -38,7 +38,7 @@ trait EffectSuite[F[_]] extends Suite[F] with SourceLocation.Here { self =>
 
   protected def adaptRunError: PartialFunction[Throwable, Throwable] = PartialFunction.empty
 
-  def run(args : List[String])(report : TestOutcome => F[Unit]) : F[Unit] =
+  final def run(args : List[String])(report : TestOutcome => F[Unit]) : F[Unit] =
     spec(args).evalMap(report).compile.drain.adaptErr(adaptRunError)
 
   implicit def expectationsConversion(e: Expectations): F[Expectations] =

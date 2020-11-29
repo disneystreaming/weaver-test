@@ -7,7 +7,7 @@ import scala.reflect.ClassTag
 import cats.data.Chain
 import cats.kernel.Eq
 import cats.syntax.all._
-import cats.effect.syntax.all._
+// import cats.effect.syntax.all._
 
 import sbt.testing.{
   Event => SbtEvent,
@@ -21,8 +21,18 @@ import cats.effect.Resource
 import cats.effect.Sync
 import cats.effect.Blocker
 
+object DogFood {
+
+  def make[F[_]](framework: WeaverFramework[F]): Resource[F, DogFood[F]] = {
+    import framework.unsafeRun.concurrent
+    Blocker[F].map(implicit blocker => new DogFood[F](framework))
+  }
+
+}
+
 // Functionality to test how the frameworks react to successful and failing tests/suites
-class DogFood[F[_]](val framework: WeaverFramework[F])
+class DogFood[F[_]](
+    val framework: WeaverFramework[F])(implicit blocker: Blocker)
     extends DogFoodCompat[F] {
   import framework.unsafeRun._
 
@@ -38,19 +48,17 @@ class DogFood[F[_]](val framework: WeaverFramework[F])
 
   // // Method used to run test-suites
   def runSuites(suites: Fingerprinted*): F[State] =
-    Blocker.apply[F].use { implicit blocker =>
-      for {
-        eventHandler <- concurrent.delay(new MemoryEventHandler())
-        logger       <- concurrent.delay(new MemoryLogger())
-        _ <- getTasks(suites)
-          .use(runTasks(eventHandler, logger, blocker))
-          .race(timer.sleep(2.seconds))
-        _      <- patience.fold(concurrent.unit)(timer.sleep)
-        logs   <- logger.get
-        events <- eventHandler.get
-      } yield {
-        (logs, events)
-      }
+    for {
+      eventHandler <- concurrent.delay(new MemoryEventHandler())
+      logger       <- concurrent.delay(new MemoryLogger())
+      _ <- getTasks(suites)
+        .use(runTasks(eventHandler, logger, blocker))
+      // .race(timer.sleep(2.seconds))
+      _      <- patience.fold(concurrent.unit)(timer.sleep)
+      logs   <- logger.get
+      events <- eventHandler.get
+    } yield {
+      (logs, events)
     }
 
   // Method used to run a test-suite
@@ -76,14 +84,15 @@ class DogFood[F[_]](val framework: WeaverFramework[F])
     Resource.make(Sync[F].delay {
       val cl = PlatformCompat.getClassLoader(this.getClass())
       framework.runner(Array(), Array(), cl)
-    })(runner => Sync[F].delay(runner.done()).void).evalMap { runner =>
-      val taskDefs: Array[TaskDef] = suites.toArray.map { s =>
-        new TaskDef(s.fullyQualifiedName,
-                    s.fingerprint,
-                    true,
-                    Array(new SuiteSelector))
-      }
-      Sync[F].delay(runner.tasks(taskDefs))
+    })(runner => blocker.delay[F, String](runner.done()).void).evalMap {
+      runner =>
+        val taskDefs: Array[TaskDef] = suites.toArray.map { s =>
+          new TaskDef(s.fullyQualifiedName,
+                      s.fingerprint,
+                      true,
+                      Array(new SuiteSelector))
+        }
+        Sync[F].delay(runner.tasks(taskDefs))
     }
 
   private def runTasks(
@@ -123,23 +132,26 @@ class DogFood[F[_]](val framework: WeaverFramework[F])
   private class MemoryLogger() extends Logger {
 
     val logs = scala.collection.mutable.ListBuffer.empty[LoggedEvent]
+    private def add(event: LoggedEvent): Unit = synchronized {
+      val _ = logs.append(event)
+    }
 
     override def ansiCodesSupported(): Boolean = false
 
     override def error(msg: String): Unit =
-      logs += LoggedEvent.Error(msg)
+      add(LoggedEvent.Error(msg))
 
     override def warn(msg: String): Unit =
-      logs += LoggedEvent.Warn(msg)
+      add(LoggedEvent.Warn(msg))
 
     override def info(msg: String): Unit =
-      logs += LoggedEvent.Info(msg)
+      add(LoggedEvent.Info(msg))
 
     override def debug(msg: String): Unit =
-      logs += LoggedEvent.Debug(msg)
+      add(LoggedEvent.Debug(msg))
 
     override def trace(t: Throwable): Unit =
-      logs += LoggedEvent.Trace(t)
+      add(LoggedEvent.Trace(t))
 
     def get: F[Chain[LoggedEvent]] =
       concurrent.delay(Chain.fromSeq(logs.toList))
@@ -148,8 +160,9 @@ class DogFood[F[_]](val framework: WeaverFramework[F])
   private class MemoryEventHandler() extends EventHandler {
     val events = scala.collection.mutable.ListBuffer.empty[SbtEvent]
 
-    override def handle(event: SbtEvent): Unit =
-      events += event
+    override def handle(event: SbtEvent): Unit = synchronized {
+      val _ = events.append(event)
+    }
 
     def get: F[Chain[SbtEvent]] = concurrent.delay(Chain.fromSeq(events.toList))
   }

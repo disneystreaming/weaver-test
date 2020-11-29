@@ -10,6 +10,7 @@ import cats.effect.syntax.all._
 
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.atomic.AtomicBoolean
+import scala.concurrent.ExecutionContext
 
 class WeaverRunner[F[_]](
     val args: Array[String],
@@ -53,12 +54,17 @@ class WeaverRunner[F[_]](
       val promise = scala.concurrent.Promise[Unit]()
       val queue   = new ConcurrentLinkedQueue[SuiteEvent]()
       val broker  = new ConcurrentQueueEventBroker(queue)
+      val startingBlock = Async.fromFuture {
+        Sync[F].delay(promise.future.map(_ => ())(ExecutionContext.global))
+      }
 
       val ioTask =
-        IOTask(mkSuite,
-               args.toList,
-               Async.fromFuture(concurrent.delay(promise.future)),
-               broker)
+        IOTask(
+          taskDef.fullyQualifiedName(),
+          mkSuite,
+          args.toList,
+          startingBlock,
+          broker)
 
       val sbtTask = SbtTask(taskDef, promise, queue)
       (ioTask, sbtTask)
@@ -93,7 +99,7 @@ class WeaverRunner[F[_]](
     resourceMap(globalResources).use { read =>
       for {
         ref <- Ref.of[F, Chain[(SuiteName, TestOutcome)]](Chain.empty)
-        sem <- Semaphore[F](tasks.size.toLong)
+        sem <- Semaphore[F](0L)
         _   <- tasks.parTraverse(_.run(read, ref, sem, tasks.size.toLong))
       } yield ()
     }
@@ -107,6 +113,7 @@ class WeaverRunner[F[_]](
     }
 
   private case class IOTask(
+      fqn: String,
       mkSuite: GlobalResources.Read[F] => EffectSuite[F],
       args: List[String],
       start: F[Unit],
@@ -117,21 +124,20 @@ class WeaverRunner[F[_]](
         semaphore: Semaphore[F],
         N: Long): F[Unit] = {
       val suite = mkSuite(globalResources)
-      semaphore.withPermit {
-        for {
-          _ <- start // waiting for SBT to tell us to start
-          _ <- broker.send(SuiteStarted(suite.name))
-          _ <- suite.run(args) { testOutcome =>
-            outcomes.update(
-              _.append(SuiteName(suite.name) -> testOutcome)).whenA(
-              testOutcome.status.isFailed) *>
-              broker.send(TestFinished(testOutcome))
-          } // todo : error handling
-        } yield ()
-      }.guarantee {
-        semaphore.tryAcquireN(N).flatMap {
+      val runSuite = for {
+        _ <- start // waiting for SBT to tell us to start
+        _ <- broker.send(SuiteStarted(suite.name))
+        _ <- suite.run(args) { testOutcome =>
+          outcomes
+            .update(_.append(SuiteName(suite.name) -> testOutcome))
+            .whenA(testOutcome.status.isFailed)
+            .productR(broker.send(TestFinished(testOutcome)))
+        }
+      } yield ()
+      runSuite.guaranteeCase { exitCase =>
+        semaphore.release *> semaphore.tryAcquireN(N).flatMap {
           case true  => outcomes.get.flatMap(o => broker.send(RunFinished(o)))
-          case false => broker.send(SuiteFinished(suite.name))
+          case false => broker.send(SuiteFinished(fqn))
         }
       }
     }
@@ -144,8 +150,9 @@ class WeaverRunner[F[_]](
   class ConcurrentQueueEventBroker(
       concurrentQueue: ConcurrentLinkedQueue[SuiteEvent])
       extends SuiteEventBroker {
-    def send(suiteEvent: SuiteEvent): F[Unit] =
+    def send(suiteEvent: SuiteEvent): F[Unit] = {
       Sync[F].delay(concurrentQueue.add(suiteEvent)).void
+    }
   }
 
   class SbtTask(
