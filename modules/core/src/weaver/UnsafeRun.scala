@@ -11,7 +11,7 @@ import cats.Parallel
  */
 protected[weaver] trait UnsafeRun[F[_]] {
 
-  implicit def concurrent: Concurrent[F]
+  implicit def effect: Concurrent[F]
   implicit def parallel: Parallel[F]
   implicit def contextShift: ContextShift[F]
   implicit def timer: Timer[F]

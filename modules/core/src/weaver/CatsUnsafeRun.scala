@@ -11,7 +11,7 @@ object CatsUnsafeRun extends UnsafeRun[IO] {
   implicit val timer: Timer[IO] =
     IO.timer(ExecutionContext.global)
 
-  implicit val concurrent = IO.ioConcurrentEffect
+  implicit val effect = IO.ioConcurrentEffect
   implicit val parallel   = IO.ioParallel
 
   def void: IO[Unit] = IO.unit

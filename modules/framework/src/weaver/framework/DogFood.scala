@@ -24,7 +24,7 @@ import cats.effect.Blocker
 object DogFood {
 
   def make[F[_]](framework: WeaverFramework[F]): Resource[F, DogFood[F]] = {
-    import framework.unsafeRun.concurrent
+    import framework.unsafeRun.effect
     Blocker.apply[F].map(blocker => new DogFood[F](framework)(blocker))
   }
 
@@ -49,12 +49,12 @@ class DogFood[F[_]](
   // // Method used to run test-suites
   def runSuites(suites: Fingerprinted*): F[State] =
     for {
-      eventHandler <- concurrent.delay(new MemoryEventHandler())
-      logger       <- concurrent.delay(new MemoryLogger())
+      eventHandler <- effect.delay(new MemoryEventHandler())
+      logger       <- effect.delay(new MemoryLogger())
       _ <- getTasks(suites)
         .use(runTasks(eventHandler, logger, blocker))
       // .race(timer.sleep(2.seconds))
-      _      <- patience.fold(concurrent.unit)(timer.sleep)
+      _      <- patience.fold(effect.unit)(timer.sleep)
       logs   <- logger.get
       events <- eventHandler.get
     } yield {
@@ -154,7 +154,7 @@ class DogFood[F[_]](
       add(LoggedEvent.Trace(t))
 
     def get: F[Chain[LoggedEvent]] =
-      concurrent.delay(Chain.fromSeq(logs.toList))
+      effect.delay(Chain.fromSeq(logs.toList))
   }
 
   private class MemoryEventHandler() extends EventHandler {
@@ -164,7 +164,7 @@ class DogFood[F[_]](
       val _ = events.append(event)
     }
 
-    def get: F[Chain[SbtEvent]] = concurrent.delay(Chain.fromSeq(events.toList))
+    def get: F[Chain[SbtEvent]] = effect.delay(Chain.fromSeq(events.toList))
   }
 
 }

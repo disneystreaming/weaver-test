@@ -15,7 +15,7 @@ import cats.Parallel
 object MonixBioUnsafeRun extends UnsafeRun[Task] {
   implicit val scheduler: Scheduler = monix.execution.Scheduler.global
 
-  implicit val concurrent: Concurrent[monix.bio.Task] = IO.catsEffect(scheduler)
+  implicit val effect: Concurrent[monix.bio.Task] = IO.catsEffect(scheduler)
   implicit val parallel: Parallel[monix.bio.Task]     = IO.catsParallel
   implicit val contextShift: ContextShift[monix.bio.Task] =
     IO.contextShift(scheduler)
