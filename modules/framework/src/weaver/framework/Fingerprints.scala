@@ -5,11 +5,12 @@ import scala.reflect.ClassTag
 import weaver.EffectSuite
 import weaver.{ GlobalResources, GlobalResourcesInit }
 import sbt.testing.TaskDef
+import cats.effect.Sync
 
 object WeaverFingerprints {
   // format: off
   abstract class Mixin[F[_], SC <: EffectSuite[F], GRIC <: GlobalResourcesInit[F]](
-      implicit SC: ClassTag[SC], GRIC: ClassTag[GRIC]) extends WeaverFingerprints[F] {
+      implicit SC: ClassTag[SC], GRIC: ClassTag[GRIC], F : Sync[F]) extends WeaverFingerprints[F] {
     type SuiteClass = SC
     val SuiteClass = SC
     type GlobalResourcesInitClass = GRIC
@@ -22,7 +23,7 @@ object WeaverFingerprints {
  * Contains reference of the classes the build tool will be looking for when
  * searching for tests
  */
-trait WeaverFingerprints[F[_]] {
+abstract class WeaverFingerprints[F[_]](implicit F: Sync[F]) {
 
   type SuiteClass <: EffectSuite[F]
   implicit protected def SuiteClass: ClassTag[SuiteClass]
@@ -32,20 +33,21 @@ trait WeaverFingerprints[F[_]] {
   def suiteLoader(classLoader: ClassLoader): SuiteLoader[F] =
     new SuiteLoader[F] {
 
-      def apply(taskDef: TaskDef): Option[SuiteRef] =
+      def apply(taskDef: TaskDef): Option[Loader] =
         taskDef.fingerprint() match {
           case SuiteFingerprint.matches() =>
-            val module =
-              loadModule(taskDef.fullyQualifiedName(), classLoader)
-            val suite = cast(module)(SuiteClass)
-            Some(ModuleSuite(suite))
+            val mkSuite = F.delay {
+              val module = loadModule(taskDef.fullyQualifiedName(), classLoader)
+              cast(module)(SuiteClass): EffectSuite[F]
+            }
+            Some(SuiteRef(mkSuite))
           case ResourceSharingSuiteFingerprint.matches() =>
-            val cst: GlobalResources.Read[F] => SuiteClass =
+            val cst: F[GlobalResources.Read[F] => EffectSuite[F]] =
               // inherently unsafe, as it assumes the user doesn't
-              loadConstructor[GlobalResources.Read[F], SuiteClass](
+              F.delay(loadConstructor[GlobalResources.Read[F], SuiteClass](
                 taskDef.fullyQualifiedName(),
-                classLoader)
-            Some(ResourcesSharingSuite(cst))
+                classLoader): GlobalResources.Read[F] => EffectSuite[F])
+            Some(ResourcesSharingSuiteRef(read => F.ap(cst)(F.pure(read))))
           case GlobalResourcesFingerprint.matches() =>
             val module =
               loadModule(taskDef.fullyQualifiedName(), classLoader)

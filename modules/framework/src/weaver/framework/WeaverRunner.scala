@@ -11,6 +11,9 @@ import cats.effect.syntax.all._
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.atomic.AtomicBoolean
 import scala.concurrent.ExecutionContext
+import scala.concurrent.duration._
+import cats.effect.ExitCase.Canceled
+import cats.effect.ExitCase.Completed
 
 class WeaverRunner[F[_]](
     val args: Array[String],
@@ -18,6 +21,8 @@ class WeaverRunner[F[_]](
     suiteLoader: SuiteLoader[F],
     unsafeRun: UnsafeRun[F]
 ) extends Runner {
+
+  private type MakeSuite = GlobalResources.Read[F] => F[EffectSuite[F]]
 
   import unsafeRun._
 
@@ -50,7 +55,7 @@ class WeaverRunner[F[_]](
 
     def makeTasks(
         taskDef: TaskDef,
-        mkSuite: GlobalResources.Read[F] => EffectSuite[F]): (IOTask, Task) = {
+        mkSuite: MakeSuite): (IOTask, Task) = {
       val promise = scala.concurrent.Promise[Unit]()
       val queue   = new ConcurrentLinkedQueue[SuiteEvent]()
       val broker  = new ConcurrentQueueEventBroker(queue)
@@ -71,9 +76,9 @@ class WeaverRunner[F[_]](
     }
 
     val (ioTasks, sbtTasks) = tasksAndSuites.collect[(IOTask, Task)] {
-      case (taskDef, suiteLoader.ModuleSuite(suite)) =>
-        makeTasks(taskDef, _ => suite)
-      case (taskDef, suiteLoader.ResourcesSharingSuite(mkSuite)) =>
+      case (taskDef, suiteLoader.SuiteRef(mkSuite)) =>
+        makeTasks(taskDef, _ => mkSuite)
+      case (taskDef, suiteLoader.ResourcesSharingSuiteRef(mkSuite)) =>
         makeTasks(taskDef, mkSuite)
     }.unzip
 
@@ -114,7 +119,7 @@ class WeaverRunner[F[_]](
 
   private case class IOTask(
       fqn: String,
-      mkSuite: GlobalResources.Read[F] => EffectSuite[F],
+      mkSuite: MakeSuite,
       args: List[String],
       start: F[Unit],
       broker: SuiteEventBroker) {
@@ -123,22 +128,39 @@ class WeaverRunner[F[_]](
         outcomes: Ref[F, Chain[(SuiteName, TestOutcome)]],
         semaphore: Semaphore[F],
         N: Long): F[Unit] = {
-      val suite = mkSuite(globalResources)
+
       val runSuite = for {
-        _ <- start // waiting for SBT to tell us to start
-        _ <- broker.send(SuiteStarted(suite.name))
+        suite <- mkSuite(globalResources)
+        _     <- start // waiting for SBT to tell us to start
+        _     <- broker.send(SuiteStarted(fqn))
         _ <- suite.run(args) { testOutcome =>
           outcomes
-            .update(_.append(SuiteName(suite.name) -> testOutcome))
+            .update(_.append(SuiteName(fqn) -> testOutcome))
             .whenA(testOutcome.status.isFailed)
             .productR(broker.send(TestFinished(testOutcome)))
         }
       } yield ()
-      runSuite.guaranteeCase { exitCase =>
-        semaphore.release *> semaphore.tryAcquireN(N).flatMap {
-          case true  => outcomes.get.flatMap(o => broker.send(RunFinished(o)))
-          case false => broker.send(SuiteFinished(fqn))
-        }
+      val finalizer = semaphore
+        .release
+        .productR(semaphore.tryAcquireN(N))
+        .flatMap {
+          case true  => outcomes.get.map(RunFinished(_): SuiteEvent)
+          case false => (SuiteFinished(fqn): SuiteEvent).pure[F]
+        }.flatMap(broker.send)
+
+      runSuite.guaranteeCase {
+        case Canceled  => finalizer
+        case Completed => finalizer
+        case cats.effect.ExitCase.Error(error) =>
+          val outcome =
+            TestOutcome("Unexpected failure",
+                        0.seconds,
+                        Result.from(error),
+                        Chain.empty)
+          outcomes
+            .update(_.append(SuiteName(fqn) -> outcome))
+            .productR(broker.send(TestFinished(outcome)))
+            .guarantee(finalizer)
       }
     }
   }
@@ -177,7 +199,7 @@ class WeaverRunner[F[_]](
           case _                                 => ()
         }
 
-        nextEvent.foreach(Reporter.log(_, loggers))
+        nextEvent.foreach(Reporter.log(loggers))
       }
 
       Array()
@@ -219,7 +241,7 @@ class WeaverRunner[F[_]](
   }
 
   object Reporter {
-    def log(event: SuiteEvent, loggers: Array[Logger]): Unit = event match {
+    def log(loggers: Array[Logger])(event: SuiteEvent): Unit = event match {
       case SuiteStarted(name) =>
         loggers.foreach { logger =>
           logger.info(cyan(name))

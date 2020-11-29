@@ -47,14 +47,14 @@ object DogFoodSuite extends IOSuite {
         val statusReport = outputBeforeFailures(logs).mkString_("\n").trim()
 
         val expected = """
-        |weaver.framework.test.MetaFailingTestStatusReporting
+        |weaver.framework.test.Meta$FailingTestStatusReporting
         |+ I succeeded
         |- I failed
         |+ I succeeded again
         |
         """.stripMargin.trim
 
-        expectEqual(expected, statusReport)
+        expectEqual(statusReport, expected)
     }
   }
 

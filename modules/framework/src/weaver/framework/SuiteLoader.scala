@@ -7,12 +7,12 @@ import sbt.testing.TaskDef
  * An interface for loading weaver suites from a task def.
  */
 trait SuiteLoader[F[_]] {
-  def apply(TaskDef: TaskDef): Option[SuiteRef]
+  def apply(TaskDef: TaskDef): Option[Loader]
 
-  sealed trait SuiteRef
-  case class ModuleSuite(suite: EffectSuite[F])               extends SuiteRef
-  case class GlobalResourcesRef(init: GlobalResourcesInit[F]) extends SuiteRef
-  case class ResourcesSharingSuite(
-      build: GlobalResources.Read[F] => EffectSuite[F])
-      extends SuiteRef
+  sealed trait Loader
+  case class SuiteRef(suite: F[EffectSuite[F]])               extends Loader
+  case class GlobalResourcesRef(init: GlobalResourcesInit[F]) extends Loader
+  case class ResourcesSharingSuiteRef(
+      build: GlobalResources.Read[F] => F[EffectSuite[F]])
+      extends Loader
 }

@@ -4,6 +4,7 @@ package framework
 import cats.syntax.all._
 
 import sbt.testing.{ Task => SbtTask, _ }
+import cats.effect.Blocker
 
 private[weaver] trait DogFoodCompat[F[_]] { self: DogFood[F] =>
 
@@ -11,14 +12,10 @@ private[weaver] trait DogFoodCompat[F[_]] { self: DogFood[F] =>
 
   def runTasksCompat(
       eventHandler: EventHandler,
-      logger: Logger)(tasks: Array[SbtTask]): F[Unit] = {
-
-    val continuation: Array[SbtTask] => Unit = { tasks =>
-      val _ = background(runTasksCompat(eventHandler, logger)(tasks))
-    }
-
-    tasks.toVector.traverse { task =>
-      concurrent.delay(task.execute(eventHandler, Array(logger), continuation))
+      logger: Logger,
+      blocker: Blocker)(tasks: Array[SbtTask]): F[Unit] =
+    tasks.toVector.parTraverse { task =>
+      concurrent.delay(task.execute(eventHandler, Array(logger), _ => ()))
     }.void
-  }
+
 }

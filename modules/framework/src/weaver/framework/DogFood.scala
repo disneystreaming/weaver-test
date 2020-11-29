@@ -25,7 +25,7 @@ object DogFood {
 
   def make[F[_]](framework: WeaverFramework[F]): Resource[F, DogFood[F]] = {
     import framework.unsafeRun.concurrent
-    Blocker[F].map(implicit blocker => new DogFood[F](framework))
+    Blocker.apply[F].map(blocker => new DogFood[F](framework)(blocker))
   }
 
 }
