@@ -30,6 +30,7 @@ object WeaverPlugin extends AutoPlugin {
     moduleName := s"weaver-${name.value}",
     crossScalaVersions := supportedScalaVersions,
     scalacOptions ++= compilerOptions(scalaVersion.value),
+    Test / scalacOptions ~= (_ filterNot (_ == "-Xfatal-warnings")),
     // Turning off fatal warnings for ScalaDoc, otherwise we can't release.
     Compile / doc / scalacOptions ~= (_ filterNot (_ == "-Xfatal-warnings")),
     // ScalaDoc settings

@@ -3,14 +3,13 @@ package monixbiocompat
 
 import scala.concurrent.duration.{ MILLISECONDS, _ }
 
+import cats.Parallel
 import cats.data.Chain
 import cats.effect.concurrent.Ref
-import cats.effect.{ ContextShift, Resource, Timer }
+import cats.effect.{Concurrent, ContextShift, Resource, Timer}
 
 import monix.bio.{ IO, Task }
 import monix.execution.Scheduler
-import cats.effect.Concurrent
-import cats.Parallel
 
 object MonixBioUnsafeRun extends UnsafeRun[Task] {
   implicit val scheduler: Scheduler = monix.execution.Scheduler.global

@@ -1,19 +1,20 @@
 package weaver
 package framework
 
-import sbt.testing._
+import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.atomic.AtomicBoolean
+
+import scala.concurrent.ExecutionContext
+import scala.concurrent.duration._
+
 import cats.data.Chain
-import cats.syntax.all._
+import cats.effect.ExitCase.{Canceled, Completed}
 import cats.effect._
 import cats.effect.concurrent._
 import cats.effect.syntax.all._
+import cats.syntax.all._
 
-import java.util.concurrent.ConcurrentLinkedQueue
-import java.util.concurrent.atomic.AtomicBoolean
-import scala.concurrent.ExecutionContext
-import scala.concurrent.duration._
-import cats.effect.ExitCase.Canceled
-import cats.effect.ExitCase.Completed
+import sbt.testing._
 
 class WeaverRunner[F[_]](
     val args: Array[String],
@@ -241,6 +242,8 @@ class WeaverRunner[F[_]](
   }
 
   object Reporter {
+    import Colours._
+
     def log(loggers: Array[Logger])(event: SuiteEvent): Unit = event match {
       case SuiteStarted(name) =>
         loggers.foreach { logger =>

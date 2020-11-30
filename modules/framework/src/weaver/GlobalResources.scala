@@ -6,10 +6,9 @@ import scala.util.Try
 import cats.effect._
 import cats.effect.concurrent.Ref
 import cats.syntax.all._
-import cats.{ Applicative, MonadError }
+import cats.{Applicative, FlatMap, MonadError}
 
 import org.portablescala.reflect.annotation.EnableReflectiveInstantiation
-import cats.FlatMap
 
 /**
  * Top-level instances of this trait are detected by the framework and used to manage

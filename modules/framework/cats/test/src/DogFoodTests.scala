@@ -3,16 +3,16 @@ package framework
 package test
 
 import cats.data.Chain
+import cats.effect.{ IO, Resource }
 import cats.syntax.all._
 
 import sbt.testing.Status
-import cats.effect.{ IO, Resource }
 
 object DogFoodSuite extends IOSuite {
 
   type Res = DogFood[IO]
   def sharedResource: Resource[IO, DogFood[IO]] =
-    DogFood.make(new CatsFramework)
+    DogFood.make(new CatsEffect)
 
   test("test suite reports successes events") { dogfood =>
     import dogfood._
@@ -129,7 +129,7 @@ object DogFoodSuite extends IOSuite {
         |  of
         |  multiline
         |  (failure)
-        |  assertion failed (modules/framework/test/src/Meta.scala:30)
+        |  assertion failed (modules/framework/cats/test/src/Meta.scala:30)
         |
         |  expect(1 == 2)
         |

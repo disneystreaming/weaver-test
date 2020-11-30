@@ -2,15 +2,14 @@ package weaver
 package framework
 package test
 
-import cats.effect.IO
+import cats.effect.{IO, Resource}
 import cats.syntax.all._
-import cats.effect.Resource
 
 object DogFoodSuiteJVM extends IOSuite {
 
   type Res = DogFood[IO]
   def sharedResource: Resource[IO, DogFood[IO]] =
-    DogFood.make(new CatsFramework)
+    DogFood.make(new CatsEffect)
 
   // This tests the global resource sharing mechanism by running a suite that
   // acquires a temporary file that gets created during global resource initialisation.

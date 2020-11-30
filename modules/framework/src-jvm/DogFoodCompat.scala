@@ -1,10 +1,10 @@
 package weaver
 package framework
 
+import cats.effect.Blocker
 import cats.syntax.all._
 
 import sbt.testing.{ Task => SbtTask, _ }
-import cats.effect.Blocker
 
 private[weaver] trait DogFoodCompat[F[_]] { self: DogFood[F] =>
 

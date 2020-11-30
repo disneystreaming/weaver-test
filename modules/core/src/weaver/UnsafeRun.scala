@@ -1,7 +1,7 @@
 package weaver
 
-import cats.effect.{ Concurrent, ContextShift, Timer }
 import cats.Parallel
+import cats.effect.{ Concurrent, ContextShift, Timer }
 
 /**
  * Abstraction allowing for running IO constructs unsafely.

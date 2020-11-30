@@ -7,6 +7,7 @@ import cats.effect.concurrent.{ MVar, MVar2, Ref }
 import cats.syntax.all._
 
 import TestOutcome.{ Summary, Verbose }
+import Colours._
 
 class Runner[F[_]: Concurrent](args: List[String], maxConcurrentSuites: Int)(
     printLine: String => F[Unit]) {
@@ -52,11 +53,11 @@ class Runner[F[_]: Concurrent](args: List[String], maxConcurrentSuites: Int)(
     val stars = "*************"
 
     def newLine = printLine("")
-    def printTestEvent(mode: TestOutcome.Mode)(event: Event) =
+    def printTestEvent(mode: TestOutcome.Mode)(event: TestOutcome) =
       printLine(event.formatted(mode))
     def handle(specEvent: SpecEvent): F[Outcome] = {
       val (successes, failures, outcome) =
-        specEvent.events.foldMap[(List[Event], List[Event], Outcome)] {
+        specEvent.events.foldMap[(List[TestOutcome], List[TestOutcome], Outcome)] {
           case ev if ev.status.isFailed =>
             (List.empty, List(ev), Outcome.fromEvent(ev))
           case ev => (List(ev), List.empty, Outcome.fromEvent(ev))
@@ -101,7 +102,7 @@ class Runner[F[_]: Concurrent](args: List[String], maxConcurrentSuites: Int)(
 
 object Runner {
 
-  case class SpecEvent(name: String, events: List[Event])
+  case class SpecEvent(name: String, events: List[TestOutcome])
 
   case class Outcome(
       successes: Int,
@@ -119,7 +120,7 @@ object Runner {
   object Outcome {
     val empty = Outcome(0, 0, 0, 0)
 
-    def fromEvent(event: Event): Outcome = event.status match {
+    def fromEvent(event: TestOutcome): Outcome = event.status match {
       case TestStatus.Exception =>
         Outcome(0, 0, 0, failures = 1)
       case TestStatus.Failure =>

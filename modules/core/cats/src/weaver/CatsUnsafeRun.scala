@@ -1,8 +1,8 @@
 package weaver
 
-import cats.effect.{ IO, ContextShift }
 import scala.concurrent.ExecutionContext
-import cats.effect.Timer
+
+import cats.effect.{ContextShift, IO, Timer}
 
 object CatsUnsafeRun extends UnsafeRun[IO] {
 

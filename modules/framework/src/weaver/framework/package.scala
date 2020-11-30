@@ -1,9 +1,9 @@
 package weaver
 
+import scala.reflect.ClassTag
 import scala.util.control.NoStackTrace
 
 import org.portablescala.reflect.Reflect
-import scala.reflect.ClassTag
 
 package object framework {
 

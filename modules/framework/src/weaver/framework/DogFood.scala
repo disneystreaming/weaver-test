@@ -5,9 +5,9 @@ import scala.concurrent.duration._
 import scala.reflect.ClassTag
 
 import cats.data.Chain
+import cats.effect.{Blocker, Resource, Sync}
 import cats.kernel.Eq
 import cats.syntax.all._
-// import cats.effect.syntax.all._
 
 import sbt.testing.{
   Event => SbtEvent,
@@ -17,9 +17,6 @@ import sbt.testing.{
 }
 
 import Platform._
-import cats.effect.Resource
-import cats.effect.Sync
-import cats.effect.Blocker
 
 object DogFood {
 

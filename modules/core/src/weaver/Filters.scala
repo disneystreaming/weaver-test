@@ -1,30 +1,8 @@
-package object weaver {
-  import java.util.regex.Pattern
+package weaver
 
-  type IOSuite       = MutableIOSuite
-  type SimpleIOSuite = SimpleMutableIOSuite
-  type Event         = TestOutcome
+import java.util.regex.Pattern
 
-  object discard {
-    def apply[T]: T => Unit = { value =>
-      val _ = value
-    }
-  }
-
-  def colored(color: String)(s: String): String =
-    new StringBuilder()
-      .append(color)
-      .append(s)
-      .append(Console.RESET)
-      .toString()
-
-  val red = colored(Console.RED) _
-
-  val yellow = colored(Console.YELLOW) _
-
-  val cyan = colored(Console.CYAN) _
-
-  val green = colored(Console.GREEN) _
+private[weaver] object Filters {
 
   private[weaver] def toPattern(filter: String): Pattern = {
     val parts = filter

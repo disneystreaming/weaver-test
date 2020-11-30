@@ -38,7 +38,7 @@ abstract class BaseMutableZIOSuite[Res <: Has[_]](implicit tag: Tag[Res])
   override def spec(args: List[String]): Stream[Task, TestOutcome] =
     synchronized {
       if (!isInitialized) isInitialized = true
-      val argsFilter = filterTests(this.name)(args)
+      val argsFilter = Filters.filterTests(this.name)(args)
       val filteredTests = testSeq.collect {
         case (name, test) if argsFilter(name) => test
       }

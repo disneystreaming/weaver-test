@@ -1,7 +1,7 @@
 package weaver
 
 import cats.effect.implicits._
-import cats.effect.{ Concurrent, IO, Resource, Timer }
+import cats.effect.{ Concurrent, Resource, Timer }
 import cats.syntax.applicative._
 import cats.syntax.applicativeError._
 
@@ -50,20 +50,6 @@ trait RunnableSuite[F[_]] extends EffectSuite[F] {
   override protected final def concurrent: Concurrent[F] = unsafeRun.effect
 }
 
-trait BaseIOSuite extends RunnableSuite[IO] {
-  val unsafeRun: UnsafeRun[IO] = CatsUnsafeRun
-  implicit protected def contextShift = unsafeRun.contextShift
-  implicit protected def timer = unsafeRun.timer
-}
-
-trait PureIOSuite extends EffectSuite[IO] with BaseIOSuite with Expectations.Helpers {
-
-  def pureTest(name: String)(run : => Expectations) : IO[TestOutcome] = Test[IO](name, IO(run))
-  def simpleTest(name:  String)(run : IO[Expectations]) : IO[TestOutcome] = Test[IO](name, run)
-  def loggedTest(name: String)(run : Log[IO] => IO[Expectations]) : IO[TestOutcome] = Test[IO](name, run)
-
-}
-
 trait MutableFSuite[F[_]] extends EffectSuite[F]  {
 
   type Res
@@ -92,7 +78,7 @@ trait MutableFSuite[F[_]] extends EffectSuite[F]  {
   override def spec(args: List[String]) : Stream[F, TestOutcome] =
     synchronized {
       if (!isInitialized) isInitialized = true
-      val argsFilter = filterTests(this.name)(args)
+      val argsFilter = Filters.filterTests(this.name)(args)
       val filteredTests = testSeq.collect { case (name, test) if argsFilter(name) => test }
       val parallism = math.max(1, maxParallelism)
       if (filteredTests.isEmpty) Stream.empty // no need to allocate resources
@@ -115,9 +101,3 @@ trait MutableFSuite[F[_]] extends EffectSuite[F]  {
 
 }
 
-trait MutableIOSuite extends MutableFSuite[IO] with BaseIOSuite with Expectations.Helpers
-
-trait SimpleMutableIOSuite extends MutableIOSuite {
-  type Res = Unit
-  def sharedResource: Resource[IO, Unit] = Resource.pure[IO, Unit](())
-}

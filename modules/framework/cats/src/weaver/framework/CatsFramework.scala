@@ -3,11 +3,10 @@ package framework
 
 import cats.effect.IO
 
-class CatsFramework
+class CatsEffect
     extends WeaverFramework("cats-effect", CatsFingerprints, CatsUnsafeRun)
 
 object CatsFingerprints
     extends WeaverFingerprints.Mixin[IO, BaseIOSuite, IOGlobalResourcesInit]
 
 trait IOGlobalResourcesInit extends GlobalResourcesInit[IO]
-

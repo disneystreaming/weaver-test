@@ -1,11 +1,12 @@
 package weaver.framework
 
-import sbt.testing.{ SubclassFingerprint, Fingerprint }
 import scala.reflect.ClassTag
-import weaver.EffectSuite
-import weaver.{ GlobalResources, GlobalResourcesInit }
-import sbt.testing.TaskDef
+
 import cats.effect.Sync
+
+import weaver.{EffectSuite, GlobalResources, GlobalResourcesInit}
+
+import sbt.testing.{Fingerprint, SubclassFingerprint, TaskDef}
 
 object WeaverFingerprints {
   // format: off

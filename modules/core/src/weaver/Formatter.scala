@@ -6,6 +6,7 @@ import cats.syntax.show._
 import weaver.Log.{ debug, error, info, warn }
 
 import LogFormatter.{ formatTimestamp }
+import Colours._
 
 object Formatter {
   val EOL        = java.lang.System.lineSeparator()

@@ -14,7 +14,7 @@ object SourceLocationTest extends SimpleIOSuite {
 
     expect(name.contains("SourceLocationTest.scala")) &&
     expect(relPath.contains(
-      "modules/framework/test/src/SourceLocationTest.scala")) &&
+      "modules/framework/cats/test/src/SourceLocationTest.scala")) &&
     expect(line == 8)
   }
 
