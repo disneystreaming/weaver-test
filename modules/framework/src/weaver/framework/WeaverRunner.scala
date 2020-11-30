@@ -31,13 +31,17 @@ class WeaverRunner[F[_]](
 
   override def done(): String = {
     isDone.set(true)
-    unsafeRun.sync(cancelToken)
+    // unsafeRun.sync(cancelToken)
+    val _ = cancelToken
     System.lineSeparator()
 
   }
 
   // Required on js
-  def receiveMessage(msg: String): Option[String] = None
+  def receiveMessage(msg: String): Option[String] = {
+    println(msg)
+    None
+  }
 
   // Flag meant to be raised if build-tool call `done`
   protected val isDone: AtomicBoolean = new AtomicBoolean(false)
@@ -92,11 +96,13 @@ class WeaverRunner[F[_]](
     sbtTasks.toArray
   }
 
-  def serializeTask(task: Task, serializer: TaskDef => String): String = ???
+  def serializeTask(task: Task, serializer: TaskDef => String): String = serializer(task.taskDef())
 
   def deserializeTask(
       task: String,
-      deserializer: String => TaskDef): Task = ???
+      deserializer: String => TaskDef): Task = {
+        tasks(Array(deserializer(task))).head
+      }
 
   private def run(
       globalResources: List[GlobalResourcesInit[F]],
@@ -204,6 +210,10 @@ class WeaverRunner[F[_]](
       }
 
       Array()
+    }
+
+    def execute(eventHandler: EventHandler, loggers: Array[Logger], continuation: Array[Task] => Unit): Unit = {
+      continuation(execute(eventHandler, loggers))
     }
 
     def tags(): Array[String] = Array()

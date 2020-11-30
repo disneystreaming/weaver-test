@@ -1,3 +1,4 @@
+import _root_.sbtcrossproject.Platform
 // shadow sbt-scalajs' crossProject and CrossType from Scala.js 0.6.x
 
 import org.jetbrains.sbtidea.Keys.createRunnerProject
@@ -136,7 +137,8 @@ lazy val framework = crossProject(JSPlatform, JVMPlatform)
   .settings(
     libraryDependencies ++= Seq(
       "io.github.cquiroz" %%% "scala-java-time-tzdb" % "2.0.0" % Test
-    )
+    ),
+    fork in Test := false
   )
   .jvmSettings(
     libraryDependencies ++= Seq(

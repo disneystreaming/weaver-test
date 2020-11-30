@@ -13,8 +13,6 @@ class WeaverFramework[F[_]](
 
   def name(): String = s"weaver-$suffix"
 
-  // val weaverFingerprints: WeaverFingerprints[IO] = CatsFingerprints
-
   def fingerprints(): Array[Fingerprint] =
     if (Platform.isJVM) {
       Array(

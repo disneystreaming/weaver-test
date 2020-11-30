@@ -24,7 +24,7 @@ object MonixBioUnsafeRun extends UnsafeRun[Task] {
     val cancelToken = task.runAsync { _ => () }(scheduler)
     monix.bio.Task(cancelToken.cancel())
   }
-  def sync(task: monix.bio.Task[Unit]): Unit = task.runSyncUnsafe()
+  def sync(task: monix.bio.Task[Unit]): Unit = PlatformCompat.runSync(task)
 }
 
 trait BaseIOSuite extends RunnableSuite[Task] {

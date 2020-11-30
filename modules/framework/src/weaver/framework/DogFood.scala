@@ -18,18 +18,9 @@ import sbt.testing.{
 
 import Platform._
 
-object DogFood {
-
-  def make[F[_]](framework: WeaverFramework[F]): Resource[F, DogFood[F]] = {
-    import framework.unsafeRun.effect
-    Blocker.apply[F].map(blocker => new DogFood[F](framework)(blocker))
-  }
-
-}
-
 // Functionality to test how the frameworks react to successful and failing tests/suites
-class DogFood[F[_]](
-    val framework: WeaverFramework[F])(implicit blocker: Blocker)
+abstract class  DogFood[F[_]](
+    val framework: WeaverFramework[F])
     extends DogFoodCompat[F] {
   import framework.unsafeRun._
 
@@ -49,7 +40,7 @@ class DogFood[F[_]](
       eventHandler <- effect.delay(new MemoryEventHandler())
       logger       <- effect.delay(new MemoryLogger())
       _ <- getTasks(suites)
-        .use(runTasks(eventHandler, logger, blocker))
+        .use(runTasks(eventHandler, logger))
       // .race(timer.sleep(2.seconds))
       _      <- patience.fold(effect.unit)(timer.sleep)
       logs   <- logger.get
@@ -81,7 +72,7 @@ class DogFood[F[_]](
     Resource.make(Sync[F].delay {
       val cl = PlatformCompat.getClassLoader(this.getClass())
       framework.runner(Array(), Array(), cl)
-    })(runner => blocker.delay[F, String](runner.done()).void).evalMap {
+    })(runner => done(runner)).evalMap {
       runner =>
         val taskDefs: Array[TaskDef] = suites.toArray.map { s =>
           new TaskDef(s.fullyQualifiedName,
@@ -94,10 +85,9 @@ class DogFood[F[_]](
 
   private def runTasks(
       eventHandler: EventHandler,
-      logger: Logger,
-      blocker: Blocker)(
+      logger: Logger)(
       tasks: Array[SbtTask]): F[Unit] =
-    runTasksCompat(eventHandler, logger, blocker)(tasks)
+    runTasksCompat(eventHandler, logger)(tasks)
 
   def globalInit(g: GlobalResourcesInit[F]): Fingerprinted =
     Fingerprinted.GlobalInit(g.getClass.getName.dropRight(1))
