@@ -1,9 +1,8 @@
 package weaver
 package framework
 
+import cats.effect.{Blocker, Resource}
 import cats.syntax.all._
-import cats.effect.Blocker
-import cats.effect.Resource
 
 import sbt.testing.{ Task => SbtTask, _ }
 
@@ -14,13 +13,14 @@ private[weaver] trait DogFoodCompat[F[_]] { self: DogFood[F] =>
   def blocker: Blocker
 
   def runTasksCompat(
+      runner: WeaverRunner[F],
       eventHandler: EventHandler,
       logger: Logger)(tasks: Array[SbtTask]): F[Unit] =
     tasks.toVector.parTraverse { task =>
       blocker.delay(task.execute(eventHandler, Array(logger)))
     }.void
 
-  def done(runner: Runner) = blocker.delay[F, String](runner.done()).void
+  def done(runner: Runner): F[String] = blocker.delay[F, String](runner.done())
 }
 
 private[weaver] object DogFoodCompat {

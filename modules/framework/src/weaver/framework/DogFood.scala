@@ -5,7 +5,7 @@ import scala.concurrent.duration._
 import scala.reflect.ClassTag
 
 import cats.data.Chain
-import cats.effect.{Resource, Sync}
+import cats.effect.{ Resource, Sync }
 import cats.kernel.Eq
 import cats.syntax.all._
 
@@ -19,7 +19,7 @@ import sbt.testing.{
 import Platform._
 
 // Functionality to test how the frameworks react to successful and failing tests/suites
-abstract class  DogFood[F[_]](
+abstract class DogFood[F[_]](
     val framework: WeaverFramework[F])
     extends DogFoodCompat[F] {
   import framework.unsafeRun._
@@ -39,9 +39,9 @@ abstract class  DogFood[F[_]](
     for {
       eventHandler <- effect.delay(new MemoryEventHandler())
       logger       <- effect.delay(new MemoryLogger())
-      _ <- getTasks(suites)
-        .use(runTasks(eventHandler, logger))
-      // .race(timer.sleep(2.seconds))
+      _            <- getTasks(suites, logger).use { case(runner, tasks) =>
+        runTasks(runner, eventHandler, logger)(tasks)
+      }
       _      <- patience.fold(effect.unit)(timer.sleep)
       logs   <- logger.get
       events <- eventHandler.get
@@ -68,11 +68,17 @@ abstract class  DogFood[F[_]](
   }
 
   private def getTasks(
-      suites: Seq[Fingerprinted]): Resource[F, Array[SbtTask]] =
-    Resource.make(Sync[F].delay {
+      suites: Seq[Fingerprinted],
+      logger: Logger): Resource[F, (WeaverRunner[F], Array[SbtTask])] = {
+    val acquire = Sync[F].delay {
       val cl = PlatformCompat.getClassLoader(this.getClass())
-      framework.runner(Array(), Array(), cl)
-    })(runner => done(runner)).evalMap {
+      framework.weaverRunner(Array(), Array(), cl, None)
+    }
+    val runner = Resource.make(acquire){ runner =>
+      done(runner).void
+    }
+
+    runner.evalMap {
       runner =>
         val taskDefs: Array[TaskDef] = suites.toArray.map { s =>
           new TaskDef(s.fullyQualifiedName,
@@ -81,14 +87,16 @@ abstract class  DogFood[F[_]](
                       Array(new SuiteSelector))
         }
 
-        Sync[F].delay(runner.tasks(taskDefs))
+        Sync[F].delay(runner -> runner.tasks(taskDefs))
     }
+  }
 
   private def runTasks(
+      runner: WeaverRunner[F],
       eventHandler: EventHandler,
       logger: Logger)(
       tasks: Array[SbtTask]): F[Unit] =
-    runTasksCompat(eventHandler, logger)(tasks)
+    runTasksCompat(runner, eventHandler, logger)(tasks)
 
   def globalInit(g: GlobalResourcesInit[F]): Fingerprinted =
     Fingerprinted.GlobalInit(g.getClass.getName.dropRight(1))
