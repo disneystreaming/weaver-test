@@ -7,7 +7,8 @@ class WeaverRunner[F[_]](
     val args: Array[String],
     val remoteArgs: Array[String],
     val suiteLoader: SuiteLoader[F],
-    val unsafeRun: UnsafeRun[F]
+    val unsafeRun: UnsafeRun[F],
+    val channel: Option[String => Unit]
 ) extends Runner with PlatformRunner[F]
 
 final case class SuiteName(name: String) extends AnyVal

@@ -19,21 +19,30 @@ object Reporter {
     }
   }
 
-  def logRunFinished(loggers: Array[Logger])(failed: Chain[(
-      SuiteName,
-      TestOutcome)]) = {
+  def runFinished(
+      info: String => Unit,
+      error: String => Unit)(failed: Chain[(SuiteName, TestOutcome)]) = {
     if (failed.nonEmpty) {
-      loggers.foreach(
-        _.info(red("*************") + "FAILURES" + red("**************")))
+      info(red("*************") + "FAILURES" + red("**************"))
     }
     failed.groupBy(_._1.name).foreach {
       case (suiteName, events) =>
-        loggers.foreach(_.info(cyan(suiteName)))
+        info(cyan(suiteName))
         for ((_, event) <- events.iterator) {
-          loggers.foreach(_.error(event.formatted(TestOutcome.Verbose)))
+          error(event.formatted(TestOutcome.Verbose))
         }
-        loggers.foreach(_.info(""))
+        info("")
     }
+  }
+
+  def logRunFinished(loggers: Array[Logger])(failed: Chain[(
+      SuiteName,
+      TestOutcome)]) = {
+
+    runFinished(
+      info = s => loggers.foreach(_.info(s)),
+      error = s => loggers.foreach(_.error(s))
+    )(failed)
   }
 
   def log(loggers: Array[Logger])(event: SuiteEvent): Unit = event match {

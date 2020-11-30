@@ -24,15 +24,25 @@ class WeaverFramework[F[_]](
       Array(fp.SuiteFingerprint)
     }
 
-  def runner(
-      args: Array[String],
+  def weaverRunner(
+    args: Array[String],
       remoteArgs: Array[String],
-      testClassLoader: ClassLoader): BaseRunner = {
+      testClassLoader: ClassLoader,
+      send: Option[String => Unit]
+  ): BaseRunner = {
     new WeaverRunner[F](
       args,
       remoteArgs,
       fp.suiteLoader(testClassLoader),
-      unsafeRun)
+      unsafeRun,
+      send)
+  }
+
+  def runner(
+      args: Array[String],
+      remoteArgs: Array[String],
+      testClassLoader: ClassLoader): BaseRunner = {
+    weaverRunner(args, remoteArgs, testClassLoader, None)
   }
 
   def slaveRunner(
@@ -41,6 +51,6 @@ class WeaverFramework[F[_]](
       testClassLoader: ClassLoader,
       send: String => Unit): BaseRunner = {
     discard[String => Unit](send)
-    runner(args, remoteArgs, testClassLoader)
+    weaverRunner(args, remoteArgs, testClassLoader, Some(send))
   }
 }
