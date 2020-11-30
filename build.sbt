@@ -291,7 +291,8 @@ lazy val cats = crossProject(JSPlatform, JVMPlatform)
   )
   .settings(
     name := "weaver-cats",
-    testFrameworks := Seq(new TestFramework("weaver.framework.CatsEffect"))
+    testFrameworks := Seq(new TestFramework("weaver.framework.CatsEffect")),
+    libraryDependencies += "io.github.cquiroz" %%% "scala-java-time-tzdb" % "2.0.0" % Test
   )
 
 lazy val catsJVM = cats.jvm
