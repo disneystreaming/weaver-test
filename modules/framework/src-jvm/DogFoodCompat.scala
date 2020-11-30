@@ -14,7 +14,7 @@ private[weaver] trait DogFoodCompat[F[_]] { self: DogFood[F] =>
       eventHandler: EventHandler,
       logger: Logger,
       blocker: Blocker)(tasks: Array[SbtTask]): F[Unit] =
-    tasks.toVector.traverse { task =>
+    tasks.toVector.parTraverse { task =>
       blocker.delay(task.execute(eventHandler, Array(logger)))
     }.void
 }

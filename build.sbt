@@ -172,6 +172,7 @@ lazy val scalacheck = crossProject(JSPlatform, JVMPlatform)
   .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.simpleLayout)
   .settings(
+    testFrameworks := Seq(new TestFramework("weaver.framework.CatsFramework")),
     libraryDependencies ++= Seq(
       "org.scalacheck" %%% "scalacheck" % "1.15.1"
     ),
