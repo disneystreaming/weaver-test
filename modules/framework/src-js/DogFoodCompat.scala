@@ -12,10 +12,11 @@ private[weaver] trait DogFoodCompat[F[_]] { self: DogFood[F] =>
 
   def runTasksCompat(
       eventHandler: EventHandler,
-      logger: Logger)(tasks: Array[SbtTask]): F[Unit] =
+      logger: Logger)(tasks: Array[SbtTask]): F[Unit] = {
     tasks.toVector.parTraverse { task =>
       self.framework.unsafeRun.effect.delay(task.execute(eventHandler, Array(logger), _ => ()))
     }.void
+  }
 
   def done(runner: Runner) = runner.done().pure[F].void
 }

@@ -8,7 +8,7 @@ import cats.syntax.all._
 
 import sbt.testing.Status
 
-object DogFoodSuite extends IOSuite {
+object DogfoodTests extends IOSuite {
 
   type Res = DogFood[IO]
   def sharedResource: Resource[IO, DogFood[IO]] =

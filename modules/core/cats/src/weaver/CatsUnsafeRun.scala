@@ -24,4 +24,6 @@ object CatsUnsafeRun extends UnsafeRun[IO] {
 
   def sync(task: IO[Unit]): Unit = task.unsafeRunSync()
 
+  def async(task: IO[Unit]): Unit = task.unsafeRunAsyncAndForget()
+
 }

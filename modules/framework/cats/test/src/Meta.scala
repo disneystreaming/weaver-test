@@ -2,7 +2,7 @@ package weaver
 package framework
 package test
 
-import java.time.OffsetDateTime
+import java.time.Instant
 
 import scala.concurrent.duration.{ FiniteDuration, TimeUnit }
 
@@ -55,8 +55,8 @@ object Meta {
 
   object FailingSuiteWithlogs extends SimpleIOSuite {
     loggedTest("failure") { log =>
-      implicit val timer          = TimeCop.setTimer
-      implicit val sourceLocation = TimeCop.sourceLocation
+      // implicit val timer          = TimeCop.setTimer
+      // implicit val sourceLocation = TimeCop.sourceLocation
 
       val context = Map(
         "a"       -> "b",
@@ -117,11 +117,7 @@ object Meta {
   }
 
   object TimeCop {
-    private val setTimestamp = OffsetDateTime.now
-      .withHour(12)
-      .withMinute(54)
-      .withSecond(35)
-      .toEpochSecond * 1000
+    private val setTimestamp = Instant.now.getEpochSecond()
 
     implicit val setClock = new Clock[IO] {
       override def realTime(unit: TimeUnit): IO[Long] = IO(setTimestamp)

@@ -286,6 +286,9 @@ lazy val cats = crossProject(JSPlatform, JVMPlatform)
   .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.simpleLayout)
   .jsSettings(jsLinker)
+  .jsSettings(
+    fork in Test := false
+  )
   .settings(
     name := "weaver-cats",
     testFrameworks := Seq(new TestFramework("weaver.framework.CatsEffect"))

@@ -5,7 +5,7 @@ import weaver.framework.DogFood
 import monix.eval.Task
 import sbt.testing.Status
 
-object TaskSuiteTest extends SimpleTaskSuite {
+object TaskSuiteTest extends TaskSuite {
   List(
     TestWithExceptionInTest,
     TestWithExceptionInExpectation,

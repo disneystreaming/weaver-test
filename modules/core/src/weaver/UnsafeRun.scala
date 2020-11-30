@@ -21,5 +21,6 @@ protected[weaver] trait UnsafeRun[F[_]] {
   def background(task: F[Unit]): F[Unit]
 
   def sync(task: F[Unit]): Unit
+  def async(task: F[Unit]): Unit
 
 }

@@ -5,7 +5,7 @@ import scala.concurrent.duration._
 import scala.reflect.ClassTag
 
 import cats.data.Chain
-import cats.effect.{Blocker, Resource, Sync}
+import cats.effect.{Resource, Sync}
 import cats.kernel.Eq
 import cats.syntax.all._
 
@@ -80,6 +80,7 @@ abstract class  DogFood[F[_]](
                       true,
                       Array(new SuiteSelector))
         }
+
         Sync[F].delay(runner.tasks(taskDefs))
     }
 
