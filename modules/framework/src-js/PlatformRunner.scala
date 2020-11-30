@@ -1,19 +1,16 @@
 package weaver
 package framework
 
-import sbt.testing.TaskDef
-import sbt.testing.Task
-import sbt.testing.{ EventHandler, Logger }
-
-import scala.concurrent.duration._
-import cats.data.Chain
-
-import cats.syntax.all._
-import cats.effect.concurrent.Ref
-import cats.effect.ExitCase
 import scala.collection.mutable.ListBuffer
-
+import scala.concurrent.duration._
 import scala.scalajs.js.JSON
+
+import cats.data.Chain
+import cats.effect.ExitCase
+import cats.effect.concurrent.Ref
+import cats.syntax.all._
+
+import sbt.testing.{ EventHandler, Logger, Task, TaskDef }
 
 trait PlatformRunner[F[_]] { self: sbt.testing.Runner =>
   protected val args: Array[String]
@@ -23,13 +20,13 @@ trait PlatformRunner[F[_]] { self: sbt.testing.Runner =>
 
   import unsafeRun._
 
-  private val tests = ListBuffer.empty[TestOutcomeJS]
+  private[weaver] val failedTests = ListBuffer.empty[(SuiteName, TestOutcome)]
 
   def reportDone(out: TestOutcomeJS) = {
     val serialised = JSON.stringify(out)
     channel match {
       case Some(send) => send(serialised)
-      case None       => tests.addOne(out)
+      case None       => failedTests.append(TestOutcomeJS.rehydrate(out))
     }
   }
 
@@ -54,16 +51,18 @@ trait PlatformRunner[F[_]] { self: sbt.testing.Runner =>
   override def done(): String = {
     val sb = new StringBuilder
 
-    val s: String => Unit = str => { val _ = sb.append(str + TaskCompat.lineSeparator) }
+    val s: String => Unit =
+      str => { val _ = sb.append(str + TaskCompat.lineSeparator) }
 
-    Reporter.runFinished(s, s)(Chain(tests.toSeq.map(TestOutcomeJS.rehydrate): _*))
+    Reporter.runFinished(s, s)(Chain(failedTests.toSeq: _*))
 
     sb.result()
   }
 
   override def receiveMessage(msg: String): Option[String] = {
     val deser = JSON.parse(msg).asInstanceOf[TestOutcomeJS]
-    reportDone(deser); None
+    reportDone(deser);
+    None
   }
 
   override def tasks(taskDefs: Array[TaskDef]): Array[Task] = {
@@ -89,29 +88,36 @@ trait PlatformRunner[F[_]] { self: sbt.testing.Runner =>
         loggers: Array[Logger],
         continuation: Array[Task] => Unit): Unit = {
 
+      val fqn = taskDef().fullyQualifiedName()
+
+      def reportTestToSbt(outcome: TestOutcome) =
+        effect.delay(eventHandler.handle(SbtEvent(td, outcome)))
+
       loader match {
         case None => continuation(Array())
         case Some(loader) =>
-          val action = for {
+          def runSuite(outcomes: Ref[F, Chain[TestOutcome]]) = for {
             suite <- loader.suite
-            suiteName = SuiteName(suite.name)
-            _        <- effect.delay(Reporter.logSuiteStarted(loggers)(suiteName))
+            _     <- effect.delay(Reporter.logSuiteStarted(loggers)(SuiteName(fqn)))
+            _ <- suite.run(args.toList) { outcome =>
+              effect.delay(Reporter.logTestFinished(loggers)(outcome)) *>
+                reportTestToSbt(outcome) *>
+                outcomes.update(_.append(outcome))
+            }
+          } yield ()
+
+          val action = for {
             outcomes <- Ref.of(Chain.empty[TestOutcome])
-
-            outcomeHandle =
-              (o: TestOutcome) =>
-                effect.delay(
-                  Reporter.logTestFinished(loggers)(o)) *> outcomes.update(
-                  _.append(o)).whenA(o.status.isFailed)
-
+            run = runSuite(outcomes)
             _ <-
-              effect.guaranteeCase[Unit](
-                suite.run(args.toList)(outcomeHandle)) {
-                case ExitCase.Canceled => effect.unit
+              effect.guaranteeCase[Unit](run) {
+                case ExitCase.Canceled =>
+                  effect.unit
                 case ExitCase.Completed =>
                   val failedF =
                     outcomes.get.map(
-                      _.filter(_.status.isFailed).map(suiteName -> _))
+                      _.filter(_.status.isFailed).map(SuiteName(fqn) -> _))
+
                   failedF.flatMap {
                     case c if c.isEmpty => effect.unit
                     case failed => {
@@ -133,15 +139,18 @@ trait PlatformRunner[F[_]] { self: sbt.testing.Runner =>
                                 Result.from(error),
                                 Chain.empty)
 
+                  reportTestToSbt(outcome) *> 
                   effect.delay(reportDone(TestOutcomeJS(
-                    suiteName.name,
+                    fqn,
                     outcome.name,
                     outcome.duration.toMillis.toDouble,
                     outcome.formatted(TestOutcome.Verbose)))).void
               }
           } yield ()
 
-          unsafeRun.async(action.map(_ => continuation(Array())))
+          unsafeRun.async(action.attempt.map { exc =>
+            continuation(Array())
+          })
       }
     }
 

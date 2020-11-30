@@ -29,7 +29,7 @@ class WeaverFramework[F[_]](
       remoteArgs: Array[String],
       testClassLoader: ClassLoader,
       send: Option[String => Unit]
-  ): BaseRunner = {
+  ): WeaverRunner[F] = {
     new WeaverRunner[F](
       args,
       remoteArgs,

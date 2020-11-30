@@ -2,11 +2,11 @@ package weaver
 package framework
 package test
 
-import java.time.Instant
 
 import scala.concurrent.duration.{ FiniteDuration, TimeUnit }
 
 import cats.effect._
+import java.time.OffsetDateTime
 
 // The build tool will only detect and run top-level test suites. We can however nest objects
 // that contain failing tests, to allow for testing the framework without failing the build
@@ -55,8 +55,8 @@ object Meta {
 
   object FailingSuiteWithlogs extends SimpleIOSuite {
     loggedTest("failure") { log =>
-      // implicit val timer          = TimeCop.setTimer
-      // implicit val sourceLocation = TimeCop.sourceLocation
+      implicit val timer          = TimeCop.setTimer
+      implicit val sourceLocation = TimeCop.sourceLocation
 
       val context = Map(
         "a"       -> "b",
@@ -117,8 +117,12 @@ object Meta {
   }
 
   object TimeCop {
-    private val setTimestamp = Instant.now.getEpochSecond()
-
+    private val setTimestamp = OffsetDateTime.now
+      .withHour(12)
+      .withMinute(54)
+      .withSecond(35)
+      .toEpochSecond * 1000
+    
     implicit val setClock = new Clock[IO] {
       override def realTime(unit: TimeUnit): IO[Long] = IO(setTimestamp)
 

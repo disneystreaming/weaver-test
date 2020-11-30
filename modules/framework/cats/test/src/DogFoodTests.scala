@@ -31,11 +31,15 @@ object DogfoodTests extends IOSuite {
 
         exists(events.headOption) { event =>
           val name = event.fullyQualifiedName()
-          expect(name == "weaver.framework.test.Meta$CrashingSuite") and
-            expect(event.status() == Status.Error)
+          expect.all(
+            name == "weaver.framework.test.Meta$CrashingSuite",
+            event.status() == Status.Error
+          )
         } and exists(errorLogs) { log =>
-          expect(log.contains("Unexpected failure")) and
-            expect(log.contains("Boom"))
+          expect.all(
+            log.contains("Unexpected failure"),
+            log.contains("Boom")
+          )
         }
     }
   }
@@ -74,11 +78,11 @@ object DogfoodTests extends IOSuite {
             |        request -> true
             |""".stripMargin.trim
 
-        val actual = extractLogEventAfterFailures(logs) {
+        exists(extractLogEventAfterFailures(logs) {
           case LoggedEvent.Error(msg) => msg
-        }.get
-
-        expectEqual(expected, actual)
+        }) { actual =>
+          expectEqual(expected, actual)
+        }
     }
   }
 
