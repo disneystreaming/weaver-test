@@ -2,17 +2,17 @@ package weaver
 
 import scala.concurrent.ExecutionContext
 
-import cats.effect.{ContextShift, IO, Timer}
+import cats.effect.{ ContextShift, IO, Timer }
 
 object CatsUnsafeRun extends UnsafeRun[IO] {
 
-  implicit val contextShift: ContextShift[IO] =
+  override implicit val contextShift: ContextShift[IO] =
     IO.contextShift(ExecutionContext.global)
-  implicit val timer: Timer[IO] =
+  override implicit val timer: Timer[IO] =
     IO.timer(ExecutionContext.global)
 
-  implicit val effect = IO.ioConcurrentEffect
-  implicit val parallel   = IO.ioParallel
+  override implicit val effect   = IO.ioConcurrentEffect(contextShift)
+  override implicit val parallel = IO.ioParallel(contextShift)
 
   def void: IO[Unit] = IO.unit
 

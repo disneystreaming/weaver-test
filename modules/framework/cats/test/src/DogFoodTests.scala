@@ -12,7 +12,7 @@ object DogfoodTests extends IOSuite {
 
   type Res = DogFood[IO]
   def sharedResource: Resource[IO, DogFood[IO]] =
-    DogFoodCompat.make(new CatsEffect)
+    DogFood.make(new CatsEffect)
 
   test("test suite reports successes events") { dogfood =>
     import dogfood._

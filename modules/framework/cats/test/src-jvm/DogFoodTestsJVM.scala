@@ -9,7 +9,7 @@ object DogFoodSuiteJVM extends IOSuite {
 
   type Res = DogFood[IO]
   def sharedResource: Resource[IO, DogFood[IO]] =
-    DogFoodCompat.make(new CatsEffect)
+    DogFood.make(new CatsEffect)
 
   // This tests the global resource sharing mechanism by running a suite that
   // acquires a temporary file that gets created during global resource initialisation.

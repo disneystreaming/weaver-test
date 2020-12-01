@@ -9,8 +9,11 @@ import cats.data.Chain
 import cats.effect.ExitCase
 import cats.effect.concurrent.Ref
 import cats.syntax.all._
+import cats.effect.syntax.all._
+import scala.scalajs.js
 
 import sbt.testing.{ EventHandler, Logger, Task, TaskDef }
+import cats.effect.Sync
 
 trait PlatformRunner[F[_]] { self: sbt.testing.Runner =>
   protected val args: Array[String]
@@ -22,7 +25,7 @@ trait PlatformRunner[F[_]] { self: sbt.testing.Runner =>
 
   private[weaver] val failedTests = ListBuffer.empty[(SuiteName, TestOutcome)]
 
-  def reportDone(out: TestOutcomeJS) = {
+  def reportDone(out: TestOutcomeJS): Unit = {
     val serialised = JSON.stringify(out)
     channel match {
       case Some(send) => send(serialised)
@@ -30,16 +33,18 @@ trait PlatformRunner[F[_]] { self: sbt.testing.Runner =>
     }
   }
 
+  def reportDoneF(out: TestOutcomeJS): F[Unit] = Sync[F].delay(reportDone(out))
+
   override def deserializeTask(
       task: String,
       deserialize: String => sbt.testing.TaskDef): sbt.testing.Task = {
-    val td = deserialize(task)
+    val taskDef = deserialize(task)
 
-    SbtTask(td,
-            suiteLoader(td).collect {
-              case suite: suiteLoader.SuiteRef => suite
-            })
+    val suiteRefs = suiteLoader(taskDef).collect {
+      case suite: suiteLoader.SuiteRef => suite
+    }
 
+    SbtTask(taskDef, suiteRefs)
   }
 
   override def serializeTask(
@@ -51,8 +56,9 @@ trait PlatformRunner[F[_]] { self: sbt.testing.Runner =>
   override def done(): String = {
     val sb = new StringBuilder
 
-    val s: String => Unit =
-      str => { val _ = sb.append(str + TaskCompat.lineSeparator) }
+    val s = { str: String =>
+      val _ = sb.append(str + TaskCompat.lineSeparator)
+    }
 
     Reporter.runFinished(s, s)(Chain(failedTests.toSeq: _*))
 
@@ -60,8 +66,8 @@ trait PlatformRunner[F[_]] { self: sbt.testing.Runner =>
   }
 
   override def receiveMessage(msg: String): Option[String] = {
-    val deser = JSON.parse(msg).asInstanceOf[TestOutcomeJS]
-    reportDone(deser);
+    val outcome = JSON.parse(msg).asInstanceOf[TestOutcomeJS]
+    reportDone(outcome)
     None
   }
 
@@ -90,68 +96,65 @@ trait PlatformRunner[F[_]] { self: sbt.testing.Runner =>
 
       val fqn = taskDef().fullyQualifiedName()
 
-      def reportTestToSbt(outcome: TestOutcome) =
+      def reportTest(outcome: TestOutcome) =
         effect.delay(eventHandler.handle(SbtEvent(td, outcome)))
 
-      loader match {
-        case None => continuation(Array())
-        case Some(loader) =>
-          def runSuite(outcomes: Ref[F, Chain[TestOutcome]]) = for {
-            suite <- loader.suite
-            _     <- effect.delay(Reporter.logSuiteStarted(loggers)(SuiteName(fqn)))
-            _ <- suite.run(args.toList) { outcome =>
-              effect.delay(Reporter.logTestFinished(loggers)(outcome)) *>
-                reportTestToSbt(outcome) *>
-                outcomes.update(_.append(outcome))
+      def runSuite(
+          fqn: String,
+          suite: EffectSuite[F],
+          outcomes: Ref[F, Chain[TestOutcome]]): F[Unit] = for {
+        _ <- effect.delay(Reporter.logSuiteStarted(loggers)(SuiteName(fqn)))
+        _ <- suite.run(args.toList) { outcome =>
+          effect.delay(Reporter.logTestFinished(loggers)(outcome))
+            .productR(reportTest(outcome))
+            .productR(outcomes.update(_.append(outcome)))
+        }
+      } yield ()
+
+      def finalize(outcomes: Ref[F, Chain[TestOutcome]])(
+          exitCase: ExitCase[Throwable]
+      ): F[Unit] = exitCase match {
+        case ExitCase.Canceled =>
+          effect.unit
+        case ExitCase.Completed =>
+          val failedF =
+            outcomes.get.map(
+              _.filter(_.status.isFailed).map(SuiteName(fqn) -> _))
+
+          failedF.flatMap {
+            case c if c.isEmpty => effect.unit
+            case failed => {
+              val ots: Chain[TestOutcomeJS] =
+                failed.map { case (SuiteName(name), to) =>
+                  TestOutcomeJS.from(name)(to)
+                }
+
+              ots.traverse(reportDoneF).void
             }
-          } yield ()
-
-          val action = for {
-            outcomes <- Ref.of(Chain.empty[TestOutcome])
-            run = runSuite(outcomes)
-            _ <-
-              effect.guaranteeCase[Unit](run) {
-                case ExitCase.Canceled =>
-                  effect.unit
-                case ExitCase.Completed =>
-                  val failedF =
-                    outcomes.get.map(
-                      _.filter(_.status.isFailed).map(SuiteName(fqn) -> _))
-
-                  failedF.flatMap {
-                    case c if c.isEmpty => effect.unit
-                    case failed => {
-                      val ots: Chain[TestOutcomeJS] =
-                        failed.map { case (SuiteName(name), to) =>
-                          TestOutcomeJS(name,
-                                        to.name,
-                                        to.duration.toMillis.toDouble,
-                                        to.formatted(TestOutcome.Verbose))
-                        }
-
-                      ots.traverse(o => effect.delay(reportDone(o))).void
-                    }
-                  }.void
-                case ExitCase.Error(error) =>
-                  val outcome =
-                    TestOutcome("Unexpected failure",
-                                0.seconds,
-                                Result.from(error),
-                                Chain.empty)
-
-                  reportTestToSbt(outcome) *> 
-                  effect.delay(reportDone(TestOutcomeJS(
-                    fqn,
-                    outcome.name,
-                    outcome.duration.toMillis.toDouble,
-                    outcome.formatted(TestOutcome.Verbose)))).void
-              }
-          } yield ()
-
-          unsafeRun.async(action.attempt.map { exc =>
-            continuation(Array())
-          })
+          }
+        case ExitCase.Error(error) =>
+          val outcome =
+            TestOutcome("Unexpected failure",
+                        0.seconds,
+                        Result.from(error),
+                        Chain.empty)
+          reportTest(outcome)
+            .productR(reportDoneF(TestOutcomeJS.from(fqn)(outcome)))
       }
+
+      val action = loader match {
+        case None => effect.unit
+        case Some(loader) => for {
+            outcomes <- Ref.of(Chain.empty[TestOutcome])
+            _ <- loader.suite
+              .flatMap(runSuite(fqn, _, outcomes))
+              .guaranteeCase(finalize(outcomes))
+          } yield ()
+      }
+
+      unsafeRun.async(action.attempt.map { exc =>
+        continuation(Array())
+      })
     }
 
     override def taskDef(): TaskDef = td
@@ -160,8 +163,6 @@ trait PlatformRunner[F[_]] { self: sbt.testing.Runner =>
 
 }
 
-import scala.scalajs.js
-
 class TestOutcomeJS(
     val suiteName: String,
     val testName: String,
@@ -169,20 +170,15 @@ class TestOutcomeJS(
     val verboseFormatting: String
 ) extends js.Object {}
 
-case class MyOutcome(
-    testName: String,
-    dur: FiniteDuration,
-    verboseFormatting: String)
-    extends TestOutcome {
-  def name: String                              = testName
-  def duration: FiniteDuration                  = dur
-  def status: TestStatus                        = TestStatus.Failure
-  def log: Chain[Log.Entry]                     = Chain.empty
-  def formatted(mode: TestOutcome.Mode): String = verboseFormatting
-  def cause: Option[Throwable]                  = None
-}
-
 object TestOutcomeJS {
+  def from(suiteName: String)(outcome: TestOutcome): TestOutcomeJS = {
+    TestOutcomeJS(
+      suiteName,
+      outcome.name,
+      outcome.duration.toMillis.toDouble,
+      outcome.formatted(TestOutcome.Verbose))
+  }
+
   def apply(
       suiteName: String,
       testName: String,
@@ -195,10 +191,23 @@ object TestOutcomeJS {
       verboseFormatting = verboseFormatting).asInstanceOf[TestOutcomeJS]
 
   def rehydrate(t: TestOutcomeJS): (SuiteName, TestOutcome) = {
-    SuiteName(t.suiteName) -> MyOutcome(
+    SuiteName(t.suiteName) -> DecodedOutcome(
       t.testName,
       t.durationMs.millis,
       t.verboseFormatting
     )
+  }
+
+  private case class DecodedOutcome(
+      testName: String,
+      dur: FiniteDuration,
+      verboseFormatting: String)
+      extends TestOutcome {
+    def name: String                              = testName
+    def duration: FiniteDuration                  = dur
+    def status: TestStatus                        = TestStatus.Failure
+    def log: Chain[Log.Entry]                     = Chain.empty
+    def formatted(mode: TestOutcome.Mode): String = verboseFormatting
+    def cause: Option[Throwable]                  = None
   }
 }

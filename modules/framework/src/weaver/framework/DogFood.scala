@@ -18,6 +18,8 @@ import sbt.testing.{
 
 import Platform._
 
+object DogFood extends DogFoodCompanion
+
 // Functionality to test how the frameworks react to successful and failing tests/suites
 abstract class DogFood[F[_]](
     val framework: WeaverFramework[F])
@@ -39,7 +41,7 @@ abstract class DogFood[F[_]](
     for {
       eventHandler <- effect.delay(new MemoryEventHandler())
       logger       <- effect.delay(new MemoryLogger())
-      _            <- getTasks(suites, logger).use { case(runner, tasks) =>
+      _ <- getTasks(suites, logger).use { case (runner, tasks) =>
         runTasks(runner, eventHandler, logger)(tasks)
       }
       _      <- patience.fold(effect.unit)(timer.sleep)
@@ -74,7 +76,7 @@ abstract class DogFood[F[_]](
       val cl = PlatformCompat.getClassLoader(this.getClass())
       framework.weaverRunner(Array(), Array(), cl, None)
     }
-    val runner = Resource.make(acquire){ runner =>
+    val runner = Resource.make(acquire) { runner =>
       done(runner).void
     }
 

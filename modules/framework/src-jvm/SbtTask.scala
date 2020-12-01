@@ -8,7 +8,7 @@ import sbt.testing.Task
 import java.util.concurrent.atomic.AtomicBoolean
 import sbt.testing.Event
 
-class SbtTask(
+private[framework] class SbtTask(
     val taskDef: TaskDef,
     isDone: AtomicBoolean,
     start: scala.concurrent.Promise[Unit],
@@ -49,11 +49,3 @@ class SbtTask(
   private def sbtEvent(outcome: TestOutcome): Event = SbtEvent(taskDef, outcome)
 }
 
-object SbtTask {
-  def apply(
-      taskDef: TaskDef,
-      isDone: AtomicBoolean,
-      start: scala.concurrent.Promise[Unit],
-      queue: java.util.concurrent.ConcurrentLinkedQueue[SuiteEvent]): Task =
-    new SbtTask(taskDef, isDone, start, queue)
-}

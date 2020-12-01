@@ -30,7 +30,7 @@ private[weaver] trait DogFoodCompat[F[_]] { self: DogFood[F] =>
 
 }
 
-private[weaver] object DogFoodCompat {
+private[weaver] trait DogFoodCompanion {
   def make[F[_]](framework: WeaverFramework[F]): Resource[F, DogFood[F]] = {
     import framework.unsafeRun.effect
     Resource.liftF(effect.delay(new DogFood(framework) {}))

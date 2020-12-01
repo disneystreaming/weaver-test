@@ -22,10 +22,9 @@ trait PlatformRunner[F[_]] { self: sbt.testing.Runner =>
 
   protected val suiteLoader: SuiteLoader[F]
   protected val unsafeRun: UnsafeRun[F]
+  import unsafeRun._
 
   private type MakeSuite = GlobalResources.Read[F] => F[EffectSuite[F]]
-
-  import unsafeRun._
 
   private var cancelToken: F[Unit] = unsafeRun.void
 
@@ -71,7 +70,7 @@ trait PlatformRunner[F[_]] { self: sbt.testing.Runner =>
           startingBlock,
           broker)
 
-      val sbtTask = SbtTask(taskDef, isDone, promise, queue)
+      val sbtTask = new SbtTask(taskDef, isDone, promise, queue)
       (ioTask, sbtTask)
     }
 
