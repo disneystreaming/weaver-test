@@ -52,14 +52,40 @@ trait PlatformRunner[F[_]] { self: sbt.testing.Runner =>
       taskDef -> suiteLoader(taskDef)
     }.collect { case (taskDef, Some(suite)) => (taskDef, suite) }
 
+    import scala.util._
+    def fromFuture[A](fa: F[scala.concurrent.Future[A]]): F[A] =
+      effect.guarantee(
+        fa.flatMap { f =>
+          f.value match {
+            case Some(result) =>
+              result match {
+                case Success(a) => effect.pure(a)
+                case Failure(e) => effect.raiseError[A](e)
+              }
+            case _ =>
+              effect.async[A] { cb =>
+                f.onComplete { r =>
+                  cb(r match {
+                    case Success(a) =>
+                      Right(a)
+                    case Failure(e) => Left(e)
+                  })
+                }(TrampolineEC.immediate)
+              } <* effect.delay(println("hello"))
+          }
+        }
+      )(contextShift.shift)
+
     def makeTasks(
         taskDef: TaskDef,
         mkSuite: MakeSuite): (IOTask, Task) = {
       val promise = scala.concurrent.Promise[Unit]()
       val queue   = new ConcurrentLinkedQueue[SuiteEvent]()
       val broker  = new ConcurrentQueueEventBroker(queue)
-      val startingBlock = Async.fromFuture {
-        Sync[F].delay(promise.future.map(_ => ())(ExecutionContext.global))
+      val startingBlock = fromFuture {
+        val _ = Sync[F].delay(promise.future.map(_ => ())(ExecutionContext.global))
+
+        Sync[F].delay(promise.future)
       }
 
       val ioTask =

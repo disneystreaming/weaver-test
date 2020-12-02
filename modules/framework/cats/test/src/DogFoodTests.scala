@@ -10,6 +10,8 @@ import sbt.testing.Status
 
 object DogfoodTests extends IOSuite {
 
+  override def maxParallelism: Int = 1
+
   type Res = DogFood[IO]
   def sharedResource: Resource[IO, DogFood[IO]] =
     DogFood.make(new CatsEffect)
