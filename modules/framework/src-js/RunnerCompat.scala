@@ -15,7 +15,7 @@ import scala.scalajs.js
 import sbt.testing.{ EventHandler, Logger, Task, TaskDef }
 import cats.effect.Sync
 
-trait PlatformRunner[F[_]] { self: sbt.testing.Runner =>
+trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
   protected val args: Array[String]
   protected val suiteLoader: SuiteLoader[F]
   protected val unsafeRun: UnsafeRun[F]

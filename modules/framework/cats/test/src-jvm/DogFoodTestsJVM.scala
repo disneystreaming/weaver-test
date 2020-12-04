@@ -5,7 +5,7 @@ package test
 import cats.effect.{IO, Resource}
 import cats.syntax.all._
 
-object DogFoodSuiteJVM extends IOSuite {
+object DogFoodTestsJVM extends IOSuite {
 
   type Res = DogFood[IO]
   def sharedResource: Resource[IO, DogFood[IO]] =

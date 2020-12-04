@@ -18,7 +18,7 @@ import scala.concurrent.duration._
 
 import cats.effect._
 
-trait PlatformRunner[F[_]] { self: sbt.testing.Runner =>
+trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
 
   protected val suiteLoader: SuiteLoader[F]
   protected val unsafeRun: UnsafeRun[F]
