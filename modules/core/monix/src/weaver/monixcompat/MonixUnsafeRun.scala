@@ -1,7 +1,7 @@
 package weaver
 package monixcompat
 
-import cats.effect.{ContextShift, Timer}
+import cats.effect.{ ContextShift, Timer }
 
 import monix.eval.Task
 import monix.execution.Scheduler

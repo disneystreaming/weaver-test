@@ -1,11 +1,11 @@
 package weaver.monixbiocompat
 
-import weaver.framework.DogFood
+import cats.effect.Resource
+
+import weaver.framework.{DogFood, MonixBIO}
 
 import monix.bio.Task
 import sbt.testing.Status
-import cats.effect.Resource
-import weaver.framework.MonixBIO
 
 object IOSuiteTest extends MutableIOSuite {
   override type Res = DogFood[Task]

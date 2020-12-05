@@ -1,14 +1,14 @@
 package weaver
 package framework
 
-import weaver.monixbiocompat.{BaseIOSuite, MonixBioUnsafeRun}
+import weaver.monixbiocompat.{BaseIOSuite, IOGlobalResource, MonixBIOUnsafeRun}
 
 import monix.bio.Task
 
 class MonixBIO
-    extends WeaverFramework("monix-bio", MonixFingerprints, MonixBioUnsafeRun)
+    extends WeaverFramework("monix-bio",
+                            MonixBIOFingerprints,
+                            MonixBIOUnsafeRun)
 
-object MonixFingerprints
-    extends WeaverFingerprints.Mixin[Task, BaseIOSuite, MonixGlobalResource]
-
-trait MonixGlobalResource extends GlobalResource[Task]
+object MonixBIOFingerprints
+    extends WeaverFingerprints.Mixin[Task, BaseIOSuite, IOGlobalResource]

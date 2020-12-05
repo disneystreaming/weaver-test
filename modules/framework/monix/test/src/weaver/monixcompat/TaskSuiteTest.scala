@@ -1,11 +1,11 @@
 package weaver.monixcompat
 
-import weaver.framework.DogFood
+import cats.effect.Resource
+
+import weaver.framework.{DogFood, Monix}
 
 import monix.eval.Task
 import sbt.testing.Status
-import cats.effect.Resource
-import weaver.framework.Monix
 
 object TaskSuiteTest extends MutableTaskSuite {
 

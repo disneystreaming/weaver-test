@@ -1,8 +1,8 @@
 package weaver
 package ziocompat
 
-import zio.interop.catz._
 import zio._
+import zio.interop.catz._
 
 object SharedResources extends ZIOGlobalResource {
   def share(store: ZIOGlobalResource.Write): RManaged[ZEnv, Unit] =

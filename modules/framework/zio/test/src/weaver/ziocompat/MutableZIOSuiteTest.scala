@@ -3,10 +3,10 @@ package weaver.ziocompat
 import weaver.framework.DogFood
 import weaver.ziocompat.modules._
 
-import zio.interop.catz._
 import sbt.testing.Status
 import zio._
 import zio.duration._
+import zio.interop.catz._
 
 object ZIOSuiteTest extends ZIOSuite[KVStore with DogFoodz] {
 

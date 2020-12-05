@@ -1,8 +1,9 @@
 package weaver
 package intellij.runner
 
-import weaver._
 import java.util.concurrent.atomic.AtomicInteger
+
+import weaver._
 
 object WeaverTestRunner { self =>
 

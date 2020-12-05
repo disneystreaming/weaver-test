@@ -2,10 +2,11 @@ package weaver
 package framework
 package test
 
+import java.time.OffsetDateTime
+
 import scala.concurrent.duration.{ FiniteDuration, TimeUnit }
 
 import cats.effect._
-import java.time.OffsetDateTime
 
 // The build tool will only detect and run top-level test suites. We can however nest objects
 // that contain failing tests, to allow for testing the framework without failing the build

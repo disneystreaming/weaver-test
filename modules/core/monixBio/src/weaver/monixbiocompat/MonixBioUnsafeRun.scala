@@ -2,12 +2,12 @@ package weaver
 package monixbiocompat
 
 import cats.Parallel
-import cats.effect.{ContextShift, Timer}
+import cats.effect.{ ContextShift, Timer }
 
 import monix.bio.IO
 import monix.execution.Scheduler
 
-object MonixBioUnsafeRun extends UnsafeRun[monix.bio.Task] {
+object MonixBIOUnsafeRun extends UnsafeRun[monix.bio.Task] {
   type CancelToken = monix.bio.Task[Unit]
   implicit val scheduler: Scheduler = monix.execution.Scheduler.global
 
