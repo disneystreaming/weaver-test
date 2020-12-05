@@ -6,7 +6,7 @@ import scala.concurrent.duration.{ MILLISECONDS, _ }
 import cats.Parallel
 import cats.data.Chain
 import cats.effect.concurrent.Ref
-import cats.effect.{Concurrent, ContextShift, Resource, Timer}
+import cats.effect.{ Concurrent, ContextShift, Resource, Timer }
 
 import monix.bio.{ IO, Task }
 import monix.execution.Scheduler
@@ -15,7 +15,7 @@ object MonixBioUnsafeRun extends UnsafeRun[Task] {
   implicit val scheduler: Scheduler = monix.execution.Scheduler.global
 
   implicit val effect: Concurrent[monix.bio.Task] = IO.catsEffect(scheduler)
-  implicit val parallel: Parallel[monix.bio.Task]     = IO.catsParallel
+  implicit val parallel: Parallel[monix.bio.Task] = IO.catsParallel
   implicit val contextShift: ContextShift[monix.bio.Task] =
     IO.contextShift(scheduler)
   implicit val timer: Timer[monix.bio.Task] = IO.timer(scheduler)
@@ -24,15 +24,15 @@ object MonixBioUnsafeRun extends UnsafeRun[Task] {
     val cancelToken = task.runAsync { _ => () }(scheduler)
     monix.bio.Task(cancelToken.cancel())
   }
-  def sync(task: monix.bio.Task[Unit]): Unit = PlatformCompat.runSync(task)
+  def sync(task: monix.bio.Task[Unit]): Unit  = PlatformCompat.runSync(task)
   def async(task: monix.bio.Task[Unit]): Unit = task.runAsyncAndForget
 }
 
 trait BaseIOSuite extends RunnableSuite[Task] {
   override val unsafeRun = MonixBioUnsafeRun
 
-  implicit protected def scheduler: Scheduler         = unsafeRun.scheduler
-  implicit protected def timer: Timer[Task]           = unsafeRun.timer
+  implicit protected def scheduler: Scheduler = unsafeRun.scheduler
+  implicit protected def timer: Timer[Task]   = unsafeRun.timer
   implicit protected def contextShift: ContextShift[Task] =
     unsafeRun.contextShift
 }

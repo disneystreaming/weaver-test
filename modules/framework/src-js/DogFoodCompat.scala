@@ -1,11 +1,11 @@
 package weaver
 package framework
 
+import cats.data.Chain
 import cats.effect.Resource
 import cats.syntax.all._
 
 import sbt.testing.{ Task => SbtTask, _ }
-import cats.data.Chain
 
 private[weaver] trait DogFoodCompat[F[_]] { self: DogFood[F] =>
 

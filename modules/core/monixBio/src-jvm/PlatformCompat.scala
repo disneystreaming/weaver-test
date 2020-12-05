@@ -4,5 +4,6 @@ package monixbiocompat
 import monix.execution.Scheduler
 
 object PlatformCompat {
-    def runSync(task: monix.bio.Task[Unit])(implicit scheduler: Scheduler) = task.runSyncUnsafe()
+  def runSync(task: monix.bio.Task[Unit])(implicit scheduler: Scheduler) =
+    task.runSyncUnsafe()
 }

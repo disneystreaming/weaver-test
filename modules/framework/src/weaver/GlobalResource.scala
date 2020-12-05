@@ -6,7 +6,7 @@ import scala.util.Try
 import cats.effect._
 import cats.effect.concurrent.Ref
 import cats.syntax.all._
-import cats.{Applicative, FlatMap, MonadError}
+import cats.{ Applicative, FlatMap, MonadError }
 
 import org.portablescala.reflect.annotation.EnableReflectiveInstantiation
 
@@ -25,11 +25,11 @@ import org.portablescala.reflect.annotation.EnableReflectiveInstantiation
 @EnableReflectiveInstantiation
 trait GlobalResourceBase
 
-trait GlobalResourcesInit[F[_]] extends GlobalResourceBase {
-  def sharedResources(store: GlobalResources.Write[F]): Resource[F, Unit]
+trait GlobalResource[F[_]] extends GlobalResourceBase {
+  def sharedResources(store: GlobalResource.Write[F]): Resource[F, Unit]
 }
 
-object GlobalResources {
+object GlobalResource {
 
   trait Write[F[_]] {
     def put[A](value: A, label: Option[String] = None)(
@@ -55,7 +55,7 @@ object GlobalResources {
       get[A](label).flatMap[A] {
         case Some(value) => F.pure(value)
         case None =>
-          F.raiseError(GlobalResources.ResourceNotFound(label, rt.description))
+          F.raiseError(GlobalResource.ResourceNotFound(label, rt.description))
       }
     def getOrFailR[A](label: Option[String] = None)(
         implicit F: MonadError[F, Throwable],

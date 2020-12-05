@@ -1,12 +1,9 @@
 package weaver
 package framework
 
-import sbt.testing.EventHandler
-import sbt.testing.Logger
-import sbt.testing.TaskDef
-import sbt.testing.Task
 import java.util.concurrent.atomic.AtomicBoolean
-import sbt.testing.Event
+
+import sbt.testing.{ Event, EventHandler, Logger, Task, TaskDef }
 
 private[framework] class SbtTask(
     val taskDef: TaskDef,
@@ -48,4 +45,3 @@ private[framework] class SbtTask(
 
   private def sbtEvent(outcome: TestOutcome): Event = SbtEvent(taskDef, outcome)
 }
-

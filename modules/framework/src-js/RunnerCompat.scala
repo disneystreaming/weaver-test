@@ -3,17 +3,16 @@ package framework
 
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration._
+import scala.scalajs.js
 import scala.scalajs.js.JSON
 
 import cats.data.Chain
-import cats.effect.ExitCase
 import cats.effect.concurrent.Ref
-import cats.syntax.all._
 import cats.effect.syntax.all._
-import scala.scalajs.js
+import cats.effect.{ ExitCase, Sync }
+import cats.syntax.all._
 
 import sbt.testing.{ EventHandler, Logger, Task, TaskDef }
-import cats.effect.Sync
 
 trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
   protected val args: Array[String]

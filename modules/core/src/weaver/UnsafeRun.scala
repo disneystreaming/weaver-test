@@ -1,7 +1,7 @@
 package weaver
 
 import cats.Parallel
-import cats.effect.{ Concurrent, ContextShift, Timer }
+import cats.effect.{ ConcurrentEffect, ContextShift, Timer }
 
 /**
  * Abstraction allowing for running IO constructs unsafely.
@@ -11,14 +11,17 @@ import cats.effect.{ Concurrent, ContextShift, Timer }
  */
 protected[weaver] trait UnsafeRun[F[_]] {
 
-  implicit def effect: Concurrent[F]
+  type CancelToken
+
+  implicit def effect: ConcurrentEffect[F]
   implicit def parallel: Parallel[F]
   implicit def contextShift: ContextShift[F]
   implicit def timer: Timer[F]
 
   def void: F[Unit]
 
-  def background(task: F[Unit]): F[Unit]
+  def background(task: F[Unit]): CancelToken
+  def cancel(token: CancelToken): Unit
 
   def sync(task: F[Unit]): Unit
   def async(task: F[Unit]): Unit

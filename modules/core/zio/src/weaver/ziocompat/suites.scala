@@ -3,22 +3,20 @@ package ziocompat
 
 import scala.util.Try
 
-import cats.effect.ConcurrentEffect
-
 import fs2._
 import zio._
 import zio.interop.catz._
 
+trait BaseZIOSuite extends RunnableSuite[T] {
+  val unsafeRun: UnsafeRun[T] = ZIOUnsafeRun
+}
+
 abstract class BaseMutableZIOSuite[Res <: Has[_]](implicit tag: Tag[Res])
-    extends EffectSuite[Task] {
+    extends BaseZIOSuite {
 
   val sharedLayer: ZLayer[ZEnv, Throwable, Res]
 
   def maxParallelism: Int = 10000
-
-  implicit val runtime: Runtime[ZEnv] = zio.Runtime.default
-  implicit def effect: ConcurrentEffect[Task] =
-    zio.interop.catz.taskEffectInstance
 
   private[this] type Test = ZIO[Env[Res], Nothing, TestOutcome]
 
@@ -35,7 +33,7 @@ abstract class BaseMutableZIOSuite[Res <: Has[_]](implicit tag: Tag[Res])
       run: => ZIO[PerTestEnv[Res], Throwable, Expectations]): Unit =
     registerTest(name)(Test(name.name, ZIO.fromTry(Try { run }).flatten))
 
-  override def spec(args: List[String]): Stream[Task, TestOutcome] =
+  override def spec(args: List[String]): Stream[T, TestOutcome] =
     synchronized {
       if (!isInitialized) isInitialized = true
       val argsFilter = Filters.filterTests(this.name)(args)
@@ -44,8 +42,7 @@ abstract class BaseMutableZIOSuite[Res <: Has[_]](implicit tag: Tag[Res])
       }
       if (filteredTests.isEmpty) Stream.empty // no need to allocate resources
       else {
-        val baseEnv    = ZLayer.succeedMany(runtime.environment)
-        val suiteLayer = baseEnv >>> sharedLayer.passthrough
+        val suiteLayer = sharedLayer.passthrough
         for {
           resource <- Stream.resource(suiteLayer.build.toResourceZIO)
           result <- Stream

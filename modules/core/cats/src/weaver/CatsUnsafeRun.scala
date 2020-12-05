@@ -6,6 +6,8 @@ import cats.effect.{ ContextShift, IO, Timer }
 
 object CatsUnsafeRun extends UnsafeRun[IO] {
 
+  type CancelToken = IO[Unit]
+
   override implicit val contextShift: ContextShift[IO] =
     IO.contextShift(ExecutionContext.global)
   override implicit val timer: Timer[IO] =
@@ -16,11 +18,13 @@ object CatsUnsafeRun extends UnsafeRun[IO] {
 
   def void: IO[Unit] = IO.unit
 
-  def background(task: IO[Unit]): IO[Unit] =
+  def background(task: IO[Unit]): CancelToken =
     task.unsafeRunCancelable {
       case Left(error) => error.printStackTrace
       case Right(_)    => ()
     }
+
+  def cancel(token: CancelToken): Unit = sync(token)
 
   def sync(task: IO[Unit]): Unit = task.unsafeRunSync()
 

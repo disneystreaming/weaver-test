@@ -4,6 +4,7 @@ import zio._
 
 package object ziocompat {
 
+  type T[A]                    = RIO[ZEnv, A]
   type Env[R <: Has[_]]        = ZEnv with R
   type LogModule               = Has[Log[UIO]]
   type PerTestEnv[R <: Has[_]] = Env[R] with LogModule

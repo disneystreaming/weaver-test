@@ -4,13 +4,13 @@ import scala.reflect.ClassTag
 
 import cats.effect.Sync
 
-import weaver.{EffectSuite, GlobalResources, GlobalResourcesInit}
+import weaver.{ EffectSuite, GlobalResource }
 
-import sbt.testing.{Fingerprint, SubclassFingerprint, TaskDef}
+import sbt.testing.{ Fingerprint, SubclassFingerprint, TaskDef }
 
 object WeaverFingerprints {
   // format: off
-  abstract class Mixin[F[_], SC <: EffectSuite[F], GRIC <: GlobalResourcesInit[F]](
+  abstract class Mixin[F[_], SC <: EffectSuite[F], GRIC <: GlobalResource[F]](
       implicit SC: ClassTag[SC], GRIC: ClassTag[GRIC], F : Sync[F]) extends WeaverFingerprints[F] {
     type SuiteClass = SC
     val SuiteClass = SC
@@ -28,7 +28,7 @@ abstract class WeaverFingerprints[F[_]](implicit F: Sync[F]) {
 
   type SuiteClass <: EffectSuite[F]
   implicit protected def SuiteClass: ClassTag[SuiteClass]
-  type GlobalResourcesInitClass <: GlobalResourcesInit[F]
+  type GlobalResourcesInitClass <: GlobalResource[F]
   implicit protected def GlobalResourcesInitClass: ClassTag[GlobalResourcesInitClass]
 
   def suiteLoader(classLoader: ClassLoader): SuiteLoader[F] =
@@ -43,11 +43,11 @@ abstract class WeaverFingerprints[F[_]](implicit F: Sync[F]) {
             }
             Some(SuiteRef(mkSuite))
           case ResourceSharingSuiteFingerprint.matches() =>
-            val cst: F[GlobalResources.Read[F] => EffectSuite[F]] =
+            val cst: F[GlobalResource.Read[F] => EffectSuite[F]] =
               // inherently unsafe, as it assumes the user doesn't
-              F.delay(loadConstructor[GlobalResources.Read[F], SuiteClass](
+              F.delay(loadConstructor[GlobalResource.Read[F], SuiteClass](
                 taskDef.fullyQualifiedName(),
-                classLoader): GlobalResources.Read[F] => EffectSuite[F])
+                classLoader): GlobalResource.Read[F] => EffectSuite[F])
             Some(ResourcesSharingSuiteRef(read => F.ap(cst)(F.pure(read))))
           case GlobalResourcesFingerprint.matches() =>
             val module =

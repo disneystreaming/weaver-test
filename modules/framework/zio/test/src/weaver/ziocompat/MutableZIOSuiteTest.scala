@@ -3,18 +3,27 @@ package weaver.ziocompat
 import weaver.framework.DogFood
 import weaver.ziocompat.modules._
 
+import zio.interop.catz._
 import sbt.testing.Status
 import zio._
 import zio.duration._
 
-object ZIOSuiteTest extends ZIOSuite[KVStore] {
+object ZIOSuiteTest extends ZIOSuite[KVStore with DogFoodz] {
 
   override def maxParallelism: Int = 1
 
-  override val sharedLayer = ZLayer.fromEffect {
-    Ref
-      .make(Map.empty[String, String])
-      .map(new KVStore.RefBased(_))
+  import ZIOUnsafeRun.effect
+
+  override val sharedLayer: ZLayer[ZEnv, Throwable, KVStore with DogFoodz] = {
+    val kvstore: ZLayer[ZEnv, Throwable, KVStore] = ZLayer.fromEffect {
+      Ref
+        .make(Map.empty[String, String])
+        .map(new KVStore.RefBased(_))
+    }
+    val dogfood: ZLayer[ZEnv, Throwable, DogFoodz] =
+      ZLayer.fromManaged(DogFood.make(new weaver.framework.ZIO()).toManaged)
+
+    dogfood ++ kvstore
   }
 
   // Don't do this at home, kids
@@ -43,7 +52,7 @@ object ZIOSuiteTest extends ZIOSuite[KVStore] {
   ).foreach { testSuite =>
     test(s"fail properly in ${testSuite.getClass.getSimpleName}") {
       for {
-        (_, events) <- DogFood.runSuite(testSuite).to[Task]
+        (_, events) <- DogFoodz.runSuite(testSuite)
       } yield {
         val maybeEvent = events.headOption
         val maybeThrowable = maybeEvent.flatMap { event =>
@@ -59,7 +68,7 @@ object ZIOSuiteTest extends ZIOSuite[KVStore] {
 
   test("fail properly on failed expectations") {
     for {
-      (_, events) <- DogFood.runSuite(TestWithFailedExpectation).to[Task]
+      (_, events) <- DogFoodz.runSuite(TestWithFailedExpectation)
     } yield {
       val maybeEvent  = events.headOption
       val maybeStatus = maybeEvent.map(_.status())
@@ -116,7 +125,14 @@ object ZIOSuiteTest extends ZIOSuite[KVStore] {
 
 object modules {
 
-  type KVStore = Has[KVStore.Service]
+  type DogFoodz = Has[DogFood[T]]
+  type KVStore  = Has[KVStore.Service]
+
+  object DogFoodz {
+    def runSuite(suite: BaseZIOSuite): RIO[ZEnv with DogFoodz, DogFood.State] =
+      ZIO.accessM(_.get[DogFood[T]].runSuite(suite))
+  }
+
   object KVStore {
 
     // boileplate usually written via macro

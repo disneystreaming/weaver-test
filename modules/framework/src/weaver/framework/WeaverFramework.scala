@@ -25,7 +25,7 @@ class WeaverFramework[F[_]](
     }
 
   def weaverRunner(
-    args: Array[String],
+      args: Array[String],
       remoteArgs: Array[String],
       testClassLoader: ClassLoader,
       send: Option[String => Unit]

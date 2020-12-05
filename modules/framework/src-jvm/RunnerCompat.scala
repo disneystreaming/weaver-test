@@ -1,22 +1,18 @@
 package weaver
 package framework
 
-import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.ConcurrentLinkedQueue
-import cats.effect.Sync
+import java.util.concurrent.atomic.AtomicBoolean
 
-import cats.syntax.all._
-import sbt.testing.TaskDef
-import sbt.testing.Task
 import scala.concurrent.ExecutionContext
-
-import cats.effect.concurrent.Ref
-import cats.effect.concurrent.Semaphore
-import cats.data.Chain
-
 import scala.concurrent.duration._
 
-import cats.effect._
+import cats.data.Chain
+import cats.effect.concurrent.{ Ref, Semaphore }
+import cats.effect.{ Sync, _ }
+import cats.syntax.all._
+
+import sbt.testing.{ Task, TaskDef }
 
 trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
 
@@ -24,13 +20,13 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
   protected val unsafeRun: UnsafeRun[F]
   import unsafeRun._
 
-  private type MakeSuite = GlobalResources.Read[F] => F[EffectSuite[F]]
+  private type MakeSuite = GlobalResource.Read[F] => F[EffectSuite[F]]
 
-  private var cancelToken: F[Unit] = unsafeRun.void
+  private var cancelToken: Option[unsafeRun.CancelToken] = None
 
   override def done(): String = {
     isDone.set(true)
-    unsafeRun.sync(cancelToken)
+    cancelToken.foreach(unsafeRun.cancel)
     System.lineSeparator()
   }
 
@@ -41,9 +37,9 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
   protected val isDone: AtomicBoolean = new AtomicBoolean(false)
 
   private def runBackground(
-      globalResources: List[GlobalResourcesInit[F]],
+      globalResources: List[GlobalResource[F]],
       tasks: List[IOTask]): Unit = {
-    cancelToken = unsafeRun.background(run(globalResources, tasks))
+    cancelToken = Some(unsafeRun.background(run(globalResources, tasks)))
   }
 
   def tasks(taskDefs: Array[TaskDef]): Array[Task] = {
@@ -100,7 +96,7 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
   }
 
   private def run(
-      globalResources: List[GlobalResourcesInit[F]],
+      globalResources: List[GlobalResource[F]],
       tasks: List[IOTask]): F[Unit] = {
     import cats.syntax.all._
     resourceMap(globalResources).use { read =>
@@ -113,9 +109,9 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
   }
 
   private def resourceMap(
-      globalResources: List[GlobalResourcesInit[F]]
-  ): Resource[F, GlobalResources.Read[F]] =
-    Resource.liftF(GlobalResources.createMap[F]).flatTap { map =>
+      globalResources: List[GlobalResource[F]]
+  ): Resource[F, GlobalResource.Read[F]] =
+    Resource.liftF(GlobalResource.createMap[F]).flatTap { map =>
       globalResources.traverse(_.sharedResources(map)).void
     }
 
@@ -126,7 +122,7 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
       start: F[Unit],
       broker: SuiteEventBroker) {
     def run(
-        globalResources: GlobalResources.Read[F],
+        globalResources: GlobalResource.Read[F],
         outcomes: Ref[F, Chain[(SuiteName, TestOutcome)]],
         semaphore: Semaphore[F],
         N: Long): F[Unit] = {

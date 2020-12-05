@@ -1,13 +1,15 @@
 package weaver
 package framework
 
-import sbt.testing.TaskDef
-import sbt.testing.Event
-import sbt.testing.OptionalThrowable
-import sbt.testing.Status
-import sbt.testing.Selector
-import sbt.testing.TestSelector
-import sbt.testing.Fingerprint
+import sbt.testing.{
+  Event,
+  Fingerprint,
+  OptionalThrowable,
+  Selector,
+  Status,
+  TaskDef,
+  TestSelector
+}
 
 object SbtEvent {
   def apply(td: TaskDef, outcome: TestOutcome): Event = new Event {

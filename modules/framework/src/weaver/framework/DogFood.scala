@@ -18,15 +18,16 @@ import sbt.testing.{
 
 import Platform._
 
-object DogFood extends DogFoodCompanion
+object DogFood extends DogFoodCompanion {
+  type State = (Chain[LoggedEvent], Chain[SbtEvent])
+}
 
 // Functionality to test how the frameworks react to successful and failing tests/suites
 abstract class DogFood[F[_]](
     val framework: WeaverFramework[F])
     extends DogFoodCompat[F] {
   import framework.unsafeRun._
-
-  type State = (Chain[LoggedEvent], Chain[SbtEvent])
+  import DogFood.State
 
   // ScalaJS executes asynchronously, therefore we need to wait
   // for some time before getting the logs back. On JVM platform
@@ -100,7 +101,7 @@ abstract class DogFood[F[_]](
       tasks: Array[SbtTask]): F[Unit] =
     runTasksCompat(runner, eventHandler, logger)(tasks)
 
-  def globalInit(g: GlobalResourcesInit[F]): Fingerprinted =
+  def globalInit(g: GlobalResource[F]): Fingerprinted =
     Fingerprinted.GlobalInit(g.getClass.getName.dropRight(1))
   def moduleSuite(g: EffectSuite[F]): Fingerprinted =
     Fingerprinted.ModuleSuite(g.getClass.getName.dropRight(1))

@@ -4,15 +4,15 @@ package test
 
 import cats.effect.{ IO, Resource }
 
-object SharedResources extends IOGlobalResourcesInit {
-  def sharedResources(store: GlobalResources.Write[IO]): Resource[IO, Unit] =
+object SharedResources extends IOGlobalResource {
+  def sharedResources(store: GlobalResource.Write[IO]): Resource[IO, Unit] =
     for {
       foo <- Resource.pure[IO, String]("hello world!")
       _   <- store.putR(foo)
     } yield ()
 }
 
-class ResourceSharingSuite(globalResources: GlobalResources.Read[IO])
+class ResourceSharingSuite(globalResources: GlobalResource.Read[IO])
     extends IOSuite {
   type Res = String
   def sharedResource: Resource[IO, String] =
@@ -23,7 +23,7 @@ class ResourceSharingSuite(globalResources: GlobalResources.Read[IO])
   }
 }
 
-class OtherResourceSharingSuite(globalResources: GlobalResources.Read[IO])
+class OtherResourceSharingSuite(globalResources: GlobalResource.Read[IO])
     extends IOSuite {
   type Res = Option[Int]
   def sharedResource: Resource[IO, Option[Int]] =

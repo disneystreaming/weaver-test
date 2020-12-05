@@ -1,8 +1,9 @@
 package weaver
 package framework
 
-import sbt.testing.Logger
 import cats.data.Chain
+
+import sbt.testing.Logger
 
 object Reporter {
   import Colours._

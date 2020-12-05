@@ -57,7 +57,10 @@ class Runner[F[_]: Concurrent](args: List[String], maxConcurrentSuites: Int)(
       printLine(event.formatted(mode))
     def handle(specEvent: SpecEvent): F[Outcome] = {
       val (successes, failures, outcome) =
-        specEvent.events.foldMap[(List[TestOutcome], List[TestOutcome], Outcome)] {
+        specEvent.events.foldMap[(
+            List[TestOutcome],
+            List[TestOutcome],
+            Outcome)] {
           case ev if ev.status.isFailed =>
             (List.empty, List(ev), Outcome.fromEvent(ev))
           case ev => (List(ev), List.empty, Outcome.fromEvent(ev))
