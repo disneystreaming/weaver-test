@@ -1,18 +1,29 @@
 package weaver
 package monixcompat
 
-import cats.effect.{ ConcurrentEffect, ContextShift, Resource, Timer }
+import cats.effect.Resource
 
 import monix.eval.Task
-import monix.eval.instances._
-import monix.execution.Scheduler
 
-trait BaseTaskSuite { self: EffectSuite[Task] =>
-  val scheduler: Scheduler            = monix.execution.Scheduler.global
-  implicit def timer: Timer[Task]     = Task.timer(scheduler)
-  implicit def cs: ContextShift[Task] = Task.contextShift(scheduler)
-  implicit def effect: ConcurrentEffect[Task] =
-    new CatsConcurrentEffectForTask()(scheduler, Task.defaultOptions)
+trait BaseTaskSuite extends RunnableSuite[Task] {
+  val unsafeRun: UnsafeRun[Task]      = MonixUnsafeRun
+  implicit protected def contextShift = unsafeRun.contextShift
+  implicit protected def timer        = unsafeRun.timer
+}
+
+trait PureTaskSuite
+    extends EffectSuite[Task]
+    with BaseTaskSuite
+    with Expectations.Helpers {
+
+  def pureTest(name: String)(run: => Expectations): Task[TestOutcome] =
+    Test[Task](name, Task(run))
+  def simpleTest(name: String)(run: Task[Expectations]): Task[TestOutcome] =
+    Test[Task](name, run)
+  def loggedTest(name: String)(
+      run: Log[Task] => Task[Expectations]): Task[TestOutcome] =
+    Test[Task](name, run)
+
 }
 
 trait MutableTaskSuite
@@ -22,5 +33,5 @@ trait MutableTaskSuite
 
 trait SimpleMutableTaskSuite extends MutableTaskSuite {
   type Res = Unit
-  def sharedResource: Resource[Task, Unit] = Resource.pure(())
+  def sharedResource: Resource[Task, Unit] = Resource.pure[Task, Unit](())
 }

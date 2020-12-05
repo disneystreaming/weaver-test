@@ -4,33 +4,40 @@ import weaver.framework.DogFood
 
 import monix.eval.Task
 import sbt.testing.Status
+import cats.effect.Resource
+import weaver.framework.Monix
 
-object TaskSuiteTest extends TaskSuite {
+object TaskSuiteTest extends MutableTaskSuite {
+
+  type Res = DogFood[Task]
+  def sharedResource: Resource[Task, DogFood[Task]] =
+    DogFood.make(new Monix)
+
   List(
     TestWithExceptionInTest,
     TestWithExceptionInExpectation,
     TestWithExceptionInInitialisation
   ).foreach { testSuite =>
-    test(s"fail properly in ${testSuite.getClass.getSimpleName}") {
-      for {
-        (_, events) <- DogFood.runSuite(testSuite).to[Task]
-      } yield {
+    test(s"fail properly in ${testSuite.getClass.getSimpleName}") { dogfood =>
+      dogfood.runSuite(testSuite).map { case (_, events) =>
         val maybeEvent = events.headOption
         val maybeThrowable = maybeEvent.flatMap { event =>
           if (event.throwable().isDefined()) Some(event.throwable().get())
           else None
         }
         val maybeStatus = maybeEvent.map(_.status())
-        expect(maybeStatus.contains(Status.Error)) &&
-        expect(maybeThrowable.map(_.getMessage).contains("oh no"))
+
+        expect.all(
+          maybeStatus.contains(Status.Error),
+          maybeThrowable.map(_.getMessage).contains("oh no")
+        )
+
       }
     }
   }
 
-  test("fail properly on failed expectations") { _ =>
-    for {
-      (_, events) <- DogFood.runSuite(TestWithFailedExpectation).to[Task]
-    } yield {
+  test("fail properly on failed expectations") { dogfood =>
+    dogfood.runSuite(TestWithFailedExpectation).map { case (_, events) =>
       val maybeEvent  = events.headOption
       val maybeStatus = maybeEvent.map(_.status())
       expect(maybeStatus.contains(Status.Failure))
