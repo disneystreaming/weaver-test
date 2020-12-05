@@ -48,6 +48,9 @@ trait EffectSuite[F[_]] extends Suite[F] with SourceLocation.Here { self =>
 trait RunnableSuite[F[_]] extends EffectSuite[F] {
   def unsafeRun: UnsafeRun[F]
   override protected final def concurrent: Concurrent[F] = unsafeRun.effect
+
+  private[weaver] def runUnsafe(args: List[String])(report: TestOutcome => Unit) : Unit =
+    unsafeRun.sync(run(args)(outcome => unsafeRun.effect.delay(report(outcome))))
 }
 
 trait MutableFSuite[F[_]] extends EffectSuite[F]  {

@@ -1,49 +1,42 @@
-package weaver.intellij.runner
-
-import cats.effect.concurrent.Ref
-import cats.effect.{ ExitCode, IO, IOApp }
-import cats.syntax.all._
+package weaver
+package intellij.runner
 
 import weaver._
+import java.util.concurrent.atomic.AtomicInteger
 
-object WeaverTestRunner extends IOApp { self =>
+object WeaverTestRunner { self =>
 
-  def run(args: List[String]): IO[ExitCode] = {
-    for {
-      config    <- parse(args)
-      _         <- validate(config)
-      idCounter <- Ref.of[IO, Int](1)
-      testClassesWithId <- config.testClasses.traverse { testClass =>
-        idCounter.modify(id => (id + 1, id -> testClass))
+  def main(args: Array[String]): Unit = {
+    val config = parse(args.toList)
+    validate(config)
+    val idCounter = new AtomicInteger(1)
+    val testClassesWithId = config.testClasses.map { testClass =>
+      val id = idCounter.getAndIncrement()
+      id -> testClass
+    }
+    testClassesWithId.foreach { case (parentId, testClass) =>
+      report(TeamCity.suiteStarted(parentId, testClass))
+      run(testClass, config.testName) { outcome =>
+        val nodeId = idCounter.getAndIncrement()
+        TeamCity.testOutcome(outcome, parentId, nodeId).foreach(report)
       }
-      _ <- testClassesWithId.parTraverse_ {
-        case (parentId, testClass) =>
-          for {
-            _ <- report(TeamCity.suiteStarted(parentId, testClass))
-            _ <- run(testClass, config.testName) { outcome =>
-              idCounter.getAndUpdate(_ + 1).flatMap { nodeId =>
-                TeamCity.testOutcome(outcome, parentId, nodeId)
-                  .traverse(report)
-                  .void
-              }
-            }
-            _ <- report(TeamCity.suiteFinished(parentId, testClass))
-          } yield ()
-      }
-    } yield ExitCode.Success
+      report(TeamCity.suiteFinished(parentId, testClass))
+    }
   }
 
   private def run(name: String, testName: Option[String])(
-      report: TestOutcome => IO[Unit]
-  ): IO[Unit] = {
-    val loadSuite =
-      weaver.framework.suiteFromModule(name, self.getClass().getClassLoader())
+      report: TestOutcome => Unit
+  ): Unit = {
+    import weaver.framework.{ loadModule, cast }
+    val suite =
+      cast[RunnableSuite[Any]](loadModule(name,
+                                          self.getClass().getClassLoader()))
     val args =
       testName.fold[List[String]](Nil)(n => "-o" :: ((name + "." + n) :: Nil))
-    loadSuite.flatMap(suite => suite.run(args)(report))
+    suite.runUnsafe(args)(report)
   }
 
-  def report(event: TeamCityEvent): IO[Unit] = IO(println(event.show))
+  def report(event: TeamCityEvent): Unit = println(event.show)
 
   case class Config(
       testClasses: List[String],
@@ -52,7 +45,7 @@ object WeaverTestRunner extends IOApp { self =>
 
   private def parse(
       args: List[String],
-      config: Config = Config(Nil, false, None)): IO[Config] =
+      config: Config = Config(Nil, false, None)): Config =
     args match {
       case "-s" :: testClass :: rest =>
         parse(rest, config.copy(testClasses = config.testClasses :+ testClass))
@@ -62,15 +55,17 @@ object WeaverTestRunner extends IOApp { self =>
         parse(rest, config.copy(showProgressMessages = true))
       case "-showProgressMessages" :: "false" :: rest =>
         parse(rest, config.copy(showProgressMessages = false))
-      case Nil => IO.pure(config)
+      case Nil => config
       case _ =>
-        IO.raiseError(
-          new Exception(s"Invalid arguments in [${args.mkString(" ")}]"))
+        throw new IllegalArgumentException(
+          s"Invalid arguments in [${args.mkString(" ")}]")
     }
 
-  def validate(config: Config): IO[Unit] =
-    IO.raiseError(new UnsupportedOperationException(
-      "testName can only be used with exactly one testClass"
-    )).whenA(config.testName.isDefined && config.testClasses.size != 1)
+  def validate(config: Config): Unit =
+    if (config.testName.isDefined && config.testClasses.size != 1) {
+      throw new UnsupportedOperationException(
+        "testName can only be used with exactly one testClass"
+      )
+    }
 
 }

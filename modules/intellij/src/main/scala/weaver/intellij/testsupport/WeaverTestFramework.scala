@@ -17,13 +17,13 @@ class WeaverTestFramework
 
   override def testFileTemplateName: String = "Weaver Test"
 
-  override val getMarkerClassFQName: String = "weaver.Suite"
+  override val getMarkerClassFQName: String = "weaver.RunnableSuite"
 
   override val getName: String = "Weaver"
 
   override def getDefaultSuperClass: String = "weaver.SimpleIOSuite"
 
-  def baseSuitePaths: Seq[String] = List("weaver.Suite")
+  def baseSuitePaths: Seq[String] = List("weaver.RunnableSuite")
 
   def frameworkSetupInfo(scalaVersion: Option[String]) =
     TestFrameworkSetupInfo(

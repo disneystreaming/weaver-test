@@ -7,7 +7,7 @@ import org.portablescala.reflect.Reflect
 
 package object framework {
 
-  protected[framework] def loadConstructor[A, C](
+  private[weaver] def loadConstructor[A, C](
       qualifiedName: String,
       loader: ClassLoader)(
       implicit A: ClassTag[A],
@@ -26,7 +26,7 @@ package object framework {
     }
   }
 
-  protected[framework] def cast[T](any: Any)(
+  private[weaver] def cast[T](any: Any)(
       implicit T: ClassTag[T]): T = any match {
     case suite if T.runtimeClass.isInstance(suite) =>
       suite.asInstanceOf[T]
@@ -36,7 +36,7 @@ package object framework {
         with NoStackTrace
   }
 
-  protected[framework] def loadModule(
+  private[weaver] def loadModule(
       qualifiedName: String,
       loader: ClassLoader): Any = {
     val moduleName = qualifiedName + "$"
