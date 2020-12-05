@@ -17,4 +17,6 @@ private[weaver] object Colours {
 
   val green = colored(Console.GREEN) _
 
+  val whitebold = colored(Console.WHITE + Console.BOLD) _
+
 }

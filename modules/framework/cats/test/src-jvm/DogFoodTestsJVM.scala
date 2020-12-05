@@ -2,7 +2,7 @@ package weaver
 package framework
 package test
 
-import cats.effect.{IO, Resource}
+import cats.effect.{ IO, Resource }
 import cats.syntax.all._
 
 object DogFoodTestsJVM extends IOSuite {

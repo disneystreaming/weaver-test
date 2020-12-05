@@ -1,12 +1,14 @@
 package weaver
 
+import scala.concurrent.duration.FiniteDuration
+
 import cats.data.Chain
 import cats.syntax.show._
 
 import weaver.Log.{ debug, error, info, warn }
 
-import LogFormatter.{ formatTimestamp }
 import Colours._
+import LogFormatter.{ formatTimestamp }
 
 object Formatter {
   val EOL        = java.lang.System.lineSeparator()
@@ -18,14 +20,19 @@ object Formatter {
   case object TAB2 extends Tabulation("  ")
   case object TAB4 extends Tabulation("    ")
 
-  def formatResultStatus(name: String, result: Result): String = {
+  def formatResultStatus(
+      name: String,
+      result: Result,
+      d: FiniteDuration): String = {
     val tabulatedTestLines = name.split("\\r?\\n").map(TAB2 -> _).toList
+
+    def withDuration(l: String) = l + " " + whitebold(renderDuration(d))
 
     def withPrefix(newPrefix: String): String = {
       tabulatedTestLines match {
-        case (_, firstLine) :: Nil => newPrefix + firstLine
+        case (_, firstLine) :: Nil => newPrefix + withDuration(firstLine)
         case (_, firstLine) :: extraLines =>
-          newPrefix + firstLine + EOL + extraLines
+          newPrefix + withDuration(firstLine) + EOL + extraLines
             .map(l => l._1.prefix + l._2)
             .mkString(EOL)
         case Nil => newPrefix + ""
@@ -53,7 +60,7 @@ object Formatter {
 
     val builder = new StringBuilder()
     val newLine = '\n'
-    builder.append(formatResultStatus(name, result))
+    builder.append(formatResultStatus(name, result, outcome.duration))
 
     if ((mode == Verbose && outcome.status.isFailed) || (mode == Summary && !outcome.status.isFailed))
       result.formatted.foreach { resultInfo =>
@@ -102,5 +109,24 @@ object Formatter {
       }
     }
     builder.mkString
+  }
+
+  def renderDuration(d: FiniteDuration) = {
+    val millis  = d.toMillis
+    val seconds = d.toSeconds
+
+    if (millis < 1000) s"${millis}ms"
+    else if (seconds >= 1 && seconds < 60)
+      s"${seconds}s" // less than 60 seconds
+    else {
+      val fullMinutes = seconds / 60
+      val remSeconds  = seconds - fullMinutes
+
+      if (remSeconds == 0) {
+        s"${fullMinutes}min"
+      } else {
+        s"${fullMinutes}:${remSeconds}min"
+      }
+    }
   }
 }

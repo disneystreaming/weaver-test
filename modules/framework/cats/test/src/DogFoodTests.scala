@@ -52,9 +52,9 @@ object DogFoodTests extends IOSuite {
 
         val expected = """
         |weaver.framework.test.Meta$FailingTestStatusReporting
-        |+ I succeeded
-        |- I failed
-        |+ I succeeded again
+        |+ I succeeded 0ms
+        |- I failed 0ms
+        |+ I succeeded again 0ms
         |
         """.stripMargin.trim
 
@@ -67,7 +67,7 @@ object DogFoodTests extends IOSuite {
       case (logs, _) =>
         val expected =
           s"""
-            |- failure
+            |- failure 0ms
             |  expected (src/main/DogFoodTests.scala:5)
             |
             |    [INFO]  12:54:35 [DogFoodTests.scala:5] this test
@@ -95,7 +95,7 @@ object DogFoodTests extends IOSuite {
 
         val expected =
           """
-          |- erroring with causes
+          |- erroring with causes 0ms
           |  Meta$CustomException: surfaced error
           |
           |  DogFoodTests.scala:15    my.package.MyClass#MyMethod
@@ -129,7 +129,7 @@ object DogFoodTests extends IOSuite {
         }.get
 
         val expected = """
-        |- lots
+        |- lots 0ms
         |  of
         |  multiline
         |  (failure)
@@ -152,7 +152,7 @@ object DogFoodTests extends IOSuite {
           }.get
 
         val expected = """
-        |+ lots
+        |+ lots 0ms
         |  of
         |  multiline
         |  (success)
@@ -171,7 +171,7 @@ object DogFoodTests extends IOSuite {
           }.get
 
         val expected = """
-        |- lots
+        |- lots 0ms
         |  of
         |  multiline
         |  (ignored) !!! IGNORED !!!
@@ -192,7 +192,7 @@ object DogFoodTests extends IOSuite {
           }.get
 
         val expected = """
-        |- lots
+        |- lots 0ms
         |  of
         |  multiline
         |  (cancelled) !!! CANCELLED !!!

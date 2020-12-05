@@ -2,7 +2,6 @@ package weaver
 package framework
 package test
 
-
 import scala.concurrent.duration.{ FiniteDuration, TimeUnit }
 
 import cats.effect._
@@ -20,6 +19,7 @@ object Meta {
   }
 
   object Rendering extends SimpleIOSuite {
+    override implicit val timer = TimeCop.setTimer
     implicit val sourceLocation = TimeCop.sourceLocation
 
     simpleTest("lots\nof\nmultiline\n(success)") {
@@ -40,6 +40,9 @@ object Meta {
   }
 
   object FailingTestStatusReporting extends SimpleIOSuite {
+    override implicit val timer = TimeCop.setTimer
+    implicit val sourceLocation = TimeCop.sourceLocation
+
     simpleTest("I succeeded") {
       success
     }
@@ -54,10 +57,10 @@ object Meta {
   }
 
   object FailingSuiteWithlogs extends SimpleIOSuite {
-    loggedTest("failure") { log =>
-      implicit val timer          = TimeCop.setTimer
-      implicit val sourceLocation = TimeCop.sourceLocation
+    override implicit val timer = TimeCop.setTimer
+    implicit val sourceLocation = TimeCop.sourceLocation
 
+    loggedTest("failure") { log =>
       val context = Map(
         "a"       -> "b",
         "token"   -> "<something>",
@@ -74,6 +77,8 @@ object Meta {
   }
 
   object ErroringWithCauses extends SimpleIOSuite {
+    override implicit val timer = TimeCop.setTimer
+
     loggedTest("erroring with causes") { log =>
       throw CustomException(
         "surfaced error",
@@ -122,7 +127,7 @@ object Meta {
       .withMinute(54)
       .withSecond(35)
       .toEpochSecond * 1000
-    
+
     implicit val setClock = new Clock[IO] {
       override def realTime(unit: TimeUnit): IO[Long] = IO(setTimestamp)
 
