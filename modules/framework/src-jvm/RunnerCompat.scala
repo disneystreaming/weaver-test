@@ -52,8 +52,9 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
         taskDef: TaskDef,
         mkSuite: MakeSuite): (IOTask, Task) = {
       val promise = scala.concurrent.Promise[Unit]()
-      val queue   = new ConcurrentLinkedQueue[SuiteEvent]()
-      val broker  = new ConcurrentQueueEventBroker(queue)
+      if (args().contains("quickstart")) promise.success(())
+      val queue  = new ConcurrentLinkedQueue[SuiteEvent]()
+      val broker = new ConcurrentQueueEventBroker(queue)
       val startingBlock = Async.fromFuture {
         Sync[F].delay(promise.future.map(_ => ())(ExecutionContext.global))
       }

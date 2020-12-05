@@ -15,7 +15,8 @@ private[framework] class SbtTask(
   def execute(
       eventHandler: EventHandler,
       loggers: Array[Logger]): Array[Task] = {
-    start.success(())
+
+    start.trySuccess(())
 
     var finished: Boolean = false
 
