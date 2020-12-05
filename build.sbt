@@ -306,6 +306,9 @@ lazy val monix = crossProject(JSPlatform, JVMPlatform)
   .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.simpleLayout)
   .jsSettings(jsLinker)
+  .jsSettings(
+    fork in Test := false
+  )
   .settings(
     name := "weaver-monix",
     testFrameworks := Seq(new TestFramework("weaver.framework.Monix"))
@@ -321,6 +324,9 @@ lazy val monixBio = crossProject(JSPlatform, JVMPlatform)
   .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.simpleLayout)
   .jsSettings(jsLinker)
+  .jsSettings(
+    fork in Test := false
+  )
   .settings(
     name := "weaver-monix-bio",
     testFrameworks := Seq(new TestFramework("weaver.framework.MonixBIO"))

@@ -4,17 +4,21 @@ import weaver.framework.DogFood
 
 import monix.bio.Task
 import sbt.testing.Status
+import cats.effect.Resource
+import weaver.framework.MonixBIO
 
-object IOSuiteTest extends SimpleIOSuite {
+object IOSuiteTest extends MutableIOSuite {
+  override type Res = DogFood[Task]
+  override def sharedResource: Resource[monix.bio.Task, Res] =
+    DogFood.make(new MonixBIO)
+
   List(
     TestWithExceptionInTest,
     TestWithExceptionInExpectation,
     TestWithExceptionInInitialisation
   ).foreach { testSuite =>
-    test(s"fail properly in ${testSuite.getClass.getSimpleName}") {
-      for {
-        (_, events) <- DogFood.runSuite(testSuite).to[Task]
-      } yield {
+    test(s"fail properly in ${testSuite.getClass.getSimpleName}") { dogfood =>
+      dogfood.runSuite(testSuite).map { case (_, events) =>
         val maybeEvent = events.headOption
         val maybeThrowable = maybeEvent.flatMap { event =>
           if (event.throwable().isDefined()) Some(event.throwable().get())
@@ -27,10 +31,8 @@ object IOSuiteTest extends SimpleIOSuite {
     }
   }
 
-  test("fail properly on failed expectations") { _ =>
-    for {
-      (_, events) <- DogFood.runSuite(TestWithFailedExpectation).to[Task]
-    } yield {
+  test("fail properly on failed expectations") { dogfood =>
+    dogfood.runSuite(TestWithFailedExpectation).map { case (_, events) =>
       val maybeEvent  = events.headOption
       val maybeStatus = maybeEvent.map(_.status())
       expect(maybeStatus.contains(Status.Failure))
