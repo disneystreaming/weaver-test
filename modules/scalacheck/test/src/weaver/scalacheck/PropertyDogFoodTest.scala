@@ -13,7 +13,7 @@ object PropertyDogFoodTest extends IOSuite {
 
   type Res = DogFood[IO]
   def sharedResource: Resource[IO, DogFood[IO]] =
-    DogFood.make(new CatsFramework)
+    DogFood.make(new CatsEffect)
 
   test("Failed property tests get reported properly") { dogfood =>
     for {
