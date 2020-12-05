@@ -57,7 +57,8 @@ ThisBuild / scalaVersion := WeaverPlugin.scala213
 
 ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.4.4"
 
-Global / (fork in Test) := true
+Global / (Test / fork) := true
+Global / (Test / testOptions) += Tests.Argument("--quickstart")
 
 lazy val root = project
   .in(file("."))
