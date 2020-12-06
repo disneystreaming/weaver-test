@@ -27,9 +27,10 @@ object ZIOGlobalResource {
       ZManaged.fromEffect(put(value, label))
   }
 
-  private def toZIO(global: weaver.GlobalResourceF.Write[T]): Write = new Write {
-    def put[A: Tag](value: A, label: Option[String]): RIO[ZEnv, Unit] =
-      global.put(value, label)
-  }
+  private def toZIO(global: weaver.GlobalResourceF.Write[T]): Write =
+    new Write {
+      def put[A: Tag](value: A, label: Option[String]): RIO[ZEnv, Unit] =
+        global.put(value, label)
+    }
 
 }

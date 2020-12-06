@@ -4,7 +4,7 @@ package monixcompat
 import cats.effect.{ ContextShift, Timer }
 
 import monix.eval.Task
-import monix.execution.{Cancelable, Scheduler}
+import monix.execution.{ Cancelable, Scheduler }
 
 object MonixUnsafeRun extends UnsafeRun[Task] {
 

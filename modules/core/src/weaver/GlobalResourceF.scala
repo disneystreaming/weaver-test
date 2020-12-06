@@ -3,10 +3,10 @@ package weaver
 import scala.reflect.ClassTag
 import scala.util.Try
 
+import cats.MonadError
 import cats.effect._
 import cats.effect.concurrent.Ref
 import cats.syntax.all._
-import cats.MonadError
 
 import org.portablescala.reflect.annotation.EnableReflectiveInstantiation
 

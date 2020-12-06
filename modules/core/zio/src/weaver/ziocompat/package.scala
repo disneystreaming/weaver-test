@@ -16,7 +16,7 @@ package object ziocompat {
   type GlobalRead            = GlobalResourceF.Read[T]
   type GlobalWrite           = ZIOGlobalResource.Write
 
-  implicit class GlobalReadExt(val read: GlobalRead) extends AnyVal {
+  implicit class GlobalReadExt(private val read: GlobalRead) extends AnyVal {
     def getManaged[A](label: Option[String] = None)(
         implicit rt: ResourceTag[A]): RManaged[ZEnv, A] =
       ZManaged.fromEffect(read.getOrFail[A](label))
