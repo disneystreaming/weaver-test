@@ -22,8 +22,6 @@ object ZIOUnsafeRun extends UnsafeRun[T] {
   implicit def contextShift: ContextShift[T] =
     catz.zioContextShift[ZEnv, Throwable]
 
-  def void: T[Unit] = RIO.unit
-
   def background(task: T[Unit]): CancelToken =
     runtime.unsafeRunAsyncCancelable(task)(_ => ())
   def cancel(token: Fiber.Id => Exit[Throwable, Unit]): Unit =

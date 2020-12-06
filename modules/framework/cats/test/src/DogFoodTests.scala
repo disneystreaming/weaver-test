@@ -81,7 +81,7 @@ object DogFoodTests extends IOSuite {
         exists(extractLogEventAfterFailures(logs) {
           case LoggedEvent.Error(msg) => msg
         }) { actual =>
-          expectEqual(expected, actual)
+          expectEqual(actual, expected)
         }
     }
   }
@@ -117,7 +117,7 @@ object DogFoodTests extends IOSuite {
           |
           |""".stripMargin.trim
 
-        expectEqual(expected, actual)
+        expectEqual(actual, expected)
     }
   }
 
@@ -133,13 +133,13 @@ object DogFoodTests extends IOSuite {
         |  of
         |  multiline
         |  (failure)
-        |  assertion failed (modules/framework/cats/test/src/Meta.scala:30)
+        |  assertion failed (modules/framework/cats/test/src/Meta.scala:32)
         |
         |  expect(1 == 2)
         |
         """.stripMargin.trim
 
-        expectEqual(expected, actual)
+        expectEqual(actual, expected)
     }
   }
 
@@ -158,7 +158,7 @@ object DogFoodTests extends IOSuite {
         |  (success)
         """.stripMargin.trim
 
-        expectEqual(expected, actual)
+        expectEqual(actual, expected)
     }
   }
 
@@ -178,7 +178,7 @@ object DogFoodTests extends IOSuite {
         |  Ignore me (src/main/DogFoodTests.scala:5)
         """.stripMargin.trim
 
-        expectEqual(expected, actual)
+        expectEqual(actual, expected)
     }
   }
 
@@ -199,7 +199,7 @@ object DogFoodTests extends IOSuite {
         |  I was cancelled :( (src/main/DogFoodTests.scala:5)
         """.stripMargin.trim
 
-        expectEqual(expected, actual)
+        expectEqual(actual, expected)
     }
   }
 

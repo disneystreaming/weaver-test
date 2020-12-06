@@ -4,11 +4,12 @@ package monixcompat
 import cats.effect.Resource
 
 import monix.eval.Task
+import monix.execution.Scheduler
 
 trait BaseTaskSuite extends RunnableSuite[Task] {
-  val unsafeRun: UnsafeRun[Task]      = MonixUnsafeRun
-  implicit protected def contextShift = unsafeRun.contextShift
-  implicit protected def timer        = unsafeRun.timer
+  implicit protected def effectCompat = MonixUnsafeRun
+
+  final implicit protected def scheduler: Scheduler = effectCompat.scheduler
 }
 
 trait PureTaskSuite

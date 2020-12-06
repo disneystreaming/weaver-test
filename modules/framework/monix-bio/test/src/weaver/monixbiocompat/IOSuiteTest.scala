@@ -2,7 +2,7 @@ package weaver.monixbiocompat
 
 import cats.effect.Resource
 
-import weaver.framework.{DogFood, MonixBIO}
+import weaver.framework.{ DogFood, MonixBIO }
 
 import monix.bio.Task
 import sbt.testing.Status

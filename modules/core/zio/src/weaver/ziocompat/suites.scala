@@ -8,7 +8,7 @@ import zio._
 import zio.interop.catz._
 
 trait BaseZIOSuite extends RunnableSuite[T] {
-  val unsafeRun: UnsafeRun[T] = ZIOUnsafeRun
+  val effectCompat: UnsafeRun[T] = ZIOUnsafeRun
 }
 
 abstract class BaseMutableZIOSuite[Res <: Has[_]](implicit tag: Tag[Res])

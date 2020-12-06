@@ -28,7 +28,7 @@ trait Matchers[F[_]] extends MustMatchers {
       m: MatchResult[A]
   )(
       implicit pos: SourceLocation
-  ): F[Expectations] = concurrent.pure(toExpectations(m))
+  ): F[Expectations] = effectCompat.effect.pure(toExpectations(m))
 
 }
 

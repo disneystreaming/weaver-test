@@ -1,7 +1,19 @@
 package weaver
 
+import java.util.concurrent.TimeUnit
+
 import cats.Parallel
-import cats.effect.{ ConcurrentEffect, ContextShift, Timer }
+import cats.effect.{ Concurrent, ContextShift, Timer }
+
+protected[weaver] trait EffectCompat[F[_]] {
+  implicit def parallel: Parallel[F]
+  implicit def effect: Concurrent[F]
+  implicit final def compiler: fs2.Stream.Compiler[F, F] =
+    fs2.Stream.Compiler.syncInstance(effect)
+  implicit def timer: Timer[F]
+  implicit def contextShift: ContextShift[F]
+  def realTimeMillis: F[Long]
+}
 
 /**
  * Abstraction allowing for running IO constructs unsafely.
@@ -9,21 +21,16 @@ import cats.effect.{ ConcurrentEffect, ContextShift, Timer }
  * This is meant to delegate to library-specific constructs for running
  * effect types.
  */
-protected[weaver] trait UnsafeRun[F[_]] {
+protected[weaver] trait UnsafeRun[F[_]] extends EffectCompat[F] {
 
   type CancelToken
-
-  implicit def effect: ConcurrentEffect[F]
-  implicit def parallel: Parallel[F]
-  implicit def contextShift: ContextShift[F]
-  implicit def timer: Timer[F]
-
-  def void: F[Unit]
 
   def background(task: F[Unit]): CancelToken
   def cancel(token: CancelToken): Unit
 
   def sync(task: F[Unit]): Unit
   def async(task: F[Unit]): Unit
+
+  def realTimeMillis: F[Long] = timer.clock.realTime(TimeUnit.MILLISECONDS)
 
 }

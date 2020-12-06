@@ -20,7 +20,8 @@ object Meta {
   }
 
   object Rendering extends SimpleIOSuite {
-    override implicit val timer = TimeCop.setTimer
+    override implicit protected def effectCompat: UnsafeRun[IO] =
+      SetTimeUnsafeRun
     implicit val sourceLocation = TimeCop.sourceLocation
 
     simpleTest("lots\nof\nmultiline\n(success)") {
@@ -41,7 +42,8 @@ object Meta {
   }
 
   object FailingTestStatusReporting extends SimpleIOSuite {
-    override implicit val timer = TimeCop.setTimer
+    override implicit protected def effectCompat: UnsafeRun[IO] =
+      SetTimeUnsafeRun
     implicit val sourceLocation = TimeCop.sourceLocation
 
     simpleTest("I succeeded") {
@@ -58,7 +60,8 @@ object Meta {
   }
 
   object FailingSuiteWithlogs extends SimpleIOSuite {
-    override implicit val timer = TimeCop.setTimer
+    override implicit protected def effectCompat: UnsafeRun[IO] =
+      SetTimeUnsafeRun
     implicit val sourceLocation = TimeCop.sourceLocation
 
     loggedTest("failure") { log =>
@@ -78,7 +81,8 @@ object Meta {
   }
 
   object ErroringWithCauses extends SimpleIOSuite {
-    override implicit val timer = TimeCop.setTimer
+    override implicit protected def effectCompat: UnsafeRun[IO] =
+      SetTimeUnsafeRun
 
     loggedTest("erroring with causes") { log =>
       throw CustomException(
@@ -145,6 +149,10 @@ object Meta {
       "src/main/DogFoodTests.scala",
       "src/main/DogFoodTests.scala",
       5)
+  }
+
+  object SetTimeUnsafeRun extends CatsUnsafeRun {
+    override implicit val timer: Timer[IO] = TimeCop.setTimer
   }
 
 }

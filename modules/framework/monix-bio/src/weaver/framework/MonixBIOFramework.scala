@@ -1,7 +1,11 @@
 package weaver
 package framework
 
-import weaver.monixbiocompat.{BaseIOSuite, IOGlobalResource, MonixBIOUnsafeRun}
+import weaver.monixbiocompat.{
+  BaseIOSuite,
+  IOGlobalResource,
+  MonixBIOUnsafeRun
+}
 
 import monix.bio.Task
 

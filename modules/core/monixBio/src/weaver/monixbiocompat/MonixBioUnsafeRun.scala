@@ -16,7 +16,6 @@ object MonixBIOUnsafeRun extends UnsafeRun[monix.bio.Task] {
   implicit val contextShift: ContextShift[monix.bio.Task] =
     IO.contextShift(scheduler)
   implicit val timer: Timer[monix.bio.Task] = IO.timer(scheduler)
-  def void: monix.bio.Task[Unit]            = IO.unit
   def background(task: monix.bio.Task[Unit]): monix.bio.Task[Unit] = {
     val cancelToken = task.runAsync { _ => () }(scheduler)
     monix.bio.Task(cancelToken.cancel())

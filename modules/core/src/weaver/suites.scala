@@ -1,7 +1,7 @@
 package weaver
 
+import cats.effect.Resource
 import cats.effect.implicits._
-import cats.effect.{ Concurrent, Resource, Timer }
 import cats.syntax.applicative._
 import cats.syntax.applicativeError._
 
@@ -20,37 +20,39 @@ trait Suite[F[_]] extends BaseSuiteClass {
 // format: off
 trait EffectSuite[F[_]] extends Suite[F] with SourceLocation.Here { self =>
 
-  implicit protected def concurrent: Concurrent[F]
+  implicit protected def effectCompat: EffectCompat[F]
 
   /**
    * Raise an error that leads to the running test being tagged as "cancelled".
    */
   def cancel(reason: String)(implicit pos: SourceLocation): F[Nothing] =
-    concurrent.raiseError(new CanceledException(Some(reason), pos))
+    effectCompat.effect.raiseError(new CanceledException(Some(reason), pos))
 
   /**
    * Raises an error that leads to the running test being tagged as "ignored"
    */
   def ignore(reason: String)(implicit pos: SourceLocation): F[Nothing] =
-    concurrent.raiseError(new IgnoredException(Some(reason), pos))
+    effectCompat.effect.raiseError(new IgnoredException(Some(reason), pos))
 
   override def name : String = self.getClass.getName.replace("$", "")
 
   protected def adaptRunError: PartialFunction[Throwable, Throwable] = PartialFunction.empty
 
-  final def run(args : List[String])(report : TestOutcome => F[Unit]) : F[Unit] =
+  final def run(args : List[String])(report : TestOutcome => F[Unit]) : F[Unit] = {
+    val compat = effectCompat
+    import compat._
     spec(args).evalMap(report).compile.drain.adaptErr(adaptRunError)
+  }
 
   implicit def expectationsConversion(e: Expectations): F[Expectations] =
-    e.pure[F]
+    effectCompat.effect.pure(e)
 }
 
 trait RunnableSuite[F[_]] extends EffectSuite[F] {
-  def unsafeRun: UnsafeRun[F]
-  override protected final def concurrent: Concurrent[F] = unsafeRun.effect
+  implicit protected def effectCompat: UnsafeRun[F]
 
   private[weaver] def runUnsafe(args: List[String])(report: TestOutcome => Unit) : Unit =
-    unsafeRun.sync(run(args)(outcome => unsafeRun.effect.delay(report(outcome))))
+    effectCompat.sync(run(args)(outcome => effectCompat.effect.delay(report(outcome))))
 }
 
 trait MutableFSuite[F[_]] extends EffectSuite[F]  {
@@ -59,7 +61,6 @@ trait MutableFSuite[F[_]] extends EffectSuite[F]  {
   def sharedResource : Resource[F, Res]
 
   def maxParallelism : Int = 10000
-  implicit protected def timer: Timer[F]
 
   protected def registerTest(name: TestName)(f: Res => F[TestOutcome]): Unit =
     synchronized {
@@ -67,8 +68,8 @@ trait MutableFSuite[F[_]] extends EffectSuite[F]  {
       testSeq = testSeq :+ (name -> f)
     }
 
-  def pureTest(name: TestName)(run : => Expectations) :  Unit = registerTest(name)(_ => Test(name.name, concurrent.delay(run)))
-  def simpleTest(name:  TestName)(run: => F[Expectations]) : Unit = registerTest(name)(_ => Test(name.name, concurrent.suspend(run)))
+  def pureTest(name: TestName)(run : => Expectations) :  Unit = registerTest(name)(_ => Test(name.name, effectCompat.effect.delay(run)))
+  def simpleTest(name:  TestName)(run: => F[Expectations]) : Unit = registerTest(name)(_ => Test(name.name, effectCompat.effect.suspend(run)))
   def loggedTest(name: TestName)(run: Log[F] => F[Expectations]) : Unit = registerTest(name)(_ => Test(name.name, log => run(log)))
   def test(name: TestName) : PartiallyAppliedTest = new PartiallyAppliedTest(name)
 
@@ -88,8 +89,8 @@ trait MutableFSuite[F[_]] extends EffectSuite[F]  {
       else for {
         resource <- Stream.resource(sharedResource)
         tests = filteredTests.map(_.apply(resource))
-        testStream = Stream.emits(tests).lift[F]
-        result <- if (parallism > 1 ) testStream.parEvalMap(parallism)(identity)
+        testStream = Stream.emits(tests).lift[F](effectCompat.effect)
+        result <- if (parallism > 1 ) testStream.parEvalMap(parallism)(identity)(effectCompat.effect)
                   else testStream.evalMap(identity)
       } yield result
     }

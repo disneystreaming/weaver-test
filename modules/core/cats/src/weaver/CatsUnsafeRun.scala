@@ -4,7 +4,9 @@ import scala.concurrent.ExecutionContext
 
 import cats.effect.{ ContextShift, IO, Timer }
 
-object CatsUnsafeRun extends UnsafeRun[IO] {
+object CatsUnsafeRun extends CatsUnsafeRun
+
+trait CatsUnsafeRun extends UnsafeRun[IO] {
 
   type CancelToken = IO[Unit]
 
@@ -15,8 +17,6 @@ object CatsUnsafeRun extends UnsafeRun[IO] {
 
   override implicit val effect   = IO.ioConcurrentEffect(contextShift)
   override implicit val parallel = IO.ioParallel(contextShift)
-
-  def void: IO[Unit] = IO.unit
 
   def background(task: IO[Unit]): CancelToken =
     task.unsafeRunCancelable {

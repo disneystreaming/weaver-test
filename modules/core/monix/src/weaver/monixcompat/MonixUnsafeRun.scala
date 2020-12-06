@@ -4,11 +4,11 @@ package monixcompat
 import cats.effect.{ ContextShift, Timer }
 
 import monix.eval.Task
-import monix.execution.Scheduler
+import monix.execution.{Cancelable, Scheduler}
 
 object MonixUnsafeRun extends UnsafeRun[Task] {
 
-  type CancelToken = Task[Unit]
+  type CancelToken = Cancelable
 
   implicit val scheduler: Scheduler = monix.execution.Scheduler.global
 
@@ -20,14 +20,10 @@ object MonixUnsafeRun extends UnsafeRun[Task] {
   override implicit val effect   = Task.catsEffect(scheduler)
   override implicit val parallel = Task.catsParallel
 
-  def void: Task[Unit] = Task.unit
+  def background(task: Task[Unit]): Cancelable =
+    task.runAsync { _ => () }(scheduler)
 
-  def background(task: Task[Unit]): CancelToken = {
-    val cancelToken = task.runAsync { _ => () }(scheduler)
-    Task(cancelToken.cancel())
-  }
-
-  def cancel(token: CancelToken): Unit = sync(token)
+  def cancel(token: CancelToken): Unit = token.cancel()
 
   def sync(task: Task[Unit]): Unit = PlatformCompat.runSync(task)
 

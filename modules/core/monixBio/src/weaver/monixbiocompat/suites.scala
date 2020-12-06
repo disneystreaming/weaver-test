@@ -4,19 +4,15 @@ package monixbiocompat
 import scala.concurrent.duration.{ MILLISECONDS, _ }
 
 import cats.data.Chain
+import cats.effect.{ Resource }
 import cats.effect.concurrent.Ref
-import cats.effect.{ ContextShift, Resource, Timer }
 
 import monix.bio.{ IO, Task }
 import monix.execution.Scheduler
 
 trait BaseIOSuite extends RunnableSuite[Task] {
-  override val unsafeRun = MonixBIOUnsafeRun
-
-  implicit protected def scheduler: Scheduler = unsafeRun.scheduler
-  implicit protected def timer: Timer[Task]   = unsafeRun.timer
-  implicit protected def contextShift: ContextShift[Task] =
-    unsafeRun.contextShift
+  implicit protected def effectCompat               = MonixBIOUnsafeRun
+  final implicit protected def scheduler: Scheduler = effectCompat.scheduler
 }
 
 /**
