@@ -9,4 +9,4 @@ class CatsEffect
 object CatsFingerprints
     extends WeaverFingerprints.Mixin[IO, BaseIOSuite, IOGlobalResource]
 
-trait IOGlobalResource extends GlobalResource[IO]
+

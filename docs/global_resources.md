@@ -28,11 +28,11 @@ import cats.effect.IO
 import cats.effect.Resource
 
 // note how this is a static object
-object SharedResources extends GlobalResourcesInit {
-  def sharedResources(store: GlobalResources.Write[IO]): Resource[IO, Unit] =
+object SharedResources extends GlobalResource {
+  def sharedResources(global: GlobalWrite): Resource[IO, Unit] =
     for {
       foo <- Resource.pure[IO, String]("hello world!")
-      _   <- store.putR(foo)
+      _   <- global.putR(foo)
     } yield ()
 }
 ```
@@ -44,23 +44,23 @@ On the suite side, accessing the global resources happen via declaring a constru
 This item can be used to access the resources that were previously initialised and stored in the `GlobalResourcesInit`.
 
 ```scala mdoc
-class SharingSuite(globalResources: GlobalResources) extends IOSuite {
+class SharingSuite(global: GlobalRead) extends IOSuite {
   type Res = String
   def sharedResource: Resource[IO, String] =
-    globalResources.in[IO].getOrFailR[String]()
+    global.getOrFailR[String]()
 
   test("a stranger, from the outside ! ooooh") { sharedString =>
     IO(expect(sharedString == "hello world!"))
   }
 }
 
-class OtherSharingSuite(globalResources: GlobalResources)
+class OtherSharingSuite(global: GlobalRead)
     extends IOSuite {
   type Res = Option[Int]
 
   // We didn't store an `Int` value in our `GlobalResourcesInit` impl
   def sharedResource: Resource[IO, Option[Int]] =
-    globalResources.in[IO].getR[Int]()
+    global.getR[Int]()
 
   test("oops, forgot something here") { sharedInt =>
     IO(expect(sharedInt.isEmpty))
@@ -89,28 +89,33 @@ An example of how to do this:
 
 ```scala mdoc
 import cats.effect.{ IO, Resource }
-import weaver.{ GlobalResources, GlobalResourcesInit, IOSuite }
+import weaver._
 
-object MyResources extends GlobalResourcesInit {
-  override def sharedResources(store: GlobalResources.Write[IO]): Resource[IO, Unit] =
-    baseResources.flatMap(store.putR(_))
+// The same developer experience is offered with any of the following imports :
+// import weaver.monixcompat
+// import weaver.monixbiocompat
+// import weaver.ziocompat
+
+object MyResources extends GlobalResource {
+  override def sharedResources(global: GlobalWrite): Resource[IO, Unit] =
+    baseResources.flatMap(global.putR(_))
 
   def baseResources: Resource[IO, String] = Resource.pure[IO, String]("hello world!")
 
   // Provides a fallback to support running individual tests via testOnly
-  def sharedResourceOrFallback(globalResources: GlobalResources): Resource[IO, String] =
-    globalResources.in[IO].getR[String]().flatMap {
+  def sharedResourceOrFallback(read: GlobalRead): Resource[IO, String] =
+    read.getR[String]().flatMap {
       case Some(value) => Resource.liftF(IO(value))
       case None        => baseResources
     }
 }
 
-class MySuite(globalResources: GlobalResources) extends IOSuite {
+class MySuite(global: GlobalRead) extends IOSuite {
   import MyResources._
 
   override type Res = String
 
-  def sharedResource: Resource[IO, String] = sharedResourceOrFallback(globalResources)
+  def sharedResource: Resource[IO, String] = sharedResourceOrFallback(global)
 
   test("a stranger, from the outside ! ooooh") { sharedString =>
     IO(expect(sharedString == "hello world!"))
@@ -136,8 +141,8 @@ import cats.effect.Resource
 case class Foo[A](value : A)
 
 object FailingSharedResources extends GlobalResourcesInit {
-  def sharedResources(store: GlobalResources.Write[IO]): Resource[IO, Unit] =
-    store.putR(Foo("hello"))
+  def sharedResources(global: Global): Resource[IO, Unit] =
+    global.putR(Foo("hello"))
 }
 ```
 
@@ -148,23 +153,23 @@ On the two sides of (production and consumption) of the global resources, it is 
 ```scala mdoc
 import cats.syntax.all._
 
-object LabelSharedResources extends GlobalResourcesInit {
-  def sharedResources(store: GlobalResources.Write[IO]): Resource[IO, Unit] =
+object LabelSharedResources extends GlobalResource {
+  def sharedResources(global: GlobalWrite): Resource[IO, Unit] =
     for {
-      _ <- store.putR(1, "one".some)
-      _ <- store.putR(2, "two".some)
+      _ <- global.putR(1, "one".some)
+      _ <- global.putR(2, "two".some)
     } yield ()
 }
 
-class LabelSharingSuite(globalResources: GlobalResources)
+class LabelSharingSuite(global: GlobalRead)
     extends IOSuite {
 
   type Res = Int
 
   // We didn't store an `Int` value in our `GlobalResourcesInit` impl
   def sharedResource: Resource[IO, Int] = for {
-    one <- globalResources.in[IO].getOrFailR[Int]("one".some)
-    two <- globalResources.in[IO].getOrFailR[Int]("two".some)
+    one <- global.getOrFailR[Int]("one".some)
+    two <- global.getOrFailR[Int]("two".some)
   } yield one + two
 
   test("labels work") { sharedInt =>

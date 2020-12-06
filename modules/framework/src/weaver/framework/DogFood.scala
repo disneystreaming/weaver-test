@@ -101,7 +101,7 @@ abstract class DogFood[F[_]](
       tasks: Array[SbtTask]): F[Unit] =
     runTasksCompat(runner, eventHandler, logger)(tasks)
 
-  def globalInit(g: GlobalResource[F]): Fingerprinted =
+  def globalInit(g: GlobalResourceF[F]): Fingerprinted =
     Fingerprinted.GlobalInit(g.getClass.getName.dropRight(1))
   def moduleSuite(g: EffectSuite[F]): Fingerprinted =
     Fingerprinted.ModuleSuite(g.getClass.getName.dropRight(1))

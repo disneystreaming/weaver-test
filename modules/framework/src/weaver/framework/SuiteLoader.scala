@@ -11,8 +11,8 @@ trait SuiteLoader[F[_]] {
 
   sealed trait Loader
   case class SuiteRef(suite: F[EffectSuite[F]])          extends Loader
-  case class GlobalResourcesRef(init: GlobalResource[F]) extends Loader
+  case class GlobalResourcesRef(init: GlobalResourceF[F]) extends Loader
   case class ResourcesSharingSuiteRef(
-      build: GlobalResource.Read[F] => F[EffectSuite[F]])
+      build: GlobalResourceF.Read[F] => F[EffectSuite[F]])
       extends Loader
 }

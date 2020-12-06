@@ -10,6 +10,7 @@ You'll need to install an additional dependency in order to use weaver to test M
 ### SBT
 ```scala
 libraryDependencies +=  "com.disneystreaming" %% "weaver-monix" % "@VERSION@" % Test
+testFrameworks += new TestFramework("weaver.framework.Monix")
 ```
 
 ### Mill
@@ -18,12 +19,13 @@ object test extends Tests {
   def ivyDeps = Agg(
     ivy"com.disneystreaming::weaver-monix:@VERSION@"
   )
+  def testFrameworks = Seq("weaver.framework.Monix")
 }
 ```
 
 ## Usage
 
-Testing Monix programs is practically the same as testing Cats Effect programs. 
+Testing Monix programs is practically the same as testing Cats Effect programs.
 
 For basic usage, simply extend `SimpleTaskSuite`. Porting the example test, for instance:
 

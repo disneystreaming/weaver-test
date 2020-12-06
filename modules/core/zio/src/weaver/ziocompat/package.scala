@@ -12,5 +12,20 @@ package object ziocompat {
   val unitTag = implicitly[Tag[Unit]]
   type ZIOSuite[R <: Has[_]] = MutableZIOSuite[R]
   type SimpleZIOSuite        = SimpleMutableZIOSuite
+  type GlobalResource        = ZIOGlobalResource
+  type GlobalRead            = GlobalResourceF.Read[T]
+  type GlobalWrite           = ZIOGlobalResource.Write
+
+  implicit class GlobalReadExt(val read: GlobalRead) extends AnyVal {
+    def getManaged[A](label: Option[String] = None)(
+        implicit rt: ResourceTag[A]): RManaged[ZEnv, A] =
+      ZManaged.fromEffect(read.getOrFail[A](label))
+    def getLayer[A](label: Option[String] = None)(
+        implicit rt: Tag[A]): RLayer[ZEnv, Has[A]] =
+      ZLayer.fromEffect(read.getOrFail[A](label))
+  }
+
+  implicit def resourceTagFromTag[A](implicit A: Tag[A]): ResourceTag[A] =
+    LTTResourceTag(A.tag)
 
 }

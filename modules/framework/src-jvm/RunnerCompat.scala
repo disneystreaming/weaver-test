@@ -20,7 +20,7 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
   protected val unsafeRun: UnsafeRun[F]
   import unsafeRun._
 
-  private type MakeSuite = GlobalResource.Read[F] => F[EffectSuite[F]]
+  private type MakeSuite = GlobalResourceF.Read[F] => F[EffectSuite[F]]
 
   private var cancelToken: Option[unsafeRun.CancelToken] = None
 
@@ -37,7 +37,7 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
   protected val isDone: AtomicBoolean = new AtomicBoolean(false)
 
   private def runBackground(
-      globalResources: List[GlobalResource[F]],
+      globalResources: List[GlobalResourceF[F]],
       tasks: List[IOTask]): Unit = {
     cancelToken = Some(unsafeRun.background(run(globalResources, tasks)))
   }
@@ -98,7 +98,7 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
   }
 
   private def run(
-      globalResources: List[GlobalResource[F]],
+      globalResources: List[GlobalResourceF[F]],
       tasks: List[IOTask]): F[Unit] = {
     import cats.syntax.all._
     resourceMap(globalResources).use { read =>
@@ -111,9 +111,9 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
   }
 
   private def resourceMap(
-      globalResources: List[GlobalResource[F]]
-  ): Resource[F, GlobalResource.Read[F]] =
-    Resource.liftF(GlobalResource.createMap[F]).flatTap { map =>
+      globalResources: List[GlobalResourceF[F]]
+  ): Resource[F, GlobalResourceF.Read[F]] =
+    Resource.liftF(GlobalResourceF.createMap[F]).flatTap { map =>
       globalResources.traverse(_.sharedResources(map)).void
     }
 
@@ -124,7 +124,7 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
       start: F[Unit],
       broker: SuiteEventBroker) {
     def run(
-        globalResources: GlobalResource.Read[F],
+        globalResources: GlobalResourceF.Read[F],
         outcomes: Ref[F, Chain[(SuiteName, TestOutcome)]],
         semaphore: Semaphore[F],
         N: Long): F[Unit] = {

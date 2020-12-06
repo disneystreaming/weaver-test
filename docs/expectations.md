@@ -37,7 +37,7 @@ object MySuite2 extends SimpleIOSuite {
   simpleTest("Failing fast expectations") {
     for {
       h <- IO.pure("hello")
-      _ <- expect(h.nonEmpty).failFast
+      _ <- expect(h.nonEmpty).failFast[IO]
     } yield success
   }
 

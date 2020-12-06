@@ -4,6 +4,8 @@ import _root_.sbtcrossproject.Platform
 import org.jetbrains.sbtidea.Keys.createRunnerProject
 import sbtcrossproject.CrossPlugin.autoImport.{ CrossType, crossProject }
 
+Global / (Test / fork) := true
+
 addCommandAlias(
   "ci",
   Seq(
@@ -57,6 +59,9 @@ ThisBuild / scalaVersion := WeaverPlugin.scala213
 
 ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.4.4"
 
+Global / (Test / fork) := true
+Global / (Test / testOptions) += Tests.Argument("--quickstart")
+
 lazy val root = project
   .in(file("."))
   .enablePlugins(ScalafixPlugin)
@@ -106,8 +111,8 @@ lazy val docs = project
   .in(file("modules/docs"))
   .enablePlugins(DocusaurusPlugin, MdocPlugin)
   .dependsOn(coreJVM,
-             frameworkJVM,
              scalacheckJVM,
+             catsJVM,
              zioJVM,
              monixJVM,
              monixBioJVM,
@@ -303,9 +308,6 @@ lazy val monix = crossProject(JSPlatform, JVMPlatform)
   .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.simpleLayout)
   .jsSettings(jsLinker)
-  .jsSettings(
-    fork in Test := false
-  )
   .settings(
     name := "weaver-monix",
     testFrameworks := Seq(new TestFramework("weaver.framework.Monix"))
@@ -321,9 +323,6 @@ lazy val monixBio = crossProject(JSPlatform, JVMPlatform)
   .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.simpleLayout)
   .jsSettings(jsLinker)
-  .jsSettings(
-    fork in Test := false
-  )
   .settings(
     name := "weaver-monix-bio",
     testFrameworks := Seq(new TestFramework("weaver.framework.MonixBIO"))

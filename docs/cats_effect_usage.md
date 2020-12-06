@@ -1,7 +1,30 @@
 ---
-id: common_usage
-title: Common usage
+id: cats
+title: Cats-effect usage
 ---
+
+## Installation
+
+You'll need to install the following depending to test your programs against `cats.effect.IO`
+
+### SBT
+```scala
+libraryDependencies +=  "com.disneystreaming" %% "weaver-cats" % "@VERSION@" % Test
+testFrameworks += new TestFramework("weaver.framework.CatsEffect")
+```
+
+### Mill
+```scala
+object test extends Tests {
+  def ivyDeps = Agg(
+    ivy"com.disneystreaming::weaver-cats:@VERSION@"
+  )
+  def testFrameworks = Seq("weaver.framework.CatsEffect")
+}
+```
+
+## Usage
+
 
 Start with importing the following :
 

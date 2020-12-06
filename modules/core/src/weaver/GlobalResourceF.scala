@@ -6,7 +6,7 @@ import scala.util.Try
 import cats.effect._
 import cats.effect.concurrent.Ref
 import cats.syntax.all._
-import cats.{ Applicative, FlatMap, MonadError }
+import cats.MonadError
 
 import org.portablescala.reflect.annotation.EnableReflectiveInstantiation
 
@@ -25,42 +25,41 @@ import org.portablescala.reflect.annotation.EnableReflectiveInstantiation
 @EnableReflectiveInstantiation
 trait GlobalResourceBase
 
-trait GlobalResource[F[_]] extends GlobalResourceBase {
-  def sharedResources(store: GlobalResource.Write[F]): Resource[F, Unit]
+trait GlobalResourceF[F[_]] extends GlobalResourceBase {
+  def sharedResources(global: GlobalResourceF.Write[F]): Resource[F, Unit]
 }
 
-object GlobalResource {
+object GlobalResourceF {
 
   trait Write[F[_]] {
+    protected implicit def F: Sync[F]
     def put[A](value: A, label: Option[String] = None)(
         implicit rt: ResourceTag[A]): F[Unit]
     def putR[A](value: A, label: Option[String] = None)(
-        implicit rt: ResourceTag[A],
-        F: Sync[F]): Resource[F, Unit] = Resource.liftF(put(value, label))
+        implicit rt: ResourceTag[A]): Resource[F, Unit] =
+      Resource.liftF(put(value, label))
   }
 
   trait Read[F[_]] {
+    protected implicit def F: MonadError[F, Throwable]
     def get[A](label: Option[String] = None)(
         implicit rt: ResourceTag[A]): F[Option[A]]
 
     def getR[A](label: Option[String] = None)(
-        implicit F: Applicative[F],
-        rt: ResourceTag[A]): Resource[F, Option[A]] =
+        implicit rt: ResourceTag[A]): Resource[F, Option[A]] =
       Resource.liftF(get[A](label))
 
     def getOrFail[A](label: Option[String] = None)(
-        implicit F: MonadError[F, Throwable],
-        rt: ResourceTag[A]
+        implicit rt: ResourceTag[A]
     ): F[A] =
       get[A](label).flatMap[A] {
         case Some(value) => F.pure(value)
         case None =>
-          F.raiseError(GlobalResource.ResourceNotFound(label, rt.description))
+          F.raiseError(GlobalResourceF.ResourceNotFound(label, rt.description))
       }
     def getOrFailR[A](label: Option[String] = None)(
-        implicit F: MonadError[F, Throwable],
-        rt: ResourceTag[A]
-    ): Resource[F, A] = Resource.liftF(getOrFail[A](label))
+        implicit rt: ResourceTag[A]): Resource[F, A] =
+      Resource.liftF(getOrFail[A](label))
 
   }
 
@@ -69,14 +68,16 @@ object GlobalResource {
       .of(Map.empty[(Option[String], ResourceTag[_]), Any])
       .map(new ResourceMap(_))
 
-  private class ResourceMap[F[_]: FlatMap](
-      ref: Ref[F, Map[(Option[String], ResourceTag[_]), Any]])
+  private class ResourceMap[F[_]](
+      ref: Ref[F, Map[(Option[String], ResourceTag[_]), Any]])(
+      implicit val F: Sync[F])
       extends Read[F]
       with Write[F] { self =>
 
     def put[A](value: A, label: Option[String])(
-        implicit rt: ResourceTag[A]): F[Unit] =
+        implicit rt: ResourceTag[A]): F[Unit] = {
       ref.update(_ + ((label, rt) -> value))
+    }
 
     def get[A](label: Option[String])(
         implicit rt: ResourceTag[A]): F[Option[A]] =
