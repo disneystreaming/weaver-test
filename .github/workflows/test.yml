@@ -1,23 +1,21 @@
-name: Build and Test
-
-on:
-  push:
-    branches:
-      - master
-  pull_request:
-
+name: Test
+on: push
 jobs:
-  test:
-    runs-on: ubuntu-latest
+  job:
+    strategy:
+      matrix:
+        os: [macos-latest, windows-latest, ubuntu-latest]
+        javaVersion: [1.8, 1.11]
+    runs-on: ${{matrix.os}}
     steps:
     - name: Checkout repo
       uses: actions/checkout@v2
     - name: Restore Coursier cache
       uses: coursier/cache-action@v3
-    - name: Set up JDK 1.8
+    - name: Set up JDK
       uses: actions/setup-java@v1
       with:
-        java-version: 1.8
+        java-version: ${{matrix.javaVersion}}
     - name: Run tests
       run: sbt ci
       env:
