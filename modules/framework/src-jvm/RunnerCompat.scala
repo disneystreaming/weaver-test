@@ -54,6 +54,11 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
       val promise = scala.concurrent.Promise[Unit]()
       if (args().contains("--quickstart") || args().contains("-qs"))
         promise.success(())
+
+      // 1 permit semaphore protecting against build tools not
+      // dispatching logs through a single logger at a time.
+      val jSemaphore = new java.util.concurrent.Semaphore(1)
+
       val queue  = new ConcurrentLinkedQueue[SuiteEvent]()
       val broker = new ConcurrentQueueEventBroker(queue)
       val startingBlock = Async.fromFuture {
@@ -68,7 +73,7 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
           startingBlock,
           broker)
 
-      val sbtTask = new SbtTask(taskDef, isDone, promise, queue)
+      val sbtTask = new SbtTask(taskDef, isDone, promise, queue, jSemaphore)
       (ioTask, sbtTask)
     }
 

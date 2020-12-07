@@ -9,7 +9,8 @@ private[framework] class SbtTask(
     val taskDef: TaskDef,
     isDone: AtomicBoolean,
     start: scala.concurrent.Promise[Unit],
-    queue: java.util.concurrent.ConcurrentLinkedQueue[SuiteEvent])
+    queue: java.util.concurrent.ConcurrentLinkedQueue[SuiteEvent],
+    jSemaphore: java.util.concurrent.Semaphore)
     extends Task {
 
   def execute(
@@ -20,16 +21,21 @@ private[framework] class SbtTask(
 
     var finished: Boolean = false
 
-    while (!finished && !isDone.get()) {
-      val nextEvent = Option(queue.poll())
+    jSemaphore.acquire()
+    try {
+      while (!finished && !isDone.get()) {
+        val nextEvent = Option(queue.poll())
 
-      nextEvent.foreach {
-        case _: SuiteFinished | _: RunFinished => finished = true
-        case TestFinished(outcome)             => eventHandler.handle(sbtEvent(outcome))
-        case _                                 => ()
+        nextEvent.foreach {
+          case _: SuiteFinished | _: RunFinished => finished = true
+          case TestFinished(outcome)             => eventHandler.handle(sbtEvent(outcome))
+          case _                                 => ()
+        }
+
+        nextEvent.foreach(Reporter.log(loggers))
       }
-
-      nextEvent.foreach(Reporter.log(loggers))
+    } finally {
+      jSemaphore.release()
     }
 
     Array()
