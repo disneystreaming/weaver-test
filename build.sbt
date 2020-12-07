@@ -4,8 +4,6 @@ import _root_.sbtcrossproject.Platform
 import org.jetbrains.sbtidea.Keys.createRunnerProject
 import sbtcrossproject.CrossPlugin.autoImport.{ CrossType, crossProject }
 
-Global / (Test / fork) := true
-
 addCommandAlias(
   "ci",
   Seq(
@@ -214,7 +212,7 @@ lazy val coreCats = crossProject(JSPlatform, JVMPlatform)
   .dependsOn(core)
   .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.simpleLayout)
-  .settings(name := "weaver-cats-core")
+  .settings(name := "cats-core")
 
 lazy val coreCatsJVM = coreCats.jvm
 lazy val coreCatsJS  = coreCats.js
@@ -226,7 +224,7 @@ lazy val coreMonix = crossProject(JSPlatform, JVMPlatform)
   .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.simpleLayout)
   .settings(
-    name := "weaver-monix-core",
+    name := "monix-core",
     libraryDependencies ++= Seq(
       "io.monix" %%% "monix" % "3.3.0"
     )
@@ -242,7 +240,7 @@ lazy val coreMonixBio = crossProject(JSPlatform, JVMPlatform)
   .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.simpleLayout)
   .settings(
-    name := "weaver-monix-bio-core",
+    name := "monix-bio-core",
     libraryDependencies ++= Seq(
       "io.monix" %%% "monix-bio" % "1.1.0"
     )
@@ -258,7 +256,7 @@ lazy val coreZio = crossProject(JSPlatform, JVMPlatform)
   .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.simpleLayout)
   .settings(
-    name := "weaver-zio-core",
+    name := "zio-core",
     libraryDependencies ++= Seq(
       "dev.zio" %%% "zio-interop-cats" % "2.2.0.1"
     )
@@ -293,7 +291,7 @@ lazy val cats = crossProject(JSPlatform, JVMPlatform)
     fork in Test := false
   )
   .settings(
-    name := "weaver-cats",
+    name := "cats",
     testFrameworks := Seq(new TestFramework("weaver.framework.CatsEffect")),
     libraryDependencies += "io.github.cquiroz" %%% "scala-java-time-tzdb" % "2.0.0" % Test
   )
@@ -309,7 +307,7 @@ lazy val monix = crossProject(JSPlatform, JVMPlatform)
   .settings(WeaverPlugin.simpleLayout)
   .jsSettings(jsLinker)
   .settings(
-    name := "weaver-monix",
+    name := "monix",
     testFrameworks := Seq(new TestFramework("weaver.framework.Monix"))
   )
 
@@ -324,7 +322,7 @@ lazy val monixBio = crossProject(JSPlatform, JVMPlatform)
   .settings(WeaverPlugin.simpleLayout)
   .jsSettings(jsLinker)
   .settings(
-    name := "weaver-monix-bio",
+    name := "monix-bio",
     testFrameworks := Seq(new TestFramework("weaver.framework.MonixBIO"))
   )
 
@@ -339,7 +337,7 @@ lazy val zio = crossProject(JSPlatform, JVMPlatform)
   .settings(WeaverPlugin.simpleLayout)
   .jsSettings(jsLinker)
   .settings(
-    name := "weaver-zio",
+    name := "zio",
     testFrameworks := Seq(new TestFramework("weaver.framework.ZIO"))
   )
 

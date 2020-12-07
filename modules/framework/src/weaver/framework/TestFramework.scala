@@ -2,7 +2,7 @@ package weaver.framework
 
 import sbt.testing.{ Framework => BaseFramework, Runner => BaseRunner, _ }
 
-@deprecated
+@deprecated("Weaver is now effect-specific", "0.6.0")
 class TestFramework extends BaseFramework {
 
   def name(): String = crash()

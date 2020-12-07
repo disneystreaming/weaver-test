@@ -72,7 +72,7 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
       (ioTask, sbtTask)
     }
 
-    val (ioTasks, sbtTasks) = tasksAndSuites.collect[(IOTask, Task)] {
+    val (ioTasks, sbtTasks) = tasksAndSuites.collect {
       case (taskDef, suiteLoader.SuiteRef(mkSuite)) =>
         makeTasks(taskDef, _ => mkSuite)
       case (taskDef, suiteLoader.ResourcesSharingSuiteRef(mkSuite)) =>

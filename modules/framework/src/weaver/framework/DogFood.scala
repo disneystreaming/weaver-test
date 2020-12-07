@@ -9,17 +9,12 @@ import cats.effect.{ Resource, Sync }
 import cats.kernel.Eq
 import cats.syntax.all._
 
-import sbt.testing.{
-  Event => SbtEvent,
-  Status => SbtStatus,
-  Task => SbtTask,
-  _
-}
+import sbt.testing.{ Event => _, Status => _, Task => _, _ }
 
 import Platform._
 
 object DogFood extends DogFoodCompanion {
-  type State = (Chain[LoggedEvent], Chain[SbtEvent])
+  type State = (Chain[LoggedEvent], Chain[sbt.testing.Event])
 }
 
 // Functionality to test how the frameworks react to successful and failing tests/suites
@@ -43,7 +38,7 @@ abstract class DogFood[F[_]](
       eventHandler <- effect.delay(new MemoryEventHandler())
       logger       <- effect.delay(new MemoryLogger())
       _ <- getTasks(suites, logger).use { case (runner, tasks) =>
-        runTasks(runner, eventHandler, logger)(tasks)
+        runTasks(runner, eventHandler, logger)(tasks.toList)
       }
       _      <- patience.fold(effect.unit)(timer.sleep)
       logs   <- logger.get
@@ -63,7 +58,7 @@ abstract class DogFood[F[_]](
   def isSuccess(event: sbt.testing.Event)(
       implicit loc: SourceLocation): Expectations = {
     event.status() match {
-      case SbtStatus.Success => Expectations.Helpers.success
+      case sbt.testing.Status.Success => Expectations.Helpers.success
       case status =>
         Expectations.Helpers.failure(
           s"${event.fullyQualifiedName()}:${event.selector()} failed with $status")
@@ -72,7 +67,7 @@ abstract class DogFood[F[_]](
 
   private def getTasks(
       suites: Seq[Fingerprinted],
-      logger: Logger): Resource[F, (WeaverRunner[F], Array[SbtTask])] = {
+      logger: Logger): Resource[F, (WeaverRunner[F], Array[sbt.testing.Task])] = {
     val acquire = Sync[F].delay {
       val cl = PlatformCompat.getClassLoader(this.getClass())
       framework.weaverRunner(Array(), Array(), cl, None)
@@ -98,7 +93,7 @@ abstract class DogFood[F[_]](
       runner: WeaverRunner[F],
       eventHandler: EventHandler,
       logger: Logger)(
-      tasks: Array[SbtTask]): F[Unit] =
+      tasks: List[sbt.testing.Task]): F[Unit] =
     runTasksCompat(runner, eventHandler, logger)(tasks)
 
   def globalInit(g: GlobalResourceF[F]): Fingerprinted =
@@ -157,13 +152,14 @@ abstract class DogFood[F[_]](
   }
 
   private class MemoryEventHandler() extends EventHandler {
-    val events = scala.collection.mutable.ListBuffer.empty[SbtEvent]
+    val events = scala.collection.mutable.ListBuffer.empty[sbt.testing.Event]
 
-    override def handle(event: SbtEvent): Unit = synchronized {
+    override def handle(event: sbt.testing.Event): Unit = synchronized {
       val _ = events.append(event)
     }
 
-    def get: F[Chain[SbtEvent]] = effect.delay(Chain.fromSeq(events.toList))
+    def get: F[Chain[sbt.testing.Event]] =
+      effect.delay(Chain.fromSeq(events.toList))
   }
 
 }

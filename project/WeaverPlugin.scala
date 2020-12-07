@@ -176,7 +176,7 @@ object WeaverPlugin extends AutoPlugin {
     Test / unmanagedResourceDirectories := Seq(
       baseDirectory.value.getParentFile / "test" / "resources"
     )
-  )
+  ) ++ Seq(Test / fork := (crossProjectPlatform.value == JVMPlatform))
 
   lazy val publishSettings = Seq(
     organization := "com.disneystreaming",

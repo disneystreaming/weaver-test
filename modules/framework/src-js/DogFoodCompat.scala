@@ -5,17 +5,15 @@ import cats.data.Chain
 import cats.effect.Resource
 import cats.syntax.all._
 
-import sbt.testing.{ Task => SbtTask, _ }
-
 private[weaver] trait DogFoodCompat[F[_]] { self: DogFood[F] =>
 
   import self.framework.unsafeRun._
 
   def runTasksCompat(
       runner: WeaverRunner[F],
-      eventHandler: EventHandler,
-      logger: Logger)(tasks: Array[SbtTask]): F[Unit] = {
-    tasks.toVector.traverse { task =>
+      eventHandler: sbt.testing.EventHandler,
+      logger: sbt.testing.Logger)(tasks: List[sbt.testing.Task]): F[Unit] = {
+    tasks.traverse { task =>
       self.framework.unsafeRun.effect.async {
         cb: (Either[Throwable, Unit] => Unit) =>
           task.execute(eventHandler, Array(logger), _ => cb(Right(())))
@@ -26,7 +24,7 @@ private[weaver] trait DogFoodCompat[F[_]] { self: DogFood[F] =>
     }
   }
 
-  def done(runner: Runner): F[String] = effect.delay(runner.done())
+  def done(runner: sbt.testing.Runner): F[String] = effect.delay(runner.done())
 
 }
 
