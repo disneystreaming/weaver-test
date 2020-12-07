@@ -1,7 +1,7 @@
 package weaver
 
-import cats.effect.Resource
 import cats.effect.implicits._
+import cats.effect.{ Concurrent, Resource }
 import cats.syntax.applicative._
 import cats.syntax.applicativeError._
 
@@ -21,28 +21,26 @@ trait Suite[F[_]] extends BaseSuiteClass {
 trait EffectSuite[F[_]] extends Suite[F] with SourceLocation.Here { self =>
 
   implicit protected def effectCompat: EffectCompat[F]
+  implicit final protected def effect: Concurrent[F] = effectCompat.effect
 
   /**
    * Raise an error that leads to the running test being tagged as "cancelled".
    */
   def cancel(reason: String)(implicit pos: SourceLocation): F[Nothing] =
-    effectCompat.effect.raiseError(new CanceledException(Some(reason), pos))
+    effect.raiseError(new CanceledException(Some(reason), pos))
 
   /**
    * Raises an error that leads to the running test being tagged as "ignored"
    */
   def ignore(reason: String)(implicit pos: SourceLocation): F[Nothing] =
-    effectCompat.effect.raiseError(new IgnoredException(Some(reason), pos))
+    effect.raiseError(new IgnoredException(Some(reason), pos))
 
   override def name : String = self.getClass.getName.replace("$", "")
 
   protected def adaptRunError: PartialFunction[Throwable, Throwable] = PartialFunction.empty
 
-  final def run(args : List[String])(report : TestOutcome => F[Unit]) : F[Unit] = {
-    val compat = effectCompat
-    import compat._
+  final def run(args : List[String])(report : TestOutcome => F[Unit]) : F[Unit] =
     spec(args).evalMap(report).compile.drain.adaptErr(adaptRunError)
-  }
 
   implicit def expectationsConversion(e: Expectations): F[Expectations] =
     effectCompat.effect.pure(e)

@@ -69,7 +69,7 @@ object HttpSuite extends ZIOSuite[Http] {
     ZLayer.fromManaged {
       val makeHttpClient = ZIO.runtime[Any].map { implicit rts =>
         val exec = rts.platform.executor.asEC
-        BlazeClientBuilder[Task](exec).resource.toManaged
+        BlazeClientBuilder[Task](exec).resource.toManagedZIO
       }
       Managed.fromEffect(makeHttpClient).flatten
     }

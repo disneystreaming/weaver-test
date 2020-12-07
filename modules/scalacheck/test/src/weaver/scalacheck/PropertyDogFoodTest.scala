@@ -32,7 +32,7 @@ object PropertyDogFoodTest extends IOSuite {
   test("Checks are parallelised") { dogfood =>
     for {
       (_, events) <- dogfood.runSuite(Meta.ParallelChecks)
-      _           <- expect(events.size == 1).failFast[IO]
+      _           <- expect(events.size == 1).failFast
     } yield {
       expect(events.headOption.get.duration() < 10000)
     }

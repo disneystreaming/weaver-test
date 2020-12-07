@@ -86,17 +86,12 @@ trait Checkers[F[_]] {
   val numbers = fs2.Stream.iterate(1)(_ + 1)
 
   def forall[A: Show](gen: Gen[A])(f: A => Prop)(
-      implicit loc: SourceLocation): F[Expectations] = {
-    val compat = effectCompat
-    import compat._
+      implicit loc: SourceLocation): F[Expectations] =
     Ref[F].of(Status.start[A]).flatMap(forall_(gen, f))
-  }
 
   private def forall_[A: Show](gen: Gen[A], f: A => Prop)(
       state: Ref[F, Status[A]])(
       implicit loc: SourceLocation): F[Expectations] = {
-    val compat = effectCompat
-    import compat._
     paramStream
       .parEvalMapUnordered(checkConfig.perPropertyParallelism) {
         testOneTupled(gen, state, f)
@@ -132,8 +127,6 @@ trait Checkers[F[_]] {
       gen: Gen[T],
       state: Ref[F, Status[T]],
       f: T => Prop)(params: Gen.Parameters, seed: Seed): F[Status[T]] = {
-    val compat = effectCompat
-    import compat._
     effect.defer {
       gen(params, seed)
         .traverse(x => f(x).map(x -> _))

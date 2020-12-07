@@ -8,8 +8,6 @@ import cats.effect.{ Concurrent, ContextShift, Timer }
 protected[weaver] trait EffectCompat[F[_]] {
   implicit def parallel: Parallel[F]
   implicit def effect: Concurrent[F]
-  implicit final def compiler: fs2.Stream.Compiler[F, F] =
-    fs2.Stream.Compiler.syncInstance(effect)
   implicit def timer: Timer[F]
   implicit def contextShift: ContextShift[F]
   def realTimeMillis: F[Long]

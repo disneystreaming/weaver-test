@@ -12,16 +12,15 @@ object ZIOSuiteTest extends ZIOSuite[KVStore with DogFoodz] {
 
   override def maxParallelism: Int = 1
 
-  import ZIOUnsafeRun.effect
-
   override val sharedLayer: ZLayer[ZEnv, Throwable, KVStore with DogFoodz] = {
     val kvstore: ZLayer[ZEnv, Throwable, KVStore] = ZLayer.fromEffect {
       Ref
         .make(Map.empty[String, String])
         .map(new KVStore.RefBased(_))
     }
-    val dogfood: ZLayer[ZEnv, Throwable, DogFoodz] =
-      ZLayer.fromManaged(DogFood.make(new weaver.framework.ZIO()).toManaged)
+    val dogfood: ZLayer[ZEnv, Throwable, DogFoodz] = {
+      ZLayer.fromManaged(DogFood.make(new weaver.framework.ZIO()).toManagedZIO)
+    }
 
     dogfood ++ kvstore
   }
