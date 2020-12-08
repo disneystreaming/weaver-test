@@ -2,13 +2,13 @@ package weaver
 package framework
 
 import java.util.concurrent.ConcurrentLinkedQueue
-import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.{ AtomicBoolean, AtomicInteger }
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
 import cats.data.Chain
-import cats.effect.concurrent.{ Ref, Semaphore }
+import cats.effect.concurrent.Ref
 import cats.effect.{ Sync, _ }
 import cats.syntax.all._
 
@@ -27,7 +27,7 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
   override def done(): String = {
     isDone.set(true)
     cancelToken.foreach(unsafeRun.cancel)
-    System.lineSeparator()
+    ""
   }
 
   // Required on js
@@ -43,6 +43,7 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
   }
 
   def tasks(taskDefs: Array[TaskDef]): Array[Task] = {
+    val stillRunning = new AtomicInteger(0)
 
     val tasksAndSuites = taskDefs.toList.map { taskDef =>
       taskDef -> suiteLoader(taskDef)
@@ -57,7 +58,7 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
 
       // 1 permit semaphore protecting against build tools not
       // dispatching logs through a single logger at a time.
-      val jSemaphore = new java.util.concurrent.Semaphore(1)
+      val loggerPermit = new java.util.concurrent.Semaphore(1)
 
       val queue  = new ConcurrentLinkedQueue[SuiteEvent]()
       val broker = new ConcurrentQueueEventBroker(queue)
@@ -73,7 +74,8 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
           startingBlock,
           broker)
 
-      val sbtTask = new SbtTask(taskDef, isDone, promise, queue, jSemaphore)
+      val sbtTask =
+        new SbtTask(taskDef, isDone, stillRunning, promise, queue, loggerPermit)
       (ioTask, sbtTask)
     }
 
@@ -90,6 +92,7 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
 
     runBackground(globalResources, ioTasks.toList)
 
+    stillRunning.set(sbtTasks.size)
     sbtTasks.toArray
   }
 
@@ -109,8 +112,7 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
     resourceMap(globalResources).use { read =>
       for {
         ref <- Ref.of[F, Chain[(SuiteName, TestOutcome)]](Chain.empty)
-        sem <- Semaphore[F](0L)
-        _   <- tasks.parTraverse(_.run(read, ref, sem, tasks.size.toLong))
+        _   <- tasks.parTraverse(_.run(read, ref))
       } yield ()
     }
   }
@@ -130,9 +132,7 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
       broker: SuiteEventBroker) {
     def run(
         globalResources: GlobalResourceF.Read[F],
-        outcomes: Ref[F, Chain[(SuiteName, TestOutcome)]],
-        semaphore: Semaphore[F],
-        N: Long): F[Unit] = {
+        outcomes: Ref[F, Chain[(SuiteName, TestOutcome)]]): F[Unit] = {
 
       val runSuite = for {
         suite <- mkSuite(globalResources)
@@ -146,13 +146,8 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
         }
       } yield ()
 
-      val finalizer = semaphore
-        .release
-        .productR(semaphore.tryAcquireN(N))
-        .flatMap {
-          case true  => outcomes.get.map(RunFinished(_): SuiteEvent)
-          case false => (SuiteFinished(SuiteName(fqn)): SuiteEvent).pure[F]
-        }.flatMap(broker.send)
+      val finalizer =
+        outcomes.get.map(SuiteFinished(SuiteName(fqn), _)).flatMap(broker.send)
 
       effect.guaranteeCase(runSuite) {
         case ExitCase.Canceled  => finalizer

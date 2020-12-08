@@ -36,9 +36,8 @@ object Reporter {
     }
   }
 
-  def logRunFinished(loggers: Array[Logger])(failed: Chain[(
-      SuiteName,
-      TestOutcome)]) = {
+  def logRunFinished(loggers: Array[Logger])(
+      failed: Chain[(SuiteName, TestOutcome)]) = {
 
     runFinished(
       info = s => loggers.foreach(_.info(s)),
@@ -49,11 +48,9 @@ object Reporter {
   def log(loggers: Array[Logger])(event: SuiteEvent): Unit = event match {
     case SuiteStarted(name) =>
       logSuiteStarted(loggers)(name)
-    case RunFinished(failed) =>
+    case SuiteFinished(_, failed) =>
       logRunFinished(loggers)(failed)
     case TestFinished(outcome) =>
       logTestFinished(loggers)(outcome)
-
-    case _: SuiteFinished => ()
   }
 }

@@ -1,41 +1,45 @@
 package weaver
 package framework
 
-import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.{ AtomicBoolean, AtomicInteger }
 
 import sbt.testing.{ Event, EventHandler, Logger, Task, TaskDef }
 
 private[framework] class SbtTask(
     val taskDef: TaskDef,
     isDone: AtomicBoolean,
+    stillRunning: AtomicInteger,
     start: scala.concurrent.Promise[Unit],
     queue: java.util.concurrent.ConcurrentLinkedQueue[SuiteEvent],
-    jSemaphore: java.util.concurrent.Semaphore)
+    loggerPermit: java.util.concurrent.Semaphore)
     extends Task {
 
   def execute(
       eventHandler: EventHandler,
       loggers: Array[Logger]): Array[Task] = {
+    val log = Reporter.log(loggers)(_)
 
     start.trySuccess(())
 
     var finished: Boolean = false
 
-    jSemaphore.acquire()
+    loggerPermit.acquire()
     try {
       while (!finished && !isDone.get()) {
         val nextEvent = Option(queue.poll())
 
         nextEvent.foreach {
-          case _: SuiteFinished | _: RunFinished => finished = true
-          case TestFinished(outcome)             => eventHandler.handle(sbtEvent(outcome))
-          case _                                 => ()
+          case s @ SuiteStarted(_) => log(s)
+          case s @ SuiteFinished(_, _) =>
+            finished = true
+            if (stillRunning.decrementAndGet == 0) log(s)
+          case t @ TestFinished(outcome) =>
+            eventHandler.handle(sbtEvent(outcome))
+            log(t)
         }
-
-        nextEvent.foreach(Reporter.log(loggers))
       }
     } finally {
-      jSemaphore.release()
+      loggerPermit.release()
     }
 
     Array()
