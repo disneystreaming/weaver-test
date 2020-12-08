@@ -51,7 +51,7 @@ object WeaverPlugin extends AutoPlugin {
     semanticdbVersion := scalafixSemanticdb.revision,
     addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1"),
     addCompilerPlugin(
-      "org.typelevel" %% "kind-projector" % "0.11.0" cross CrossVersion.full
+      "org.typelevel" %% "kind-projector" % "0.11.2" cross CrossVersion.full
     )
   ) ++ coverageSettings ++ publishSettings
 
@@ -102,8 +102,8 @@ object WeaverPlugin extends AutoPlugin {
     "-Ywarn-unused:locals",          // Warn if a local definition is unused.
     "-Ywarn-unused:patvars",         // Warn if a variable bound in a pattern is unused.
     "-Ywarn-unused:privates",        // Warn if a private member is unused.
-    "-Ywarn-value-discard"           // Warn when non-Unit expression results are unused.
-    // "-Xfatal-warnings"               // Fail the compilation if there are any warnings.
+    "-Ywarn-value-discard",          // Warn when non-Unit expression results are unused.
+    "-Xfatal-warnings"               // Fail the compilation if there are any warnings.
   )
 
   lazy val compilerOptions2_12_Only =
