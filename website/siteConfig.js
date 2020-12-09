@@ -44,6 +44,13 @@ const siteConfig = {
   twitterUsername: 'disneystreaming',
 
   customDocsPath: 'modules/docs/target/mdoc',
+  lastVersion: 'stable',
+  versions: {
+    stable: {
+      label: "0.5.0",
+      path: "0.5.0"
+    }
+  }
 
 };
 

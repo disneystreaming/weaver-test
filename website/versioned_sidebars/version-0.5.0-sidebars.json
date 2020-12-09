@@ -1,0 +1,29 @@
+{
+  "version-0.5.0-docs": {
+    "Overview": [
+      "version-0.5.0-installation",
+      "version-0.5.0-motivation"
+    ],
+    "Usage": [
+      "version-0.5.0-cats",
+      "version-0.5.0-expectations",
+      "version-0.5.0-resources",
+      "version-0.5.0-global_resources",
+      "version-0.5.0-logging",
+      "version-0.5.0-tagging",
+      "version-0.5.0-scalacheck",
+      "version-0.5.0-zio",
+      "version-0.5.0-monix",
+      "version-0.5.0-monix_bio",
+      "version-0.5.0-specs2"
+    ],
+    "Sample reports": [
+      "version-0.5.0-multiple_suites_success",
+      "version-0.5.0-multiple_suites_failures",
+      "version-0.5.0-multiple_suites_logging"
+    ],
+    "IDE integrations": [
+      "version-0.5.0-intellij"
+    ]
+  }
+}
