@@ -11,6 +11,15 @@ def main(): Unit = {
     sys.error("Have you run mdoc ?")
 
   val website = os.pwd / "website"
+  val versionedDocs = "versioned_docs"
+  val versionedSidebars = "versioned_sidebars"
+  val versionsJson = "versions.json"
+
+  // Cleanup previous runs
+  if(os.exists(website / versionedDocs)) os.remove.all(website / versionedDocs)
+  if(os.exists(website / versionedSidebars)) os.remove.all(website / versionedSidebars)
+  if(os.exists(website / versionsJson)) os.remove(website / versionsJson)
+  if(os.exists(website / "pages" / "en" / "versions.js")) os.remove(website / "pages" / "en" / "versions.js")
 
   website.yarn("install")
   // Freezing version
@@ -35,9 +44,7 @@ def main(): Unit = {
   // Restoring frozen docs
   log("Restoring frozen docs")
   val frozenDocs = os.pwd / "target" / frozenDocsBranch
-  val versionedDocs = "versioned_docs"
-  val versionedSidebars = "versioned_sidebars"
-  val versionsJson = "versions.json"
+
 
   // Dirty hack to avoid docusaurusCreatePages crashing in branch builds
   os.copy.over(website / "pages" / "en" / "versions.js_", website / "pages" / "en" / "versions.js")
@@ -59,6 +66,8 @@ def main(): Unit = {
   os.copy.over(website / versionsJson, frozenDocs / versionsJson)
 
   log(s"pushing to $frozenDocsBranch")
+  frozenDocs.git("add", "*")
+  frozenDocs.git("commit", "-m", s"Pushing docs for $version")
   frozenDocs.git("push", "origin", frozenDocsBranch)
 
   log("building site")
@@ -70,12 +79,13 @@ def main(): Unit = {
   val cloneDir = build / siteBranch
   if (os.exists(cloneDir)) os.remove.all(cloneDir)
   build.git("clone","--depth", "1", "--branch", siteBranch, remote, cloneDir.toString())
-  cloneDir.git("rm", "-rf", ".")
+  if (os.list(cloneDir).filterNot(_.last == ".git").nonEmpty) cloneDir.git("rm", "-rf", ".")
 
   val from = build / projectName
   val to = cloneDir
 
-  os.list(from).filterNot(_.baseName == ".DS_Store").filterNot(_ == cloneDir)
+  os.list(from).filterNot(_.baseName == ".DS_Store").filterNot(_ == cloneDir).foreach(os.copy.into(_, cloneDir))
+  cloneDir.git("add", "*")
   cloneDir.git("commit", "-m", "Deploy website", "-m", s"Deploy website version based on $currentCommit")
 
   log(s"pushing to $siteBranch")
