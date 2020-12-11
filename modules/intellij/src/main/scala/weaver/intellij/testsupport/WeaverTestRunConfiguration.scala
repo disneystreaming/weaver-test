@@ -3,21 +3,19 @@ package weaver.intellij.testsupport
 import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiClass
-import com.intellij.testIntegration.TestFramework
 import org.jetbrains.plugins.scala.lang.psi.ScalaPsiUtil
 import org.jetbrains.plugins.scala.lang.psi.api.toplevel.typedef.ScObject
-import org.jetbrains.plugins.scala.testingSupport.test.AbstractTestRunConfiguration.TestFrameworkRunnerInfo
-import org.jetbrains.plugins.scala.testingSupport.test.sbt.{
-  SbtCommandsBuilder,
-  SbtCommandsBuilderBase,
-  SbtTestRunningSupport,
-  SbtTestRunningSupportBase
-}
 import org.jetbrains.plugins.scala.testingSupport.test.{
   AbstractTestConfigurationProducer,
   AbstractTestRunConfiguration,
   SuiteValidityChecker
 }
+import org.jetbrains.plugins.scala.testingSupport.test.RunStateProvider
+import org.jetbrains.plugins.scala.testingSupport.test.AbstractTestFramework
+import com.intellij.execution.configurations.RunProfileState
+import com.intellij.execution.runners.ExecutionEnvironment
+import org.jetbrains.plugins.scala.testingSupport.test.ScalaTestFrameworkCommandLineState
+import org.jetbrains.plugins.scala.testingSupport.test.CustomTestRunnerBasedStateProvider.TestFrameworkRunnerInfo
 
 class WeaverTestRunConfiguration(
     project: Project,
@@ -26,12 +24,12 @@ class WeaverTestRunConfiguration(
       project,
       configurationFactory,
       "Weaver"
-    ) {
+    ) { self =>
 
   override def configurationProducer: AbstractTestConfigurationProducer[_] =
     WeaverTestConfigurationProducer
 
-  override def testFramework: TestFramework = WeaverTestFramework
+  override def testFramework: AbstractTestFramework = WeaverTestFramework
 
   override protected def validityChecker: SuiteValidityChecker =
     (clazz: PsiClass, suiteClass: PsiClass) => {
@@ -39,18 +37,22 @@ class WeaverTestRunConfiguration(
         ScalaPsiUtil.isInheritorDeep(clazz, suiteClass)
     }
 
-  override protected def runnerInfo: AbstractTestRunConfiguration.TestFrameworkRunnerInfo =
-    TestFrameworkRunnerInfo(
-      "weaver.intellij.runner.WeaverTestRunner")
+  def runStateProvider: RunStateProvider = new RunStateProvider {
+    def commandLineState(
+        env: ExecutionEnvironment,
+        failedTests: Option[Seq[(String, String)]]): RunProfileState =
+      new WeaverTestCommandLineState(env, failedTests)
+  }
 
-  override val sbtSupport: SbtTestRunningSupport =
-    new SbtTestRunningSupportBase {
-      override def commandsBuilder: SbtCommandsBuilder =
-        new SbtCommandsBuilderBase {}
+  private def runnerInfo =
+    TestFrameworkRunnerInfo("weaver.intellij.runner.WeaverTestRunner")
 
-      override def allowsSbtUiRun: Boolean = true
-    }
-
-  override def suitePaths: Seq[String] = WeaverTestFramework.baseSuitePaths
+  class WeaverTestCommandLineState(
+      env: ExecutionEnvironment,
+      failedTests: Option[Seq[(String, String)]])
+      extends ScalaTestFrameworkCommandLineState(self,
+                                                 env,
+                                                 failedTests,
+                                                 runnerInfo) {}
 
 }
