@@ -3,11 +3,11 @@ import $ivy.`com.lihaoyi::upickle:0.9.5`
 
 // format: off
 
-// Assumes mdoc has been run, pushes to gh-pages branch
+// Assumes mdoc has been run.
 @main
 def main(): Unit = {
 
-  if (!os.exists(os.pwd / "docs" / "target" / "mdoc"))
+  if (!os.exists(os.pwd / "modules" / "docs" / "target" / "mdoc"))
     sys.error("Have you run mdoc ?")
 
   val website = os.pwd / "website"
@@ -26,34 +26,47 @@ def main(): Unit = {
   val currentCommit = git("rev-parse", "HEAD")
 
   val siteBranch        = "gh-pages"
+  val frozenDocsBranch  = "frozen-docs"
   val githubHost       = "github.com"
   val remote           = s"git@$githubHost:$orgName/$projectName.git"
 
   val currentRepoURL = git("config", "--get", "remote.origin.url")
 
   // Restoring frozen docs
-  val frozenDocs = os.pwd / "target" / "frozen-docs"
-  git("clone", "-–depth", "1", "--branch", "frozen-docs", remote, frozenDocs.toString())
-  if(os.exists(frozenDocs / "versioned_docs")) os.copy(frozenDocs / "versioned_docs", website)
-  if(os.exists(frozenDocs / "versioned_sidebars")) os.copy.into(frozenDocs / "versioned_sidebars", website)
-  if(os.exists(frozenDocs / "versions.json")) os.copy.into(frozenDocs / "versions.json", website)
+  log("Restoring frozen docs")
+  val frozenDocs = os.pwd / "target" / frozenDocsBranch
+  val versionedDocs = "versioned_docs"
+  val versionedSidebars = "versioned_sidebars"
+  val versionsJson = "versions.json"
+
+  if (os.exists(frozenDocs)) os.remove.all(frozenDocs)
+
+  git("clone", "--depth", "1", "--branch", frozenDocsBranch, remote, frozenDocs.toString())
+  if(os.exists(frozenDocs / versionedDocs)) os.copy.over(frozenDocs / versionedDocs, website / versionedDocs)
+  if(os.exists(frozenDocs / versionedSidebars)) os.copy.over(frozenDocs / versionedSidebars, website / versionedSidebars)
+  if(os.exists(frozenDocs / versionsJson)) os.copy.over(frozenDocs / versionsJson, website / versionsJson)
 
   // Freezing current version
+  log("Freezing current version")
   website.yarn("run", "version", version)
 
   // Caching frozen docs
-  os.copy.into(website / "versioned_docs", frozenDocs, replaceExisting = true)
-  os.copy.into(website / "versioned_sidebars", frozenDocs, replaceExisting = true)
-  os.copy.into(website / "versions.json", frozenDocs, replaceExisting = true)
+  os.copy.over(website / versionedDocs, frozenDocs / versionedDocs)
+  os.copy.over(website / versionedSidebars, frozenDocs / versionedSidebars)
+  os.copy.over(website / versionsJson, frozenDocs / versionsJson)
 
-  println("pushing frozen docs")
-  // TODO frozenDocs.git("push")
+  log(s"pushing to $frozenDocsBranch")
+  frozenDocs.git("push", "origin", frozenDocsBranch)
 
+  log("building site")
   website.yarn("run", "build")
   val build = website / "build"
+  os.write(build / "index.html", html)
 
+  log(s"cloning $siteBranch")
   val cloneDir = build / siteBranch
-  build.git("clone","-–depth", "1", "--branch", siteBranch, remote, siteBranch)
+  if (os.exists(cloneDir)) os.remove.all(cloneDir)
+  build.git("clone","--depth", "1", "--branch", siteBranch, remote, cloneDir.toString())
   cloneDir.git("rm", "-rf", ".")
 
   val from = build / projectName
@@ -62,10 +75,10 @@ def main(): Unit = {
   os.list(from).filterNot(_.baseName == ".DS_Store").filterNot(_ == cloneDir)
   cloneDir.git("commit", "-m", "Deploy website", "-m", s"Deploy website version based on $currentCommit")
 
-  println("pushing to gh-pages")
+  log(s"pushing to $siteBranch")
+  cloneDir.git("push", "origin", siteBranch)
 
-
-
+  log("Done !")
 }
 
 def git(args: String*): String =
@@ -97,3 +110,5 @@ def redirectHtml(url: String): String = {
        |</html>
       """.stripMargin
 }
+
+def log(s: String) = System.err.println(s"[INFO] $s")
