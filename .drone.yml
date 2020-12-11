@@ -68,7 +68,7 @@ steps:
   commands:
   - mkdir -p $HOME/.ssh
   - ssh-keyscan -t rsa github.com >> $HOME/.ssh/known_hosts
-  - sbt 'docs/docusaurusPublishGhpages'
+  - amm scripts/releaseSite.sc
   - echo done publishing website
   environment:
     COURSIER_CACHE: .cache/coursier

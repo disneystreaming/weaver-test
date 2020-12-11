@@ -320,3 +320,4 @@ versionDump := {
   val file = (ThisBuild / baseDirectory).value / "version"
   IO.write(file, (Compile / version).value)
 }
+
