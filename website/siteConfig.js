@@ -3,6 +3,11 @@
 
 const repoUrl = 'https://github.com/disneystreaming/weaver-test';
 
-const siteConfig = require("./siteConfig.json");
+const siteConfigJson = require("./siteConfig.json");
+
+const siteConfig = {
+  ...siteConfigJson,
+  copyright: `Copyright © ${new Date().getFullYear()} Disney Streaming Services`,
+}
 
 module.exports = siteConfig;
