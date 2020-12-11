@@ -16,7 +16,7 @@ abstract class WeaverFileSetTestCase(subpath: String)
   override final def transform(
       testName: String,
       data: Array[String]): String = {
-    transform(data.map(_.stripLineEnd))
+    transform(data.toSeq.map(_.stripLineEnd))
   }
 
   protected def transform(data: Seq[String]): String

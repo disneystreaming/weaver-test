@@ -266,7 +266,7 @@ lazy val intellijRunner = crossProject(JVMPlatform)
 
 lazy val intellijRunnerJVM = intellijRunner.jvm
 
-ThisBuild / intellijBuild := "202.6948.69"
+ThisBuild / intellijBuild := "203"
 ThisBuild / intellijPluginName := "weaver-intellij"
 
 import org.jetbrains.sbtidea.Keys._
@@ -282,10 +282,10 @@ lazy val intellij = (project in file("modules/intellij"))
   .enablePlugins(SbtIdeaPlugin, BuildInfoPlugin)
   .disablePlugins(WeaverPlugin)
   .settings(
-    scalaVersion := "2.12.10",
+    scalaVersion := "2.13.4",
     intellijPlugins := Seq(
       "com.intellij.java".toPlugin,
-      "org.intellij.scala:2020.2.23".toPlugin
+      "org.intellij.scala:2020.3.16".toPlugin
     ),
     libraryDependencies ++= Seq(
       "io.get-coursier" %% "coursier"        % "2.0.0-RC6-24",
@@ -296,7 +296,7 @@ lazy val intellij = (project in file("modules/intellij"))
     },
     // packageArtifact in publishPlugin := packagePlugin.value,
     packageMethod := PackagingMethod.Standalone(),
-    scalacOptions ++= (WeaverPlugin.commonCompilerOptions ++ WeaverPlugin.compilerOptions2_12_Only),
+    scalacOptions ++= (WeaverPlugin.commonCompilerOptions),
     buildInfoKeys := Seq[BuildInfoKey](name, version),
     buildInfoPackage := "weaver.build",
     semanticdbEnabled := true,
@@ -308,10 +308,6 @@ lazy val intellij = (project in file("modules/intellij"))
       result
     }
   )
-
-lazy val intellijPluginRunner =
-  createRunnerProject(intellij, "weaver-intellij-plugin-runner")
-    .disablePlugins(WeaverPlugin)
 
 lazy val versionDump =
   taskKey[Unit]("Dumps the version in a file named version")
