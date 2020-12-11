@@ -39,6 +39,9 @@ def main(): Unit = {
   val versionedSidebars = "versioned_sidebars"
   val versionsJson = "versions.json"
 
+  // Dirty hack to avoid docusaurusCreatePages crashing in branch builds
+  os.copy.over(website / "pages" / "en" / "versions.js_", website / "pages" / "en" / "versions.js")
+
   if (os.exists(frozenDocs)) os.remove.all(frozenDocs)
 
   git("clone", "--depth", "1", "--branch", frozenDocsBranch, remote, frozenDocs.toString())
