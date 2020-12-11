@@ -66,6 +66,8 @@ def main(): Unit = {
   os.copy.over(website / versionsJson, frozenDocs / versionsJson)
 
   log(s"pushing to $frozenDocsBranch")
+  frozenDocs.git("add", "*")
+  frozenDocs.git("commit", "-m", s"Pushing docs for $version")
   frozenDocs.git("push", "origin", frozenDocsBranch)
 
   log("building site")
