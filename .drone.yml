@@ -15,8 +15,6 @@ steps:
   volumes:
     - name: sbt-cache
       path: /root/.sbt
-    - name: intellij-cache
-      path: /root/.weaver-intellijPluginIC
 
 # Publish maven artifacts (on tag push)
 - name: publish-to-sonatype
@@ -43,26 +41,6 @@ steps:
   - name: sbt-cache
     path: /root/.sbt
 
-# Uploads intellij plugin to the github release
-- name: publish-intellij-plugin
-  image: keynmol/weaver-scala-sbt-yarn:latest
-  commands:
-  - sbt packageIntellijPlugin
-  - amm scripts/releasePlugin.sc $(cat intellijPlugin)
-  environment:
-    COURSIER_CACHE: .cache/coursier
-    SBT_OPTS: "-XX:+UseG1GC -XX:MaxMetaspaceSize=2g -Xms1g -Xmx2g -Xss2M -XX:+CMSClassUnloadingEnabled"
-    GITHUB_TOKEN:
-      from_secret: github_api_token
-  when:
-    ref:
-      - refs/tags/v*
-  volumes:
-    - name: sbt-cache
-      path: /root/.sbt
-    - name: intellij-cache
-      path: /root/.weaver-intellijPluginIC
-
 - name: publish-site
   image: keynmol/weaver-scala-sbt-yarn:latest
   commands:
@@ -85,6 +63,4 @@ steps:
 
 volumes:
 - name: sbt-cache
-  temp: {}
-- name: intellij-cache
   temp: {}
