@@ -3,7 +3,7 @@ id: monix_bio
 title: Monix BIO usage
 ---
 
-Testing Monix BIO programs is very similar to testing regular Monix progams. 
+Testing Monix BIO programs is very similar to testing regular Monix progams.
 
 Tests must return `monix.bio.Task[Expectation]` instances.
 
@@ -16,6 +16,7 @@ You'll need to install an additional dependency in order to use weaver to test M
 ### SBT
 ```scala
 libraryDependencies +=  "com.disneystreaming" %% "weaver-monix-bio" % "@VERSION@" % Test
+testFrameworks += new TestFramework("weaver.framework.MonixBIO")
 ```
 
 ### Mill
@@ -24,6 +25,7 @@ object test extends Tests {
   def ivyDeps = Agg(
     ivy"com.disneystreaming::weaver-monix-bio:@VERSION@"
   )
+  def testFrameworks = Seq("weaver.framework.MonixBIO")
 }
 ```
 

@@ -5,28 +5,24 @@ import scala.concurrent.duration._
 import scala.reflect.ClassTag
 
 import cats.data.Chain
-import cats.effect.concurrent.Ref
-import cats.effect.{ IO, Timer }
+import cats.effect.{ Resource, Sync }
 import cats.kernel.Eq
-import cats.syntax.option._
+import cats.syntax.all._
 
-import sbt.testing.{
-  Event => SbtEvent,
-  Status => SbtStatus,
-  Task => SbtTask,
-  _
-}
+import sbt.testing.{ Event => _, Status => _, Task => _, _ }
 
-import TestFramework._
-import Fingerprinted._
 import Platform._
 
-// Functionality to test how the frameworks react to successful and failing tests/suites
-trait DogFood {
-  type State = (Chain[LoggedEvent], Chain[SbtEvent])
+object DogFood extends DogFoodCompanion {
+  type State = (Chain[LoggedEvent], Chain[sbt.testing.Event])
+}
 
-  private val timer: Timer[IO] =
-    IO.timer(scala.concurrent.ExecutionContext.global)
+// Functionality to test how the frameworks react to successful and failing tests/suites
+abstract class DogFood[F[_]](
+    val framework: WeaverFramework[F])
+    extends DogFoodCompat[F] {
+  import framework.unsafeRun._
+  import DogFood.State
 
   // ScalaJS executes asynchronously, therefore we need to wait
   // for some time before getting the logs back. On JVM platform
@@ -36,109 +32,134 @@ trait DogFood {
     case JVM => none
   }
 
-  // Method used to run test-suites
-  def runSuites(suites: Fingerprinted*) =
+  // // Method used to run test-suites
+  def runSuites(suites: Fingerprinted*): F[State] =
     for {
-      logRef   <- Ref.of[IO, Chain[LoggedEvent]](Chain[LoggedEvent]())
-      eventRef <- Ref.of[IO, Chain[SbtEvent]](Chain[SbtEvent]())
-      eventHandler = new DogFood.MemoryEventHandler(eventRef)
-      logger       = new DogFood.MemoryLogger(logRef)
-      _      <- runTasks(eventHandler, logger)(getTasks(suites))
-      _      <- patience.fold(IO.unit)(timer.sleep)
-      logs   <- logRef.get
-      events <- eventRef.get
-    } yield (logs, events)
+      eventHandler <- effect.delay(new MemoryEventHandler())
+      logger       <- effect.delay(new MemoryLogger())
+      _ <- getTasks(suites, logger).use { case (runner, tasks) =>
+        runTasks(runner, eventHandler, logger)(tasks.toList)
+      }
+      _      <- patience.fold(effect.unit)(timer.sleep)
+      logs   <- logger.get
+      events <- eventHandler.get
+    } yield {
+      (logs, events)
+    }
 
   // Method used to run a test-suite
-  def runSuite(suiteName: String) =
+  def runSuite(suiteName: String): F[State] =
     runSuites(Fingerprinted.ModuleSuite(suiteName))
 
   // Method used to run a test-suite
-  def runSuite[F[_]](suite: EffectSuite[F]): IO[State] =
+  def runSuite(suite: EffectSuite[F]): F[State] =
     runSuite(suite.getClass.getName.dropRight(1))
 
   def isSuccess(event: sbt.testing.Event)(
       implicit loc: SourceLocation): Expectations = {
     event.status() match {
-      case SbtStatus.Success => Expectations.Helpers.success
+      case sbt.testing.Status.Success => Expectations.Helpers.success
       case status =>
         Expectations.Helpers.failure(
           s"${event.fullyQualifiedName()}:${event.selector()} failed with $status")
     }
   }
 
-  // todo: ensure none of these contain side effects
-  private def getTasks(suites: Seq[Fingerprinted]): Array[SbtTask] = {
-    val tf     = new TestFramework
-    val cl     = PlatformCompat.getClassLoader(this.getClass())
-    val runner = tf.runner(Array(), Array(), cl)
-    val taskDefs: Array[TaskDef] = suites.toArray.map { s =>
-      new TaskDef(s.fullyQualifiedName,
-                  s.fingerprint,
-                  true,
-                  Array(new SuiteSelector))
+  private def getTasks(
+      suites: Seq[Fingerprinted],
+      logger: Logger): Resource[F, (WeaverRunner[F], Array[sbt.testing.Task])] = {
+    val acquire = Sync[F].delay {
+      val cl = PlatformCompat.getClassLoader(this.getClass())
+      framework.weaverRunner(Array(), Array(), cl, None)
     }
-    runner.tasks(taskDefs)
+    val runner = Resource.make(acquire) { runner =>
+      done(runner).void
+    }
+
+    runner.evalMap {
+      runner =>
+        val taskDefs: Array[TaskDef] = suites.toArray.map { s =>
+          new TaskDef(s.fullyQualifiedName,
+                      s.fingerprint,
+                      true,
+                      Array(new SuiteSelector))
+        }
+
+        Sync[F].delay(runner -> runner.tasks(taskDefs))
+    }
   }
 
-  private def runTasks(eventHandler: EventHandler, logger: Logger)(
-      tasks: Array[SbtTask]): IO[Unit] =
-    DogFoodCompat.runTasks(eventHandler, logger)(tasks)
+  private def runTasks(
+      runner: WeaverRunner[F],
+      eventHandler: EventHandler,
+      logger: Logger)(
+      tasks: List[sbt.testing.Task]): F[Unit] =
+    runTasksCompat(runner, eventHandler, logger)(tasks)
 
-}
-
-sealed trait Fingerprinted {
-  def fullyQualifiedName: String
-  def fingerprint: WeaverFingerprint = this match {
-    case ModuleSuite(_)  => TestFramework.ModuleFingerprint
-    case GlobalInit(_)   => TestFramework.GlobalResourcesFingerprint
-    case SharingSuite(_) => TestFramework.GlobalResourcesSharingFingerprint
-  }
-}
-object Fingerprinted {
-  def globalInit(g: GlobalResourcesInit): Fingerprinted =
-    GlobalInit(g.getClass.getName.dropRight(1))
-  def moduleSuite[F[_]](g: EffectSuite[F]): Fingerprinted =
-    ModuleSuite(g.getClass.getName.dropRight(1))
+  def globalInit(g: GlobalResourceF[F]): Fingerprinted =
+    Fingerprinted.GlobalInit(g.getClass.getName.dropRight(1))
+  def moduleSuite(g: EffectSuite[F]): Fingerprinted =
+    Fingerprinted.ModuleSuite(g.getClass.getName.dropRight(1))
   def sharingSuite[S <: BaseSuiteClass](
       implicit ct: ClassTag[S]): Fingerprinted =
-    SharingSuite(ct.runtimeClass.getName())
+    Fingerprinted.SharingSuite(ct.runtimeClass.getName())
 
-  case class ModuleSuite(fullyQualifiedName: String)  extends Fingerprinted
-  case class GlobalInit(fullyQualifiedName: String)   extends Fingerprinted
-  case class SharingSuite(fullyQualifiedName: String) extends Fingerprinted
-}
+  sealed trait Fingerprinted {
+    import framework.fp
 
-object DogFood extends DogFood {
+    def fullyQualifiedName: String
+    def fingerprint: fp.WeaverFingerprint = {
+      import Fingerprinted._
+      this match {
+        case ModuleSuite(_)  => fp.SuiteFingerprint
+        case GlobalInit(_)   => fp.GlobalResourcesFingerprint
+        case SharingSuite(_) => fp.ResourceSharingSuiteFingerprint
+      }
+    }
+  }
+  private object Fingerprinted {
+    case class ModuleSuite(fullyQualifiedName: String)  extends Fingerprinted
+    case class GlobalInit(fullyQualifiedName: String)   extends Fingerprinted
+    case class SharingSuite(fullyQualifiedName: String) extends Fingerprinted
+  }
 
-  private[framework] class MemoryLogger(events: Ref[IO, Chain[LoggedEvent]])
-      extends Logger {
+  private class MemoryLogger() extends Logger {
+
+    val logs = scala.collection.mutable.ListBuffer.empty[LoggedEvent]
+    private def add(event: LoggedEvent): Unit = synchronized {
+      val _ = logs.append(event)
+    }
+
     override def ansiCodesSupported(): Boolean = false
 
     override def error(msg: String): Unit =
-      unsafeModifyRefChain(events, LoggedEvent.Error(msg))
+      add(LoggedEvent.Error(msg))
 
     override def warn(msg: String): Unit =
-      unsafeModifyRefChain(events, LoggedEvent.Warn(msg))
+      add(LoggedEvent.Warn(msg))
 
     override def info(msg: String): Unit =
-      unsafeModifyRefChain(events, LoggedEvent.Info(msg))
+      add(LoggedEvent.Info(msg))
 
     override def debug(msg: String): Unit =
-      unsafeModifyRefChain(events, LoggedEvent.Debug(msg))
+      add(LoggedEvent.Debug(msg))
 
     override def trace(t: Throwable): Unit =
-      unsafeModifyRefChain(events, LoggedEvent.Trace(t))
+      add(LoggedEvent.Trace(t))
+
+    def get: F[Chain[LoggedEvent]] =
+      effect.delay(Chain.fromSeq(logs.toList))
   }
 
-  private def unsafeModifyRefChain[A](ref: Ref[IO, Chain[A]], el: A): Unit = {
-    ref.update(chain => chain :+ el).unsafeRunSync()
-  }
+  private class MemoryEventHandler() extends EventHandler {
+    val events = scala.collection.mutable.ListBuffer.empty[sbt.testing.Event]
 
-  private[framework] class MemoryEventHandler(events: Ref[IO, Chain[SbtEvent]])
-      extends EventHandler {
-    override def handle(event: SbtEvent): Unit =
-      unsafeModifyRefChain(events, event)
+    override def handle(event: sbt.testing.Event): Unit = synchronized {
+      val _ = events.append(event)
+    }
+
+    def get: F[Chain[sbt.testing.Event]] =
+      effect.delay(Chain.fromSeq(events.toList))
   }
 
 }

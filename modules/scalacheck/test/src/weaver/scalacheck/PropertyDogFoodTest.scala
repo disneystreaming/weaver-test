@@ -3,16 +3,20 @@ package scalacheck
 
 import scala.concurrent.duration._
 
-import cats.effect.IO
+import cats.effect.{ IO, Resource }
 import cats.syntax.all._
 
 import weaver.framework._
 
-object PropertyDogFoodTest extends SimpleIOSuite with DogFood {
+object PropertyDogFoodTest extends IOSuite {
 
-  test("Failed property tests get reported properly") {
+  type Res = DogFood[IO]
+  def sharedResource: Resource[IO, DogFood[IO]] =
+    DogFood.make(new CatsEffect)
+
+  test("Failed property tests get reported properly") { dogfood =>
     for {
-      (logs, events) <- runSuite(Meta.FailedChecks)
+      (logs, events) <- dogfood.runSuite(Meta.FailedChecks)
     } yield {
       val errorLogs = logs.collect {
         case LoggedEvent.Error(msg) => msg
@@ -25,9 +29,9 @@ object PropertyDogFoodTest extends SimpleIOSuite with DogFood {
   }
 
   // 100 checks sleeping 1 second each should not take 100 seconds
-  simpleTest("Checks are parallelised") {
+  test("Checks are parallelised") { dogfood =>
     for {
-      (_, events) <- runSuite(Meta.ParallelChecks)
+      (_, events) <- dogfood.runSuite(Meta.ParallelChecks)
       _           <- expect(events.size == 1).failFast
     } yield {
       expect(events.headOption.get.duration() < 10000)

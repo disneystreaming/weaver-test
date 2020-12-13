@@ -1,81 +1,71 @@
 package weaver.framework
 
-import weaver.{ Platform, discard }
-
 import sbt.testing.{ Framework => BaseFramework, Runner => BaseRunner, _ }
 
+@deprecated("Weaver is now effect-specific", "0.6.0")
 class TestFramework extends BaseFramework {
 
-  def name(): String = "weaver"
+  def name(): String = crash()
 
-  def fingerprints(): Array[Fingerprint] =
-    if (Platform.isJVM) {
-      Array(TestFramework.GlobalResourcesFingerprint,
-            TestFramework.ModuleFingerprint,
-            TestFramework.GlobalResourcesSharingFingerprint)
-    } else {
-      Array(TestFramework.ModuleFingerprint)
-    }
+  def fingerprints(): Array[Fingerprint] = {
+    crash()
+  }
 
   def runner(
       args: Array[String],
       remoteArgs: Array[String],
       testClassLoader: ClassLoader): BaseRunner =
-    new Runner(args, remoteArgs, testClassLoader)
+    crash()
 
   def slaveRunner(
       args: Array[String],
       remoteArgs: Array[String],
       testClassLoader: ClassLoader,
       send: String => Unit): BaseRunner = {
-    discard[String => Unit](send)
-    runner(args, remoteArgs, testClassLoader)
+    crash()
   }
+
+  val message: String = """
+    |###############################################################################
+    |
+    |If you're reading this, you have recently upgraded weaver to a version > 0.5.x .
+    |Effect-type specific configuration is now required in your build.
+    |
+    |## cats-effect
+    |
+    |libraryDependencies += "com.disneystreaming" %% "weaver-cats" % "x.y.z"
+    |testFrameworks += new TestFramework("weaver.framework.CatsEffect")
+    |
+    |## monix
+    |
+    |libraryDependencies += "com.disneystreaming" %% "weaver-monix" % "x.y.z"
+    |testFrameworks += new TestFramework("weaver.framework.Monix")
+    |
+    |## monix-bio
+    |
+    |libraryDependencies += "com.disneystreaming" %% "weaver-monix-bio" % "x.y.z"
+    |testFrameworks += new TestFramework("weaver.framework.MonixBIO")
+    |
+    |## zio
+    |
+    |libraryDependencies += "com.disneystreaming" %% "weaver-zio" % "x.y.z"
+    |testFrameworks += new TestFramework("weaver.framework.ZIO")
+    |
+    |---
+    |
+    |For more details, please refer yourself to the documentation:
+    |https://disneystreaming.github.io/weaver-test/docs/installation
+    |
+    |We apologise for the inconvenience.
+    |
+    |Kind regards, from the weaver-test maintainers
+    |
+    |###############################################################################
+  """.stripMargin
+
+  private def crash(): Nothing =
+    throw new Exception(message) with scala.util.control.NoStackTrace
+
 }
 
-object TestFramework {
-
-  /**
-   * A fingerprint that searches only for singleton objects
-   * of type [[weaver.EffectSuite]].
-   */
-  object ModuleFingerprint extends WeaverFingerprint {
-    val isModule                           = true
-    def requireNoArgConstructor(): Boolean = true
-    def superclassName(): String           = "weaver.BaseSuiteClass"
-  }
-
-  /**
-   * A fingerprint that searches only for classes extending [[weaver.EffectSuite]].
-   * that have a constructor that takes a single [[weaver.GlobalResources]] parameter.
-   */
-  object GlobalResourcesSharingFingerprint extends WeaverFingerprint {
-    val isModule                           = false
-    def requireNoArgConstructor(): Boolean = false
-    def superclassName(): String           = "weaver.BaseSuiteClass"
-  }
-
-  /**
-   * A fingerprint that searches only for singleton objects
-   * of type [[weaver.GlobalResourcesInit]].
-   */
-  object GlobalResourcesFingerprint extends WeaverFingerprint {
-    val isModule                           = true
-    def requireNoArgConstructor(): Boolean = true
-    def superclassName(): String           = "weaver.GlobalResourcesInit"
-  }
-
-  trait WeaverFingerprint extends SubclassFingerprint {
-    def unapply(taskDef: TaskDef): Option[TaskDef] =
-      taskDef.fingerprint() match {
-        case sf: SubclassFingerprint if fingerprintMatches(sf) => Some(taskDef)
-        case _                                                 => None
-      }
-
-    private def fingerprintMatches(sf: SubclassFingerprint): Boolean = {
-      sf.isModule() == this.isModule() &&
-      sf.requireNoArgConstructor() == this.requireNoArgConstructor() &&
-      sf.superclassName() == this.superclassName()
-    }
-  }
-}
+object TestFramework {}

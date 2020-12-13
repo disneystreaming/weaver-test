@@ -1,6 +1,6 @@
+import _root_.sbtcrossproject.Platform
 // shadow sbt-scalajs' crossProject and CrossType from Scala.js 0.6.x
 
-import org.jetbrains.sbtidea.Keys.createRunnerProject
 import sbtcrossproject.CrossPlugin.autoImport.{ CrossType, crossProject }
 
 addCommandAlias(
@@ -15,9 +15,7 @@ addCommandAlias(
     "+test:compile",
     "+test",
     "docs/docusaurusCreateSite",
-    "coreJVM/publishLocal",
-    "intellij/updateIntellij",
-    "intellij/test"
+    "coreJVM/publishLocal"
   ).mkString(";", ";", "")
 )
 
@@ -40,48 +38,30 @@ addCommandAlias(
   ).mkString(";", ";", "")
 )
 
-// See https://github.com/JetBrains/sbt-idea-plugin/issues/76 for
-// why this contrived sequence of actions exists ...
-addCommandAlias(
-  "packageIntellijPlugin",
-  Seq(
-    "project root",
-    "intellij/packageArtifact",
-    "intellij/doPatchPluginXml",
-    "intellij/packageArtifactZip"
-  ).mkString(";", ";", "")
-)
-
 ThisBuild / scalaVersion := WeaverPlugin.scala213
 
 ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.4.4"
 
-fork in Test := true
+Global / (Test / fork) := true
+Global / (Test / testOptions) += Tests.Argument("--quickstart")
 
 lazy val root = project
   .in(file("."))
   .enablePlugins(ScalafixPlugin)
-  .aggregate(
-    coreJVM,
-    frameworkJVM,
-    scalacheckJVM,
-    zioJVM,
-    monixJVM,
-    specs2JVM,
-    intellijRunnerJVM,
-    coreJS,
-    frameworkJS,
-    scalacheckJS,
-    zioJS,
-    monixJS,
-    monixBioJS,
-    specs2JS)
+  .aggregate(allModules: _*)
   .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.doNotPublishArtifact)
-// .settings(
-//   // Try really hard to not execute tasks in parallel
-// Global / concurrentRestrictions := Tags.limitAll(1) :: Nil
-// )
+
+lazy val allModules = Seq[ProjectReference](
+  coreJVM,
+  coreJS,
+  frameworkJVM,
+  frameworkJS,
+  scalacheckJVM,
+  scalacheckJS,
+  specs2JVM,
+  specs2JS,
+  intellijRunnerJVM) ++ effectCores ++ effectFrameworks
 
 lazy val core = crossProject(JSPlatform, JVMPlatform)
   .crossType(CrossType.Pure)
@@ -114,8 +94,8 @@ lazy val docs = project
   .in(file("modules/docs"))
   .enablePlugins(DocusaurusPlugin, MdocPlugin)
   .dependsOn(coreJVM,
-             frameworkJVM,
              scalacheckJVM,
+             catsJVM,
              zioJVM,
              monixJVM,
              monixBioJVM,
@@ -144,10 +124,7 @@ lazy val framework = crossProject(JSPlatform, JVMPlatform)
     libraryDependencies ++= Seq(
       "io.github.cquiroz" %%% "scala-java-time-tzdb" % "2.0.0" % Test
     ),
-    Test / scalacOptions ~= (_ filterNot (_ == "-Xfatal-warnings")),
-    scalaJSLinkerConfig ~= {
-      _.withModuleKind(ModuleKind.CommonJSModule)
-    }
+    fork in Test := false
   )
   .jvmSettings(
     libraryDependencies ++= Seq(
@@ -155,6 +132,7 @@ lazy val framework = crossProject(JSPlatform, JVMPlatform)
       "org.scala-js" %%% "scalajs-stubs"  % "1.0.0" % "provided"
     )
   )
+  .jsSettings(jsLinker)
   .jsSettings(
     libraryDependencies ++= Seq(
       "org.scala-js" %% "scalajs-test-interface" % scalaJSVersion
@@ -167,16 +145,15 @@ lazy val frameworkJS  = framework.js
 lazy val scalacheck = crossProject(JSPlatform, JVMPlatform)
   .crossType(CrossType.Pure)
   .in(file("modules/scalacheck"))
-  .dependsOn(core, framework % "test->compile")
+  .dependsOn(core, cats % "test->compile")
   .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.simpleLayout)
+  .jsSettings(jsLinker)
   .settings(
+    testFrameworks := Seq(new TestFramework("weaver.framework.CatsEffect")),
     libraryDependencies ++= Seq(
       "org.scalacheck" %%% "scalacheck" % "1.15.1"
-    ),
-    scalaJSLinkerConfig ~= {
-      _.withModuleKind(ModuleKind.CommonJSModule)
-    }
+    )
   )
 
 lazy val scalacheckJVM = scalacheck.jvm
@@ -185,51 +162,138 @@ lazy val scalacheckJS  = scalacheck.js
 lazy val specs2 = crossProject(JSPlatform, JVMPlatform)
   .crossType(CrossType.Pure)
   .in(file("modules/specs2"))
-  .dependsOn(core, framework % "test->compile")
+  .dependsOn(core, cats % "test->compile")
   .configure(WeaverPlugin.profile)
+  .jsSettings(jsLinker)
   .settings(
     name := "specs2",
     libraryDependencies ++= Seq(
       "org.specs2" %%% "specs2-matcher" % "4.10.5"
-    ),
-    scalaJSLinkerConfig ~= {
-      _.withModuleKind(ModuleKind.CommonJSModule)
-    }
+    )
   )
   .settings(WeaverPlugin.simpleLayout)
 
 lazy val specs2JVM = specs2.jvm
 lazy val specs2JS  = specs2.js
 
-lazy val zio = crossProject(JSPlatform, JVMPlatform)
+// #################################################################################################
+// Effect-specific cores
+// #################################################################################################
+
+lazy val effectCores: Seq[ProjectReference] = Seq(
+  coreCatsJVM,
+  coreCatsJS,
+  coreMonixJVM,
+  coreMonixJS,
+  coreMonixBioJVM,
+  coreMonixJS,
+  coreZioJVM,
+  coreZioJS
+)
+
+lazy val coreCats = crossProject(JSPlatform, JVMPlatform)
   .crossType(CrossType.Pure)
-  .in(file("modules/zio"))
-  .dependsOn(core, framework % "test->compile")
+  .in(file("modules/core/cats"))
+  .dependsOn(core)
+  .configure(WeaverPlugin.profile)
+  .settings(WeaverPlugin.simpleLayout)
+  .settings(name := "cats-core")
+
+lazy val coreCatsJVM = coreCats.jvm
+lazy val coreCatsJS  = coreCats.js
+
+lazy val coreMonix = crossProject(JSPlatform, JVMPlatform)
+  .crossType(CrossType.Pure)
+  .in(file("modules/core/monix"))
+  .dependsOn(core)
   .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.simpleLayout)
   .settings(
+    name := "monix-core",
     libraryDependencies ++= Seq(
-      "dev.zio" %%% "zio-interop-cats" % "2.2.0.1"
-    ),
-    scalaJSLinkerConfig ~= {
-      _.withModuleKind(ModuleKind.CommonJSModule)
-    }
+      "io.monix" %%% "monix" % "3.3.0"
+    )
   )
 
-lazy val zioJVM = zio.jvm
-lazy val zioJS  = zio.js
+lazy val coreMonixJVM = coreMonix.jvm
+lazy val coreMonixJS  = coreMonix.js
+
+lazy val coreMonixBio = crossProject(JSPlatform, JVMPlatform)
+  .crossType(CrossType.Pure)
+  .in(file("modules/core/monixBio"))
+  .dependsOn(core)
+  .configure(WeaverPlugin.profile)
+  .settings(WeaverPlugin.simpleLayout)
+  .settings(
+    name := "monix-bio-core",
+    libraryDependencies ++= Seq(
+      "io.monix" %%% "monix-bio" % "1.1.0"
+    )
+  )
+
+lazy val coreMonixBioJVM = coreMonixBio.jvm
+lazy val coreMonixBioJS  = coreMonixBio.js
+
+lazy val coreZio = crossProject(JSPlatform, JVMPlatform)
+  .crossType(CrossType.Pure)
+  .in(file("modules/core/zio"))
+  .dependsOn(core)
+  .configure(WeaverPlugin.profile)
+  .settings(WeaverPlugin.simpleLayout)
+  .settings(
+    name := "zio-core",
+    libraryDependencies ++= Seq(
+      "dev.zio" %%% "zio-interop-cats" % "2.2.0.1"
+    )
+  )
+
+lazy val coreZioJVM = coreZio.jvm
+lazy val coreZioJS  = coreZio.js
+
+// #################################################################################################
+// Effect-specific frameworks
+// #################################################################################################
+
+lazy val effectFrameworks: Seq[ProjectReference] = Seq(
+  catsJVM,
+  catsJS,
+  monixJVM,
+  monixJS,
+  monixBioJVM,
+  monixJS,
+  zioJVM,
+  zioJS
+)
+
+lazy val cats = crossProject(JSPlatform, JVMPlatform)
+  .crossType(CrossType.Pure)
+  .in(file("modules/framework/cats"))
+  .dependsOn(framework, coreCats)
+  .configure(WeaverPlugin.profile)
+  .settings(WeaverPlugin.simpleLayout)
+  .jsSettings(jsLinker)
+  .jsSettings(
+    fork in Test := false
+  )
+  .settings(
+    name := "cats",
+    testFrameworks := Seq(new TestFramework("weaver.framework.CatsEffect")),
+    libraryDependencies += "io.github.cquiroz" %%% "scala-java-time-tzdb" % "2.0.0" % Test
+  )
+
+lazy val catsJVM = cats.jvm
+lazy val catsJS  = cats.js
 
 lazy val monix = crossProject(JSPlatform, JVMPlatform)
   .crossType(CrossType.Pure)
-  .in(file("modules/monix"))
-  .dependsOn(core, framework % "test->compile")
+  .in(file("modules/framework/monix"))
+  .dependsOn(framework, coreMonix)
   .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.simpleLayout)
+  .jsSettings(jsLinker)
   .settings(
-    libraryDependencies ++= Seq(
-      "io.monix" %%% "monix" % "3.3.0"
-    ),
-    scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) }
+    name := "monix",
+    testFrameworks := Seq(new TestFramework("weaver.framework.Monix"))
   )
 
 lazy val monixJVM = monix.jvm
@@ -237,19 +301,37 @@ lazy val monixJS  = monix.js
 
 lazy val monixBio = crossProject(JSPlatform, JVMPlatform)
   .crossType(CrossType.Pure)
-  .in(file("modules/monixBio"))
-  .dependsOn(core, framework % "test->compile")
+  .in(file("modules/framework/monix-bio"))
+  .dependsOn(framework, coreMonixBio)
   .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.simpleLayout)
+  .jsSettings(jsLinker)
   .settings(
-    libraryDependencies ++= Seq(
-      "io.monix" %%% "monix-bio" % "1.1.0"
-    ),
-    scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) }
+    name := "monix-bio",
+    testFrameworks := Seq(new TestFramework("weaver.framework.MonixBIO"))
   )
 
 lazy val monixBioJVM = monixBio.jvm
 lazy val monixBioJS  = monixBio.js
+
+lazy val zio = crossProject(JSPlatform, JVMPlatform)
+  .crossType(CrossType.Pure)
+  .in(file("modules/framework/zio"))
+  .dependsOn(framework, coreZio)
+  .configure(WeaverPlugin.profile)
+  .settings(WeaverPlugin.simpleLayout)
+  .jsSettings(jsLinker)
+  .settings(
+    name := "zio",
+    testFrameworks := Seq(new TestFramework("weaver.framework.ZIO"))
+  )
+
+lazy val zioJVM = zio.jvm
+lazy val zioJS  = zio.js
+
+// #################################################################################################
+// Intellij
+// #################################################################################################
 
 lazy val intellijRunner = crossProject(JVMPlatform)
   .crossType(CrossType.Pure)
@@ -258,56 +340,15 @@ lazy val intellijRunner = crossProject(JVMPlatform)
   .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.simpleLayout)
   .settings(
-    name := "intellij-runner",
-    scalaJSLinkerConfig ~= {
-      _.withModuleKind(ModuleKind.CommonJSModule)
-    }
+    name := "intellij-runner"
   )
 
 lazy val intellijRunnerJVM = intellijRunner.jvm
 
-ThisBuild / intellijBuild := "203"
-ThisBuild / intellijPluginName := "weaver-intellij"
 
-import org.jetbrains.sbtidea.Keys._
-import org.jetbrains.sbtidea.SbtIdeaPlugin
-import sbt.Keys._
-import sbt._
-
-// Prevents sbt-idea-plugin from automatically
-// downloading intellij binaries on startup
-ThisBuild / doProjectSetup := {}
-
-lazy val intellij = (project in file("modules/intellij"))
-  .enablePlugins(SbtIdeaPlugin, BuildInfoPlugin)
-  .disablePlugins(WeaverPlugin)
-  .settings(
-    scalaVersion := "2.13.4",
-    intellijPlugins := Seq(
-      "com.intellij.java".toPlugin,
-      "org.intellij.scala:2020.3.16".toPlugin
-    ),
-    libraryDependencies ++= Seq(
-      "io.get-coursier" %% "coursier"        % "2.0.0-RC6-24",
-      "com.novocode"     % "junit-interface" % "0.11" % Test
-    ),
-    patchPluginXml := pluginXmlOptions { xml =>
-      xml.version = version.value
-    },
-    // packageArtifact in publishPlugin := packagePlugin.value,
-    packageMethod := PackagingMethod.Standalone(),
-    scalacOptions ++= (WeaverPlugin.commonCompilerOptions),
-    buildInfoKeys := Seq[BuildInfoKey](name, version),
-    buildInfoPackage := "weaver.build",
-    semanticdbEnabled := true,
-    semanticdbVersion := scalafixSemanticdb.revision,
-    packageArtifactZip := {
-      val dump   = (ThisBuild / baseDirectory).value / "intellijPlugin"
-      val result = packageArtifactZip.value
-      IO.write(dump, result.getAbsolutePath)
-      result
-    }
-  )
+// #################################################################################################
+// Misc
+// #################################################################################################
 
 lazy val versionDump =
   taskKey[Unit]("Dumps the version in a file named version")
@@ -317,3 +358,6 @@ versionDump := {
   IO.write(file, (Compile / version).value)
 }
 
+lazy val jsLinker = Seq(
+  scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) }
+)

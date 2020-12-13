@@ -1,14 +1,7 @@
 package weaver
 
 import cats.effect.implicits._
-import cats.effect.{
-  ConcurrentEffect,
-  ContextShift,
-  Effect,
-  IO,
-  Resource,
-  Timer
-}
+import cats.effect.{ Concurrent, Resource }
 import cats.syntax.applicative._
 import cats.syntax.applicativeError._
 
@@ -27,7 +20,8 @@ trait Suite[F[_]] extends BaseSuiteClass {
 // format: off
 trait EffectSuite[F[_]] extends Suite[F] with SourceLocation.Here { self =>
 
-  implicit def effect : Effect[F]
+  implicit protected def effectCompat: EffectCompat[F]
+  implicit final protected def effect: Concurrent[F] = effectCompat.effect
 
   /**
    * Raise an error that leads to the running test being tagged as "cancelled".
@@ -45,39 +39,26 @@ trait EffectSuite[F[_]] extends Suite[F] with SourceLocation.Here { self =>
 
   protected def adaptRunError: PartialFunction[Throwable, Throwable] = PartialFunction.empty
 
-  def run(args : List[String])(report : TestOutcome => IO[Unit]) : IO[Unit] =
-    spec(args).evalMap(testOutcome => effect.liftIO(report(testOutcome))).compile.drain.toIO.adaptErr(adaptRunError)
+  final def run(args : List[String])(report : TestOutcome => F[Unit]) : F[Unit] =
+    spec(args).evalMap(report).compile.drain.adaptErr(adaptRunError)
 
   implicit def expectationsConversion(e: Expectations): F[Expectations] =
-    e.pure[F]
+    effectCompat.effect.pure(e)
 }
 
-trait ConcurrentEffectSuite[F[_]] extends EffectSuite[F] {
-  implicit def effect : ConcurrentEffect[F]
+trait RunnableSuite[F[_]] extends EffectSuite[F] {
+  implicit protected def effectCompat: UnsafeRun[F]
+
+  private[weaver] def runUnsafe(args: List[String])(report: TestOutcome => Unit) : Unit =
+    effectCompat.sync(run(args)(outcome => effectCompat.effect.delay(report(outcome))))
 }
 
-trait BaseIOSuite { self : ConcurrentEffectSuite[IO] =>
-  val ec = scala.concurrent.ExecutionContext.global
-  implicit def timer : Timer[IO] = IO.timer(ec)
-  implicit def cs : ContextShift[IO] = IO.contextShift(ec)
-  implicit def effect : ConcurrentEffect[IO] = IO.ioConcurrentEffect
-}
-
-trait PureIOSuite extends ConcurrentEffectSuite[IO] with BaseIOSuite with Expectations.Helpers {
-
-  def pureTest(name: String)(run : => Expectations) : IO[TestOutcome] = Test[IO](name, IO(run))
-  def simpleTest(name:  String)(run : IO[Expectations]) : IO[TestOutcome] = Test[IO](name, run)
-  def loggedTest(name: String)(run : Log[IO] => IO[Expectations]) : IO[TestOutcome] = Test[IO](name, run)
-
-}
-
-trait MutableFSuite[F[_]] extends ConcurrentEffectSuite[F]  {
+trait MutableFSuite[F[_]] extends EffectSuite[F]  {
 
   type Res
   def sharedResource : Resource[F, Res]
 
   def maxParallelism : Int = 10000
-  implicit def timer: Timer[F]
 
   protected def registerTest(name: TestName)(f: Res => F[TestOutcome]): Unit =
     synchronized {
@@ -85,8 +66,8 @@ trait MutableFSuite[F[_]] extends ConcurrentEffectSuite[F]  {
       testSeq = testSeq :+ (name -> f)
     }
 
-  def pureTest(name: TestName)(run : => Expectations) :  Unit = registerTest(name)(_ => Test(name.name, effect.delay(run)))
-  def simpleTest(name:  TestName)(run: => F[Expectations]) : Unit = registerTest(name)(_ => Test(name.name, effect.suspend(run)))
+  def pureTest(name: TestName)(run : => Expectations) :  Unit = registerTest(name)(_ => Test(name.name, effectCompat.effect.delay(run)))
+  def simpleTest(name:  TestName)(run: => F[Expectations]) : Unit = registerTest(name)(_ => Test(name.name, effectCompat.effect.suspend(run)))
   def loggedTest(name: TestName)(run: Log[F] => F[Expectations]) : Unit = registerTest(name)(_ => Test(name.name, log => run(log)))
   def test(name: TestName) : PartiallyAppliedTest = new PartiallyAppliedTest(name)
 
@@ -99,15 +80,15 @@ trait MutableFSuite[F[_]] extends ConcurrentEffectSuite[F]  {
   override def spec(args: List[String]) : Stream[F, TestOutcome] =
     synchronized {
       if (!isInitialized) isInitialized = true
-      val argsFilter = filterTests(this.name)(args)
+      val argsFilter = Filters.filterTests(this.name)(args)
       val filteredTests = testSeq.collect { case (name, test) if argsFilter(name) => test }
       val parallism = math.max(1, maxParallelism)
       if (filteredTests.isEmpty) Stream.empty // no need to allocate resources
       else for {
         resource <- Stream.resource(sharedResource)
         tests = filteredTests.map(_.apply(resource))
-        testStream = Stream.emits(tests).lift[F]
-        result <- if (parallism > 1 ) testStream.parEvalMap(parallism)(identity)
+        testStream = Stream.emits(tests).lift[F](effectCompat.effect)
+        result <- if (parallism > 1 ) testStream.parEvalMap(parallism)(identity)(effectCompat.effect)
                   else testStream.evalMap(identity)
       } yield result
     }
@@ -122,9 +103,3 @@ trait MutableFSuite[F[_]] extends ConcurrentEffectSuite[F]  {
 
 }
 
-trait MutableIOSuite extends MutableFSuite[IO] with BaseIOSuite with Expectations.Helpers
-
-trait SimpleMutableIOSuite extends MutableIOSuite {
-  type Res = Unit
-  def sharedResource: Resource[IO, Unit] = Resource.pure(())
-}

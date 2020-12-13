@@ -10,11 +10,11 @@ import org.scalacheck.rng.Seed
 import org.scalacheck.{ Arbitrary, Gen }
 
 trait IOCheckers extends Checkers[IO] {
-  self: ConcurrentEffectSuite[IO] =>
+  self: EffectSuite[IO] =>
 }
 
 trait Checkers[F[_]] {
-  self: ConcurrentEffectSuite[F] =>
+  self: EffectSuite[F] =>
 
   type Prop = F[Expectations]
 
@@ -126,7 +126,7 @@ trait Checkers[F[_]] {
   private def testOne[T: Show](
       gen: Gen[T],
       state: Ref[F, Status[T]],
-      f: T => Prop)(params: Gen.Parameters, seed: Seed): F[Status[T]] =
+      f: T => Prop)(params: Gen.Parameters, seed: Seed): F[Status[T]] = {
     effect.defer {
       gen(params, seed)
         .traverse(x => f(x).map(x -> _))
@@ -137,6 +137,7 @@ trait Checkers[F[_]] {
         }
         .productR(state.get)
     }
+  }
 
   def startSeed(params: Gen.Parameters): (Gen.Parameters, Seed) =
     params.initialSeed match {

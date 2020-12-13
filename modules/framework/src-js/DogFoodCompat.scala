@@ -1,20 +1,36 @@
 package weaver
 package framework
 
-import cats.effect.IO
+import cats.data.Chain
+import cats.effect.Resource
 import cats.syntax.all._
 
-import sbt.testing.{ Task => SbtTask, _ }
+private[weaver] trait DogFoodCompat[F[_]] { self: DogFood[F] =>
 
-private[weaver] object DogFoodCompat {
+  import self.framework.unsafeRun._
 
-  def runTasks(eventHandler: EventHandler, logger: Logger)(
-      tasks: Array[SbtTask]): IO[Unit] = {
-    val continuation: Array[SbtTask] => Unit =
-      tasks => runTasks(eventHandler, logger)(tasks).unsafeRunAsyncAndForget()
-
-    tasks.toVector.foldMap { task =>
-      IO(task.execute(eventHandler, Array(logger), continuation))
+  def runTasksCompat(
+      runner: WeaverRunner[F],
+      eventHandler: sbt.testing.EventHandler,
+      logger: sbt.testing.Logger)(tasks: List[sbt.testing.Task]): F[Unit] = {
+    tasks.traverse { task =>
+      self.framework.unsafeRun.effect.async {
+        cb: (Either[Throwable, Unit] => Unit) =>
+          task.execute(eventHandler, Array(logger), _ => cb(Right(())))
+      }
+    }.map { _ =>
+      Reporter.logRunFinished(Array(logger))(
+        Chain(runner.failedTests.toSeq: _*))
     }
+  }
+
+  def done(runner: sbt.testing.Runner): F[String] = effect.delay(runner.done())
+
+}
+
+private[weaver] trait DogFoodCompanion {
+  def make[F[_]](framework: WeaverFramework[F]): Resource[F, DogFood[F]] = {
+    import framework.unsafeRun.effect
+    Resource.liftF(effect.delay(new DogFood(framework) {}))
   }
 }

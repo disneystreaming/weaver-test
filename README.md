@@ -244,17 +244,7 @@ brew install yarn
 
 ### Intellij plugin
 
-In order to develop the intellij plugin, the sequence of steps goes as follow (within sbt) :
-
-* intellij/updateIntellij // downloads the intellij runtime (~1GB)
-* coreJVM/publishLocal // required for intellij/test
-* intellij/test
-
-To run the dev version of the plugin :
-
-* intellij/clean // seems to be required after every change time
-* intellij/packagePlugin
-* intellij/runIDE // launches intellij
+The code of the intellij plugin lives [there](https://github.com/disneystreaming/weaver-intellij)
 
 ### PR Guidelines
 

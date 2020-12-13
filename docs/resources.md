@@ -15,13 +15,14 @@ import cats.effect._
 // Using http4s
 import org.http4s.client.blaze._
 import org.http4s.client._
+import scala.concurrent.ExecutionContext.global
 
 object HttpSuite extends IOSuite {
 
   // Sharing a single http client across all tests
   override type Res = Client[IO]
   override def sharedResource : Resource[IO, Res] =
-    BlazeClientBuilder[IO](ec).resource
+    BlazeClientBuilder[IO](global).resource
 
   // The test receives the shared client as an argument
   test("Good requests lead to good results") { httpClient =>

@@ -10,6 +10,7 @@ You'll need to install an additional dependency in order to use weaver to test Z
 ### SBT
 ```scala
 libraryDependencies +=  "com.disneystreaming" %% "weaver-zio" % "@VERSION@" % Test
+testFrameworks += new TestFramework("weaver.framework.ZIO")
 ```
 
 ### Mill
@@ -18,6 +19,7 @@ object test extends Tests {
   def ivyDeps = Agg(
     ivy"com.disneystreaming::weaver-zio:@VERSION@"
   )
+  def testFrameworks = Seq("weaver.framework.ZIO")
 }
 ```
 
@@ -67,7 +69,7 @@ object HttpSuite extends ZIOSuite[Http] {
     ZLayer.fromManaged {
       val makeHttpClient = ZIO.runtime[Any].map { implicit rts =>
         val exec = rts.platform.executor.asEC
-        BlazeClientBuilder[Task](exec).resource.toManaged
+        BlazeClientBuilder[Task](exec).resource.toManagedZIO
       }
       Managed.fromEffect(makeHttpClient).flatten
     }

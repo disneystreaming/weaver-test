@@ -30,6 +30,7 @@ object WeaverPlugin extends AutoPlugin {
     moduleName := s"weaver-${name.value}",
     crossScalaVersions := supportedScalaVersions,
     scalacOptions ++= compilerOptions(scalaVersion.value),
+    Test / scalacOptions ~= (_ filterNot (_ == "-Xfatal-warnings")),
     // Turning off fatal warnings for ScalaDoc, otherwise we can't release.
     Compile / doc / scalacOptions ~= (_ filterNot (_ == "-Xfatal-warnings")),
     // ScalaDoc settings
@@ -45,7 +46,6 @@ object WeaverPlugin extends AutoPlugin {
     ),
     // https://github.com/sbt/sbt/issues/2654
     incOptions := incOptions.value.withLogRecompileOnMacro(false),
-    testFrameworks := Seq(new TestFramework("weaver.framework.TestFramework")),
     // https://scalacenter.github.io/scalafix/docs/users/installation.html
     semanticdbEnabled := true,
     semanticdbVersion := scalafixSemanticdb.revision,
@@ -176,7 +176,7 @@ object WeaverPlugin extends AutoPlugin {
     Test / unmanagedResourceDirectories := Seq(
       baseDirectory.value.getParentFile / "test" / "resources"
     )
-  )
+  ) ++ Seq(Test / fork := (crossProjectPlatform.value == JVMPlatform))
 
   lazy val publishSettings = Seq(
     organization := "com.disneystreaming",
