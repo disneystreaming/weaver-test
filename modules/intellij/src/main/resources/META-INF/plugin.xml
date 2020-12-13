@@ -3,7 +3,7 @@
     <name>weaver-test</name>
     <version>replaced-by-build</version>
     <vendor>disneystreaming</vendor>
-    <idea-version since-build="202" until-build="202.*"/>
+    <idea-version since-build="203" until-build="203.*"/>
 
     <description><![CDATA[
         Adds support for Weaver test framework (scala)

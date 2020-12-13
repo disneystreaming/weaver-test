@@ -1,6 +1,6 @@
 package weaver.intellij.testsupport
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 import com.intellij.codeInsight.daemon.impl.CollectHighlightsUtil
 import com.intellij.openapi.editor.Document
