@@ -1,0 +1,112 @@
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>ScalaCheck integration · Weaver Test</title><meta name="viewport" content="width=device-width"/><meta name="generator" content="Docusaurus"/><meta name="description" content="Weaver comes with basic [ScalaCheck](https://www.scalacheck.org/) integration, allowing for property-based testing."/><meta name="docsearch:version" content="0.5.1"/><meta name="docsearch:language" content="en"/><meta property="og:title" content="ScalaCheck integration · Weaver Test"/><meta property="og:type" content="website"/><meta property="og:url" content="http(s)://disneystreaming.github.io//weaver-test/"/><meta property="og:description" content="Weaver comes with basic [ScalaCheck](https://www.scalacheck.org/) integration, allowing for property-based testing."/><meta property="og:image" content="http(s)://disneystreaming.github.io//weaver-test/img/undraw_online.svg"/><meta name="twitter:card" content="summary"/><meta name="twitter:image" content="http(s)://disneystreaming.github.io//weaver-test/img/undraw_tweetstorm.svg"/><link rel="shortcut icon" href="/weaver-test/img/dss-profile-white-transparent.svg"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css"/><script type="text/javascript" src="https: //buttons.github.io/buttons.js"></script><script src="/weaver-test/js/scrollSpy.js"></script><link rel="stylesheet" href="/weaver-test/css/main.css"/><script src="/weaver-test/js/codetabs.js"></script></head><body class="sideNavVisible separateOnPageNav"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/weaver-test/"><img class="logo" src="/weaver-test/img/dss-profile-white-transparent.svg" alt="Weaver Test"/><h2 class="headerTitleWithLogo">Weaver Test</h2></a><a href="/weaver-test/versions"><h3>0.5.1</h3></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class="siteNavGroupActive"><a href="/weaver-test/docs/0.5.1/installation" target="_self">Docs</a></li><li class=""><a href="https://github.com/disneystreaming/weaver-test" target="_blank">GitHub</a></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="docsNavContainer" id="docsNav"><nav class="toc"><div class="toggleNav"><section class="navWrapper wrapper"><div class="navBreadcrumb wrapper"><div class="navToggle" id="navToggler"><div class="hamburger-menu"><div class="line1"></div><div class="line2"></div><div class="line3"></div></div></div><h2><i>›</i><span>Usage</span></h2><div class="tocToggler" id="tocToggler"><i class="icon-toc"></i></div></div><div class="navGroups"><div class="navGroup"><h3 class="navGroupCategoryTitle">Overview</h3><ul class=""><li class="navListItem"><a class="navItem" href="/weaver-test/docs/0.5.1/installation">Installation</a></li><li class="navListItem"><a class="navItem" href="/weaver-test/docs/0.5.1/motivation">Motivation</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">Usage</h3><ul class=""><li class="navListItem"><a class="navItem" href="/weaver-test/docs/0.5.1/common_usage">Common usage</a></li><li class="navListItem"><a class="navItem" href="/weaver-test/docs/0.5.1/expectations">Expectations (assertions)</a></li><li class="navListItem"><a class="navItem" href="/weaver-test/docs/0.5.1/resources">Sharing resources</a></li><li class="navListItem"><a class="navItem" href="/weaver-test/docs/0.5.1/global_resources">Sharing resources across suites</a></li><li class="navListItem"><a class="navItem" href="/weaver-test/docs/0.5.1/logging">Logging information</a></li><li class="navListItem"><a class="navItem" href="/weaver-test/docs/0.5.1/tagging">Tagging</a></li><li class="navListItem navListItemActive"><a class="navItem" href="/weaver-test/docs/0.5.1/scalacheck">ScalaCheck integration</a></li><li class="navListItem"><a class="navItem" href="/weaver-test/docs/0.5.1/zio">ZIO usage</a></li><li class="navListItem"><a class="navItem" href="/weaver-test/docs/0.5.1/monix">Monix usage</a></li><li class="navListItem"><a class="navItem" href="/weaver-test/docs/0.5.1/monix_bio">Monix BIO usage</a></li><li class="navListItem"><a class="navItem" href="/weaver-test/docs/0.5.1/specs2">specs2 integration</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">Sample reports</h3><ul class=""><li class="navListItem"><a class="navItem" href="/weaver-test/docs/0.5.1/multiple_suites_success">Successes</a></li><li class="navListItem"><a class="navItem" href="/weaver-test/docs/0.5.1/multiple_suites_failures">Failures</a></li><li class="navListItem"><a class="navItem" href="/weaver-test/docs/0.5.1/multiple_suites_logging">Logging</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">IDE integrations</h3><ul class=""><li class="navListItem"><a class="navItem" href="/weaver-test/docs/0.5.1/intellij">intellij plugin</a></li></ul></div></div></section></div><script>
+            var coll = document.getElementsByClassName('collapsible');
+            var checkActiveCategory = true;
+            for (var i = 0; i < coll.length; i++) {
+              var links = coll[i].nextElementSibling.getElementsByTagName('*');
+              if (checkActiveCategory){
+                for (var j = 0; j < links.length; j++) {
+                  if (links[j].classList.contains('navListItemActive')){
+                    coll[i].nextElementSibling.classList.toggle('hide');
+                    coll[i].childNodes[1].classList.toggle('rotate');
+                    checkActiveCategory = false;
+                    break;
+                  }
+                }
+              }
+
+              coll[i].addEventListener('click', function() {
+                var arrow = this.childNodes[1];
+                arrow.classList.toggle('rotate');
+                var content = this.nextElementSibling;
+                content.classList.toggle('hide');
+              });
+            }
+
+            document.addEventListener('DOMContentLoaded', function() {
+              createToggler('#navToggler', '#docsNav', 'docsSliderActive');
+              createToggler('#tocToggler', 'body', 'tocActive');
+
+              var headings = document.querySelector('.toc-headings');
+              headings && headings.addEventListener('click', function(event) {
+                var el = event.target;
+                while(el !== headings){
+                  if (el.tagName === 'A') {
+                    document.body.classList.remove('tocActive');
+                    break;
+                  } else{
+                    el = el.parentNode;
+                  }
+                }
+              }, false);
+
+              function createToggler(togglerSelector, targetSelector, className) {
+                var toggler = document.querySelector(togglerSelector);
+                var target = document.querySelector(targetSelector);
+
+                if (!toggler) {
+                  return;
+                }
+
+                toggler.onclick = function(event) {
+                  event.preventDefault();
+
+                  target.classList.toggle(className);
+                };
+              }
+            });
+        </script></nav></div><div class="container mainContainer docsContainer"><div class="wrapper"><div class="post"><header class="postHeader"><h1 id="__docusaurus" class="postHeaderTitle">ScalaCheck integration</h1></header><article><div><span><p>Weaver comes with basic <a href="https://www.scalacheck.org/">ScalaCheck</a> integration, allowing for property-based testing.</p>
+<h2><a class="anchor" aria-hidden="true" id="installation"></a><a href="#installation" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Installation</h2>
+<p>You'll need to install an additional dependency in order to use ScalaCheck with Weaver.</p>
+<h3><a class="anchor" aria-hidden="true" id="sbt"></a><a href="#sbt" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>SBT</h3>
+<pre><code class="hljs css language-scala">libraryDependencies +=  <span class="hljs-string">"com.disneystreaming"</span> %% <span class="hljs-string">"weaver-scalacheck"</span> % <span class="hljs-string">"0.5.0+30-12832a4d"</span> % <span class="hljs-type">Test</span>
+</code></pre>
+<h3><a class="anchor" aria-hidden="true" id="mill"></a><a href="#mill" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Mill</h3>
+<pre><code class="hljs css language-scala"><span class="hljs-class"><span class="hljs-keyword">object</span> <span class="hljs-title">test</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">Tests</span> </span>{
+  <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">ivyDeps</span> </span>= <span class="hljs-type">Agg</span>(
+    <span class="hljs-string">ivy"com.disneystreaming::weaver-scalacheck:0.5.0+30-12832a4d"</span>
+  )
+}
+</code></pre>
+<h2><a class="anchor" aria-hidden="true" id="usage"></a><a href="#usage" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Usage</h2>
+<p>Add the <code>weaver.scalacheck.IOCheckers</code> mixin to use ScalaCheck within your test suite.</p>
+<pre><code class="hljs css language-scala"><span class="hljs-keyword">import</span> org.scalacheck.<span class="hljs-type">Gen</span>
+
+<span class="hljs-keyword">import</span> weaver._
+<span class="hljs-keyword">import</span> weaver.scalacheck._
+
+<span class="hljs-class"><span class="hljs-keyword">object</span> <span class="hljs-title">ForallExamples</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">SimpleIOSuite</span> <span class="hljs-keyword">with</span> <span class="hljs-title">IOCheckers</span> </span>{
+
+  <span class="hljs-comment">// Using a single `Gen` instance</span>
+  simpleTest(<span class="hljs-string">"Single Gen form"</span>) {
+    <span class="hljs-comment">// Takes a single, explicit `Gen` instance</span>
+    forall(<span class="hljs-type">Gen</span>.posNum[<span class="hljs-type">Int</span>]) { a =&gt;
+      expect(a &gt; <span class="hljs-number">0</span>)
+    }
+  }
+
+  <span class="hljs-comment">// There is only one overload for the `forall` that takes an explicit `Gen` parameter</span>
+  <span class="hljs-comment">// To use multiple `Gen` instances, compose them monadically before passing to `forall`</span>
+  simpleTest(<span class="hljs-string">"Multiple Gen form"</span>) {
+    <span class="hljs-comment">// Compose into a single `Gen[(Int, Int)]`</span>
+    <span class="hljs-keyword">val</span> gen = <span class="hljs-keyword">for</span> {
+      a &lt;- <span class="hljs-type">Gen</span>.posNum[<span class="hljs-type">Int</span>]
+      b &lt;- <span class="hljs-type">Gen</span>.posNum[<span class="hljs-type">Int</span>]
+    } <span class="hljs-keyword">yield</span> (a, b)
+
+    <span class="hljs-comment">// Unapply the tuple to access individual members</span>
+    forall(gen) { <span class="hljs-keyword">case</span> (a, b) =&gt;
+      expect(a &gt; <span class="hljs-number">0</span>) and expect(b &gt; <span class="hljs-number">0</span>)
+    }
+  }
+
+  <span class="hljs-comment">// Using a number of `Arbitrary` instances</span>
+  simpleTest(<span class="hljs-string">"Arbitrary form"</span>) {
+    <span class="hljs-comment">// There are 6 overloads, to pass 1-6 parameters</span>
+    forall { (a1: <span class="hljs-type">Int</span>, a2: <span class="hljs-type">Int</span>, a3: <span class="hljs-type">Int</span>) =&gt;
+      expect(a1 * a2 * a3 == a3 * a2 * a1)
+    }
+  }
+
+}
+</code></pre>
+</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/weaver-test/docs/0.5.1/tagging"><span class="arrow-prev">← </span><span>Tagging</span></a><a class="docs-next button" href="/weaver-test/docs/0.5.1/zio"><span>ZIO usage</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#installation">Installation</a><ul class="toc-headings"><li><a href="#sbt">SBT</a></li><li><a href="#mill">Mill</a></li></ul></li><li><a href="#usage">Usage</a></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/weaver-test/" class="nav-home"></a><div><h5>Community</h5><a href="https://twitter.com/disneystreaming" target="_blank" rel="noreferrer noopener">Twitter</a></div><div><h5>More</h5><a href="https://github.com/disneystreaming/weaver-test">GitHub</a><a class="github-button" href="https://github.com/disneystreaming/weaver-test" data-icon="octicon-star" data-count-href="/facebook/docusaurus/stargazers" data-show-count="true" data-count-aria-label="# stargazers on GitHub" aria-label="Star this project on GitHub">Star</a><div class="social"><a href="https://twitter.com/disneystreaming" class="twitter-follow-button">Follow @disneystreaming</a></div></div></section><a href="https://github.com/disneystreaming" target="_blank" rel="noreferrer noopener" class="dssOpenSource"><img src="/weaver-test/img/dss-white-transparent.svg" alt="Disney Streaming Services Open Source" width="204" height="54"/></a><section class="copyright">Copyright © 2020 Disney Streaming Services</section></footer></div><script>window.twttr=(function(d,s, id){var js,fjs=d.getElementsByTagName(s)[0],t=window.twttr||{};if(d.getElementById(id))return t;js=d.createElement(s);js.id=id;js.src='https://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js, fjs);t._e = [];t.ready = function(f) {t._e.push(f);};return t;}(document, 'script', 'twitter-wjs'));</script></body></html>
