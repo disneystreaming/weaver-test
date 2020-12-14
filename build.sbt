@@ -56,7 +56,6 @@ lazy val allModules = Seq(
   specs2.projectRefs,
   intellijRunner.projectRefs).flatten ++ effectCores ++ effectFrameworks
 
-
 val ce2Axis = CatsEffectAxis("_CE2", "ce2")
 val ce3Axis = CatsEffectAxis("_CE3", "ce3")
 

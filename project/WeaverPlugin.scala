@@ -9,8 +9,8 @@ import sbt.Keys._
 import com.jsuereth.sbtpgp.PgpKeys._
 import sbtprojectmatrix.ProjectMatrixKeys.virtualAxes
 
-case class CatsEffectAxis(idSuffix: String, directorySuffix: String) extends VirtualAxis.WeakAxis {}
-
+case class CatsEffectAxis(idSuffix: String, directorySuffix: String)
+    extends VirtualAxis.WeakAxis {}
 
 /**
  * Common project settings.
