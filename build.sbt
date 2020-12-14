@@ -1,8 +1,3 @@
-import _root_.sbtcrossproject.Platform
-// shadow sbt-scalajs' crossProject and CrossType from Scala.js 0.6.x
-
-import sbtcrossproject.CrossPlugin.autoImport.{ CrossType, crossProject }
-
 addCommandAlias(
   "ci",
   Seq(
@@ -45,6 +40,8 @@ ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports"
 Global / (Test / fork) := true
 Global / (Test / testOptions) += Tests.Argument("--quickstart")
 
+Global / concurrentRestrictions += Tags.limit(Tags.Test, 4)
+
 lazy val root = project
   .in(file("."))
   .enablePlugins(ScalafixPlugin)
@@ -52,54 +49,65 @@ lazy val root = project
   .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.doNotPublishArtifact)
 
-lazy val allModules = Seq[ProjectReference](
-  coreJVM,
-  coreJS,
-  frameworkJVM,
-  frameworkJS,
-  scalacheckJVM,
-  scalacheckJS,
-  specs2JVM,
-  specs2JS,
-  intellijRunnerJVM) ++ effectCores ++ effectFrameworks
+lazy val allModules = Seq(
+  core.projectRefs,
+  framework.projectRefs,
+  scalacheck.projectRefs,
+  specs2.projectRefs,
+  intellijRunner.projectRefs).flatten ++ effectCores ++ effectFrameworks
 
-lazy val core = crossProject(JSPlatform, JVMPlatform)
-  .crossType(CrossType.Pure)
+
+val ce2Axis = CatsEffectAxis("_CE2", "ce2")
+val ce3Axis = CatsEffectAxis("_CE3", "ce3")
+
+lazy val core = projectMatrix
   .in(file("modules/core"))
+  .jvmPlatform(WeaverPlugin.supportedScalaVersions,
+               settings = Seq(
+                 libraryDependencies ++= Seq(
+                   "org.scala-js" %%% "scalajs-stubs" % "1.0.0" % "provided"
+                 )
+               ))
+  .jsPlatform(WeaverPlugin.supportedScalaVersions,
+              settings = Seq(
+                libraryDependencies ++= Seq(
+                  "io.github.cquiroz" %%% "scala-java-time" % "2.0.0"
+                )
+              ))
   .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.simpleLayout)
+  .customRow(
+    scalaVersions = WeaverPlugin.supportedScalaVersions,
+    axisValues = Seq(ce2Axis, VirtualAxis.jvm),
+    _.settings(
+      libraryDependencies ++= Seq(
+        "co.fs2"        %%% "fs2-core"    % "2.4.6",
+        "org.typelevel" %%% "cats-effect" % "2.3.0"
+      )
+    )
+  )
+  .customRow(
+    scalaVersions = WeaverPlugin.supportedScalaVersions,
+    axisValues = Seq(ce3Axis, VirtualAxis.jvm),
+    _.settings(
+      libraryDependencies ++= Seq(
+        "co.fs2"        %%% "fs2-core"    % "3.0.0-M6",
+        "org.typelevel" %%% "cats-effect" % "3.0.0-M4"
+      )
+    )
+  )
   .settings(
     libraryDependencies ++= Seq(
-      "co.fs2"               %%% "fs2-core"               % "2.4.6",
-      "org.typelevel"        %%% "cats-effect"            % "2.3.0",
       "com.eed3si9n.expecty" %%% "expecty"                % "0.14.1",
       "org.portable-scala"   %%% "portable-scala-reflect" % "1.0.0"
     )
   )
-  .jvmSettings(
-    libraryDependencies ++= Seq(
-      "org.scala-js" %%% "scalajs-stubs" % "1.0.0" % "provided"
-    )
-  )
-  .jsSettings(
-    libraryDependencies ++= Seq(
-      "io.github.cquiroz" %%% "scala-java-time" % "2.0.0"
-    )
-  )
 
-lazy val coreJVM = core.jvm
-lazy val coreJS  = core.js
-
-lazy val docs = project
+lazy val docs = projectMatrix
   .in(file("modules/docs"))
+  .jvmPlatform(WeaverPlugin.supportedScalaVersions)
   .enablePlugins(DocusaurusPlugin, MdocPlugin)
-  .dependsOn(coreJVM,
-             scalacheckJVM,
-             catsJVM,
-             zioJVM,
-             monixJVM,
-             monixBioJVM,
-             specs2JVM)
+  .dependsOn(core, scalacheck, cats, zio, monix, monixBio, specs2)
   .settings(
     moduleName := "docs",
     watchSources += (ThisBuild / baseDirectory).value / "docs",
@@ -114,10 +122,25 @@ lazy val docs = project
     )
   )
 
-lazy val framework = crossProject(JSPlatform, JVMPlatform)
-  .crossType(CrossType.Pure)
+lazy val framework = projectMatrix
   .in(file("modules/framework"))
   .dependsOn(core)
+  .jvmPlatform(
+    WeaverPlugin.supportedScalaVersions,
+    Seq(
+      libraryDependencies ++= Seq(
+        "org.scala-sbt"  % "test-interface" % "1.0",
+        "org.scala-js" %%% "scalajs-stubs"  % "1.0.0" % "provided"
+      )
+    )
+  )
+  .jsPlatform(
+    WeaverPlugin.supportedScalaVersions,
+    Seq(
+      libraryDependencies ++= Seq(
+        "org.scala-js" %% "scalajs-test-interface" % scalaJSVersion
+      )) ++ jsLinker
+  )
   .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.simpleLayout)
   .settings(
@@ -126,29 +149,14 @@ lazy val framework = crossProject(JSPlatform, JVMPlatform)
     ),
     fork in Test := false
   )
-  .jvmSettings(
-    libraryDependencies ++= Seq(
-      "org.scala-sbt"  % "test-interface" % "1.0",
-      "org.scala-js" %%% "scalajs-stubs"  % "1.0.0" % "provided"
-    )
-  )
-  .jsSettings(jsLinker)
-  .jsSettings(
-    libraryDependencies ++= Seq(
-      "org.scala-js" %% "scalajs-test-interface" % scalaJSVersion
-    )
-  )
 
-lazy val frameworkJVM = framework.jvm
-lazy val frameworkJS  = framework.js
-
-lazy val scalacheck = crossProject(JSPlatform, JVMPlatform)
-  .crossType(CrossType.Pure)
+lazy val scalacheck = projectMatrix
   .in(file("modules/scalacheck"))
   .dependsOn(core, cats % "test->compile")
   .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.simpleLayout)
-  .jsSettings(jsLinker)
+  .jvmPlatform(WeaverPlugin.supportedScalaVersions)
+  .jsPlatform(WeaverPlugin.supportedScalaVersions, jsLinker)
   .settings(
     testFrameworks := Seq(new TestFramework("weaver.framework.CatsEffect")),
     libraryDependencies ++= Seq(
@@ -156,15 +164,12 @@ lazy val scalacheck = crossProject(JSPlatform, JVMPlatform)
     )
   )
 
-lazy val scalacheckJVM = scalacheck.jvm
-lazy val scalacheckJS  = scalacheck.js
-
-lazy val specs2 = crossProject(JSPlatform, JVMPlatform)
-  .crossType(CrossType.Pure)
+lazy val specs2 = projectMatrix
   .in(file("modules/specs2"))
+  .jvmPlatform(WeaverPlugin.supportedScalaVersions)
+  .jsPlatform(WeaverPlugin.supportedScalaVersions, jsLinker)
   .dependsOn(core, cats % "test->compile")
   .configure(WeaverPlugin.profile)
-  .jsSettings(jsLinker)
   .settings(
     name := "specs2",
     libraryDependencies ++= Seq(
@@ -173,38 +178,26 @@ lazy val specs2 = crossProject(JSPlatform, JVMPlatform)
   )
   .settings(WeaverPlugin.simpleLayout)
 
-lazy val specs2JVM = specs2.jvm
-lazy val specs2JS  = specs2.js
-
 // #################################################################################################
 // Effect-specific cores
 // #################################################################################################
 
-lazy val effectCores: Seq[ProjectReference] = Seq(
-  coreCatsJVM,
-  coreCatsJS,
-  coreMonixJVM,
-  coreMonixJS,
-  coreMonixBioJVM,
-  coreMonixJS,
-  coreZioJVM,
-  coreZioJS
-)
+lazy val effectCores: Seq[ProjectReference] =
+  coreCats.projectRefs ++ coreMonix.projectRefs ++ coreZio.projectRefs ++ coreMonixBio.projectRefs
 
-lazy val coreCats = crossProject(JSPlatform, JVMPlatform)
-  .crossType(CrossType.Pure)
+lazy val coreCats = projectMatrix
   .in(file("modules/core/cats"))
+  .jvmPlatform(WeaverPlugin.supportedScalaVersions)
+  .jsPlatform(WeaverPlugin.supportedScalaVersions, jsLinker)
   .dependsOn(core)
   .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.simpleLayout)
   .settings(name := "cats-core")
 
-lazy val coreCatsJVM = coreCats.jvm
-lazy val coreCatsJS  = coreCats.js
-
-lazy val coreMonix = crossProject(JSPlatform, JVMPlatform)
-  .crossType(CrossType.Pure)
+lazy val coreMonix = projectMatrix
   .in(file("modules/core/monix"))
+  .jvmPlatform(WeaverPlugin.supportedScalaVersions)
+  .jsPlatform(WeaverPlugin.supportedScalaVersions, jsLinker)
   .dependsOn(core)
   .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.simpleLayout)
@@ -215,12 +208,10 @@ lazy val coreMonix = crossProject(JSPlatform, JVMPlatform)
     )
   )
 
-lazy val coreMonixJVM = coreMonix.jvm
-lazy val coreMonixJS  = coreMonix.js
-
-lazy val coreMonixBio = crossProject(JSPlatform, JVMPlatform)
-  .crossType(CrossType.Pure)
+lazy val coreMonixBio = projectMatrix
   .in(file("modules/core/monixBio"))
+  .jvmPlatform(WeaverPlugin.supportedScalaVersions)
+  .jsPlatform(WeaverPlugin.supportedScalaVersions, jsLinker)
   .dependsOn(core)
   .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.simpleLayout)
@@ -231,12 +222,10 @@ lazy val coreMonixBio = crossProject(JSPlatform, JVMPlatform)
     )
   )
 
-lazy val coreMonixBioJVM = coreMonixBio.jvm
-lazy val coreMonixBioJS  = coreMonixBio.js
-
-lazy val coreZio = crossProject(JSPlatform, JVMPlatform)
-  .crossType(CrossType.Pure)
+lazy val coreZio = projectMatrix
   .in(file("modules/core/zio"))
+  .jvmPlatform(WeaverPlugin.supportedScalaVersions)
+  .jsPlatform(WeaverPlugin.supportedScalaVersions, jsLinker)
   .dependsOn(core)
   .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.simpleLayout)
@@ -247,94 +236,72 @@ lazy val coreZio = crossProject(JSPlatform, JVMPlatform)
     )
   )
 
-lazy val coreZioJVM = coreZio.jvm
-lazy val coreZioJS  = coreZio.js
-
 // #################################################################################################
 // Effect-specific frameworks
 // #################################################################################################
 
 lazy val effectFrameworks: Seq[ProjectReference] = Seq(
-  catsJVM,
-  catsJS,
-  monixJVM,
-  monixJS,
-  monixBioJVM,
-  monixJS,
-  zioJVM,
-  zioJS
-)
+  cats.projectRefs,
+  monix.projectRefs,
+  monixBio.projectRefs,
+  zio.projectRefs
+).flatten
 
-lazy val cats = crossProject(JSPlatform, JVMPlatform)
-  .crossType(CrossType.Pure)
+lazy val cats = projectMatrix
   .in(file("modules/framework/cats"))
   .dependsOn(framework, coreCats)
+  .jvmPlatform(WeaverPlugin.supportedScalaVersions)
+  .jsPlatform(WeaverPlugin.supportedScalaVersions, jsLinker)
   .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.simpleLayout)
-  .jsSettings(jsLinker)
-  .jsSettings(
-    fork in Test := false
-  )
   .settings(
     name := "cats",
     testFrameworks := Seq(new TestFramework("weaver.framework.CatsEffect")),
     libraryDependencies += "io.github.cquiroz" %%% "scala-java-time-tzdb" % "2.0.0" % Test
   )
 
-lazy val catsJVM = cats.jvm
-lazy val catsJS  = cats.js
-
-lazy val monix = crossProject(JSPlatform, JVMPlatform)
-  .crossType(CrossType.Pure)
+lazy val monix = projectMatrix
   .in(file("modules/framework/monix"))
+  .jvmPlatform(WeaverPlugin.supportedScalaVersions)
+  .jsPlatform(WeaverPlugin.supportedScalaVersions, jsLinker)
   .dependsOn(framework, coreMonix)
   .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.simpleLayout)
-  .jsSettings(jsLinker)
   .settings(
     name := "monix",
     testFrameworks := Seq(new TestFramework("weaver.framework.Monix"))
   )
 
-lazy val monixJVM = monix.jvm
-lazy val monixJS  = monix.js
-
-lazy val monixBio = crossProject(JSPlatform, JVMPlatform)
-  .crossType(CrossType.Pure)
+lazy val monixBio = projectMatrix
   .in(file("modules/framework/monix-bio"))
+  .jvmPlatform(WeaverPlugin.supportedScalaVersions)
+  .jsPlatform(WeaverPlugin.supportedScalaVersions, jsLinker)
   .dependsOn(framework, coreMonixBio)
   .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.simpleLayout)
-  .jsSettings(jsLinker)
   .settings(
     name := "monix-bio",
     testFrameworks := Seq(new TestFramework("weaver.framework.MonixBIO"))
   )
 
-lazy val monixBioJVM = monixBio.jvm
-lazy val monixBioJS  = monixBio.js
-
-lazy val zio = crossProject(JSPlatform, JVMPlatform)
-  .crossType(CrossType.Pure)
+lazy val zio = projectMatrix
   .in(file("modules/framework/zio"))
+  .jvmPlatform(WeaverPlugin.supportedScalaVersions)
+  .jsPlatform(WeaverPlugin.supportedScalaVersions, jsLinker)
   .dependsOn(framework, coreZio)
   .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.simpleLayout)
-  .jsSettings(jsLinker)
   .settings(
     name := "zio",
     testFrameworks := Seq(new TestFramework("weaver.framework.ZIO"))
   )
 
-lazy val zioJVM = zio.jvm
-lazy val zioJS  = zio.js
-
 // #################################################################################################
 // Intellij
 // #################################################################################################
 
-lazy val intellijRunner = crossProject(JVMPlatform)
-  .crossType(CrossType.Pure)
+lazy val intellijRunner = projectMatrix
+  .jvmPlatform(WeaverPlugin.supportedScalaVersions)
   .in(file("modules/intellij-runner"))
   .dependsOn(core, framework, framework % "test->compile")
   .configure(WeaverPlugin.profile)
@@ -342,9 +309,6 @@ lazy val intellijRunner = crossProject(JVMPlatform)
   .settings(
     name := "intellij-runner"
   )
-
-lazy val intellijRunnerJVM = intellijRunner.jvm
-
 
 // #################################################################################################
 // Misc

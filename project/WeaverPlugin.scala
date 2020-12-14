@@ -1,17 +1,16 @@
 // For getting Scoverage out of the generated POM
 import scala.xml.Elem
 import scala.xml.transform.{ RewriteRule, RuleTransformer }
-import sbtcrossproject.CrossPlugin.autoImport.{
-  JVMPlatform,
-  crossProjectPlatform
-}
 import scalafix.sbt.ScalafixPlugin.autoImport._
 import xerial.sbt.Sonatype.SonatypeKeys._
 
 import sbt._
 import sbt.Keys._
 import com.jsuereth.sbtpgp.PgpKeys._
-import scalajscrossproject.JSPlatform
+import sbtprojectmatrix.ProjectMatrixKeys.virtualAxes
+
+case class CatsEffectAxis(idSuffix: String, directorySuffix: String) extends VirtualAxis.WeakAxis {}
+
 
 /**
  * Common project settings.
@@ -28,7 +27,7 @@ object WeaverPlugin extends AutoPlugin {
   /** @see [[sbt.AutoPlugin]] */
   override val projectSettings = Seq(
     moduleName := s"weaver-${name.value}",
-    crossScalaVersions := supportedScalaVersions,
+    // crossScalaVersions := supportedScalaVersions,
     scalacOptions ++= compilerOptions(scalaVersion.value),
     Test / scalacOptions ~= (_ filterNot (_ == "-Xfatal-warnings")),
     // Turning off fatal warnings for ScalaDoc, otherwise we can't release.
@@ -153,30 +152,47 @@ object WeaverPlugin extends AutoPlugin {
   }
 
   // Mill-like simple layout
-  val simpleLayout: Seq[Setting[_]] = Seq(
-    Compile / unmanagedSourceDirectories := Seq(
-      baseDirectory.value.getParentFile / "src") ++ {
-      if (crossProjectPlatform.value == JVMPlatform)
-        Seq(baseDirectory.value.getParentFile / "src-jvm")
-      else if (crossProjectPlatform.value == JSPlatform)
-        Seq(baseDirectory.value.getParentFile / "src-js")
-      else
-        Seq.empty
-    },
-    Test / unmanagedSourceDirectories := Seq(
-      baseDirectory.value.getParentFile / "test" / "src"
-    ) ++ {
-      if (crossProjectPlatform.value == JVMPlatform)
-        Seq(baseDirectory.value.getParentFile / "test" / "src-jvm")
-      else if (crossProjectPlatform.value == JSPlatform)
-        Seq(baseDirectory.value.getParentFile / "test" / "src-js")
-      else
-        Seq.empty
-    },
-    Test / unmanagedResourceDirectories := Seq(
-      baseDirectory.value.getParentFile / "test" / "resources"
+  val simpleLayout: Seq[Setting[_]] = {
+    /*
+      Project matrix will override baseDirectory, making it look like this:
+      /Users/velvetbaldmime/Personal/weaver-test/.sbt/matrix/src
+
+      Which means we can't use it to identify sources layout.
+
+      Instead, we're going to use `scalaSource` and go 3 levels up from it:
+
+      sbt:root> show catsJS/scalaSource
+      [info] .../modules/framework/cats/src/main/scala
+     */
+    val moduleBase =
+      Def.setting((Compile / scalaSource).value.getParentFile().getParentFile().getParentFile())
+
+    Seq(
+      Compile / unmanagedSourceDirectories := Seq(
+        moduleBase.value / "src") ++ {
+        if (virtualAxes.value.contains(VirtualAxis.jvm))
+          Seq(moduleBase.value / "src-jvm")
+        else if (virtualAxes.value.contains(VirtualAxis.js))
+          Seq(moduleBase.value / "src-js")
+        else
+          Seq.empty
+      },
+      Test / unmanagedSourceDirectories := Seq(
+        moduleBase.value / "test" / "src"
+      ) ++ {
+        if (virtualAxes.value.contains(VirtualAxis.jvm))
+          Seq(moduleBase.value / "test" / "src-jvm")
+        else if (virtualAxes.value.contains(VirtualAxis.js))
+          Seq(moduleBase.value / "test" / "src-js")
+        else
+          Seq.empty
+      },
+      Test / unmanagedResourceDirectories := Seq(
+        moduleBase.value / "test" / "resources"
+      ),
+      Test / fork := (virtualAxes.value.contains(VirtualAxis.jvm))
     )
-  ) ++ Seq(Test / fork := (crossProjectPlatform.value == JVMPlatform))
+  }
 
   lazy val publishSettings = Seq(
     organization := "com.disneystreaming",
