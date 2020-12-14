@@ -8,7 +8,7 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
 import cats.data.Chain
-import cats.effect.concurrent.Ref
+import CECompat.Ref
 import cats.effect.{ Sync, _ }
 import cats.syntax.all._
 
@@ -58,12 +58,12 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
 
       // 1 permit semaphore protecting against build tools not
       // dispatching logs through a single logger at a time.
-      val loggerPermit = new java.util.concurrent.Semaphore(1)
+      val loggerPermit = new java.util.concurrent.Semaphore(1, true)
 
       val queue  = new ConcurrentLinkedQueue[SuiteEvent]()
       val broker = new ConcurrentQueueEventBroker(queue)
-      val startingBlock = Async.fromFuture {
-        Sync[F].delay(promise.future.map(_ => ())(ExecutionContext.global))
+      val startingBlock = unsafeRun.fromFuture {
+        promise.future.map(_ => ())(ExecutionContext.global)
       }
 
       val ioTask =
@@ -149,21 +149,21 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
       val finalizer =
         outcomes.get.map(SuiteFinished(SuiteName(fqn), _)).flatMap(broker.send)
 
-      effect.guaranteeCase(runSuite) {
-        case ExitCase.Canceled  => finalizer
-        case ExitCase.Completed => finalizer
-        case ExitCase.Error(error: Throwable) =>
+      CECompat.guaranteeCase(runSuite)(
+        completed = finalizer,
+        cancelled = finalizer,
+        errored = { (error: Throwable) =>
           val outcome =
             TestOutcome("Unexpected failure",
                         0.seconds,
                         Result.from(error),
                         Chain.empty)
 
-          effect.guarantee(outcomes
+          CECompat.guarantee(outcomes
             .update(_.append(SuiteName(fqn) -> outcome))
             .productR(broker.send(TestFinished(outcome))))(finalizer)
-
-      }
+        }
+      )
     }
   }
 

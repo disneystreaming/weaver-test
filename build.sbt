@@ -138,7 +138,6 @@ lazy val framework = projectMatrix
   )
   .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.simpleLayout)
-  .settings(jsLinker: _*)
 
 lazy val scalacheck = projectMatrix
   .in(file("modules/scalacheck"))
@@ -179,6 +178,7 @@ lazy val coreCats = projectMatrix
   .in(file("modules/core/cats"))
   .jvmPlatform(WeaverPlugin.supportedScalaVersions)
   .jsPlatform(WeaverPlugin.supportedScalaVersions, jsLinker)
+  .crossCatsEffect
   .dependsOn(core)
   .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.simpleLayout)
@@ -242,6 +242,7 @@ lazy val cats = projectMatrix
   .dependsOn(framework, coreCats)
   .jvmPlatform(WeaverPlugin.supportedScalaVersions)
   .jsPlatform(WeaverPlugin.supportedScalaVersions, jsLinker)
+  .crossCatsEffect
   .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.simpleLayout)
   .settings(
@@ -313,5 +314,5 @@ versionDump := {
 }
 
 lazy val jsLinker = Seq(
-  scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) }
+  Test / scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) }
 )

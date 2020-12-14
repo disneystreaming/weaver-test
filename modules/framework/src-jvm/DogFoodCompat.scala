@@ -1,35 +1,37 @@
 package weaver
 package framework
 
-import cats.effect.{ Blocker, Resource }
 import cats.syntax.all._
 
 import sbt.testing._
+import cats.effect.Resource
 
 private[weaver] trait DogFoodCompat[F[_]] { self: DogFood[F] =>
 
   import self.framework.unsafeRun._
 
-  def blocker: Blocker
+  def blocker: BlockerCompat[F]
 
   def runTasksCompat(
       runner: WeaverRunner[F],
       eventHandler: EventHandler,
       logger: Logger)(tasks: List[sbt.testing.Task]): F[Unit] =
     tasks.toVector.parTraverse { task =>
-      blocker.delay(task.execute(eventHandler, Array(logger)))
+      blocker.block(task.execute(
+        eventHandler,
+        Array(logger)))
     }.void
 
-  def done(runner: Runner): F[String] = blocker.delay[F, String](runner.done())
+  def done(runner: Runner): F[String] =
+    blocker.block(runner.done())
 }
 
 private[weaver] trait DogFoodCompanion {
-  def make[F[_]](framework: WeaverFramework[F]): Resource[F, DogFood[F]] = {
-    import framework.unsafeRun.effect
 
-    Blocker[F].map { block =>
+  def make[F[_]](framework: WeaverFramework[F]): Resource[F, DogFood[F]] = {
+    framework.unsafeRun.blocker { bl =>
       new DogFood[F](framework) {
-        override def blocker: Blocker = block
+        def blocker: BlockerCompat[F] = bl
       }
     }
   }

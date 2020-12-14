@@ -4,7 +4,7 @@ import scala.concurrent.duration._
 
 import cats.Defer
 import cats.data.Chain
-import cats.effect.concurrent.Ref
+import CECompat.Ref
 import cats.syntax.all._
 
 object Test {

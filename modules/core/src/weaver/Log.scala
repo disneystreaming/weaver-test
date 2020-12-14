@@ -1,11 +1,8 @@
 package weaver
 
-import java.util.concurrent.TimeUnit
-
-import cats.effect.Timer
-import cats.effect.concurrent.Ref
+import CECompat.Ref
 import cats.syntax.all._
-import cats.{ Applicative, FlatMap, Monoid, MonoidK, Show, ~> }
+import cats.{ Applicative, Monoid, MonoidK, Show, ~> }
 
 import weaver.Log.PartiallyAppliedLevel
 
@@ -84,9 +81,8 @@ object Log {
         ctx: Map[String, String] = Map.empty,
         cause: Throwable = null)(
         implicit loc: SourceLocation,
-        timer: Timer[F],
-        F: FlatMap[F]): F[Unit] =
-      F.flatMap(timer.clock.realTime(TimeUnit.MILLISECONDS)) { now =>
+        F: EffectCompat[F]): F[Unit] =
+      F.effect.flatMap(F.realTimeMillis) { now =>
         Log[F].log(Entry(now, msg, ctx, level, Option(cause), loc))
       }
   }

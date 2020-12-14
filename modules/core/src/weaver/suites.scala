@@ -67,7 +67,7 @@ trait MutableFSuite[F[_]] extends EffectSuite[F]  {
     }
 
   def pureTest(name: TestName)(run : => Expectations) :  Unit = registerTest(name)(_ => Test(name.name, effectCompat.effect.delay(run)))
-  def simpleTest(name:  TestName)(run: => F[Expectations]) : Unit = registerTest(name)(_ => Test(name.name, effectCompat.effect.suspend(run)))
+  def simpleTest(name:  TestName)(run: => F[Expectations]) : Unit = registerTest(name)(_ => Test(name.name, effectCompat.effect.defer(run)))
   def loggedTest(name: TestName)(run: Log[F] => F[Expectations]) : Unit = registerTest(name)(_ => Test(name.name, log => run(log)))
   def test(name: TestName) : PartiallyAppliedTest = new PartiallyAppliedTest(name)
 

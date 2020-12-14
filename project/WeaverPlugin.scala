@@ -208,6 +208,11 @@ object WeaverPlugin extends AutoPlugin {
           Seq(moduleBase.value / "src-js")
         else
           Seq.empty
+      } ++ {
+        if (virtualAxes.value.contains(CatsEffect3Axis))
+          Seq(moduleBase.value / "src-ce3")
+        else
+          Seq(moduleBase.value / "src-ce2")
       },
       Test / unmanagedSourceDirectories := Seq(
         moduleBase.value / "test" / "src"

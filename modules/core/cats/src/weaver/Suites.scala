@@ -2,12 +2,6 @@ package weaver
 
 import cats.effect.{ IO, Resource }
 
-trait BaseIOSuite extends RunnableSuite[IO] {
-  implicit protected def effectCompat: UnsafeRun[IO] = CatsUnsafeRun
-  final implicit protected def contextShift          = effectCompat.contextShift
-  final implicit protected def timer                 = effectCompat.timer
-}
-
 trait PureIOSuite
     extends EffectSuite[IO]
     with BaseIOSuite

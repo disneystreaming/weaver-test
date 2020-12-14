@@ -2,10 +2,6 @@ package weaver
 package framework
 package test
 
-import java.time.OffsetDateTime
-
-import scala.concurrent.duration.{ FiniteDuration, TimeUnit }
-
 import cats.effect._
 
 // The build tool will only detect and run top-level test suites. We can however nest objects
@@ -127,24 +123,6 @@ object Meta {
   }
 
   object TimeCop {
-    private val setTimestamp = OffsetDateTime.now
-      .withHour(12)
-      .withMinute(54)
-      .withSecond(35)
-      .toEpochSecond * 1000
-
-    implicit val setClock = new Clock[IO] {
-      override def realTime(unit: TimeUnit): IO[Long] = IO(setTimestamp)
-
-      override def monotonic(unit: TimeUnit): IO[Long] = ???
-    }
-
-    implicit val setTimer: Timer[IO] = new Timer[IO] {
-      override def clock: Clock[IO] = setClock
-
-      override def sleep(duration: FiniteDuration): IO[Unit] = ???
-    }
-
     implicit val sourceLocation: SourceLocation = SourceLocation(
       "src/main/DogFoodTests.scala",
       "src/main/DogFoodTests.scala",
@@ -152,7 +130,7 @@ object Meta {
   }
 
   object SetTimeUnsafeRun extends CatsUnsafeRun {
-    override implicit val timer: Timer[IO] = TimeCop.setTimer
+    override def realTimeMillis: IO[Long] = IO.pure(0L)
   }
 
 }

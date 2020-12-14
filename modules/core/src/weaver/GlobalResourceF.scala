@@ -5,8 +5,8 @@ import scala.util.Try
 
 import cats.MonadError
 import cats.effect._
-import cats.effect.concurrent.Ref
 import cats.syntax.all._
+import CECompat.Ref
 
 import org.portablescala.reflect.annotation.EnableReflectiveInstantiation
 
