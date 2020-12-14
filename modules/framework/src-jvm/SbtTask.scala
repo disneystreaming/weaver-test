@@ -4,6 +4,7 @@ package framework
 import java.util.concurrent.atomic.{ AtomicBoolean, AtomicInteger }
 
 import sbt.testing.{ Event, EventHandler, Logger, Task, TaskDef }
+import cats.data.Chain
 
 private[framework] class SbtTask(
     val taskDef: TaskDef,
@@ -11,8 +12,9 @@ private[framework] class SbtTask(
     stillRunning: AtomicInteger,
     start: scala.concurrent.Promise[Unit],
     queue: java.util.concurrent.ConcurrentLinkedQueue[SuiteEvent],
-    loggerPermit: java.util.concurrent.Semaphore)
-    extends Task {
+    loggerPermit: java.util.concurrent.Semaphore,
+    readFailed: () => Chain[(SuiteName, TestOutcome)]
+) extends Task {
 
   def execute(
       eventHandler: EventHandler,
@@ -30,9 +32,11 @@ private[framework] class SbtTask(
 
         nextEvent.foreach {
           case s @ SuiteStarted(_) => log(s)
-          case s @ SuiteFinished(_, _) =>
+          case SuiteFinished(_) =>
             finished = true
-            if (stillRunning.decrementAndGet == 0) log(s)
+            if (stillRunning.decrementAndGet == 0) {
+              log(RunFinished(readFailed()))
+            }
           case t @ TestFinished(outcome) =>
             eventHandler.handle(sbtEvent(outcome))
             log(t)
