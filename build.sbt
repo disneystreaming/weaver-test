@@ -176,8 +176,6 @@ lazy val effectCores: Seq[ProjectReference] =
 
 lazy val coreCats = projectMatrix
   .in(file("modules/core/cats"))
-  .jvmPlatform(WeaverPlugin.supportedScalaVersions)
-  .jsPlatform(WeaverPlugin.supportedScalaVersions, jsLinker)
   .crossCatsEffect
   .dependsOn(core)
   .configure(WeaverPlugin.profile)
