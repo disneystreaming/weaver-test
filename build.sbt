@@ -1,3 +1,5 @@
+import WeaverPlugin._
+
 addCommandAlias(
   "ci",
   Seq(
@@ -56,24 +58,20 @@ lazy val allModules = Seq(
   specs2.projectRefs,
   intellijRunner.projectRefs).flatten ++ effectCores ++ effectFrameworks
 
-val ce2Axis = CatsEffectAxis("_CE2", "ce2")
-val ce3Axis = CatsEffectAxis("_CE3", "ce3")
-
-def catsEffect2Project(proj: Project): Project = {
+def catsEffectDependencies(proj: Project): Project = {
   proj.settings(
-    libraryDependencies ++= Seq(
-      "co.fs2"        %%% "fs2-core"    % "2.4.6",
-      "org.typelevel" %%% "cats-effect" % "2.3.0"
-    )
-  )
-}
-
-def catsEffect3Project(proj: Project): Project = {
-  proj.settings(
-    libraryDependencies ++= Seq(
-      "co.fs2"        %%% "fs2-core"    % "3.0.0-M6",
-      "org.typelevel" %%% "cats-effect" % "3.0.0-M4"
-    )
+    libraryDependencies ++= {
+      if (virtualAxes.value.contains(CatsEffect2Axis))
+        Seq(
+          "co.fs2"        %%% "fs2-core"    % "2.4.6",
+          "org.typelevel" %%% "cats-effect" % "2.3.0"
+        )
+      else
+        Seq(
+          "co.fs2"        %%% "fs2-core"    % "3.0.0-M6",
+          "org.typelevel" %%% "cats-effect" % "3.0.0-M4"
+        )
+    }
   )
 }
 
@@ -81,26 +79,8 @@ lazy val core = projectMatrix
   .in(file("modules/core"))
   .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.simpleLayout)
-  .customRow(
-    scalaVersions = WeaverPlugin.supportedScalaVersions,
-    axisValues = Seq(ce2Axis, VirtualAxis.jvm),
-    catsEffect2Project _
-  )
-  .customRow(
-    scalaVersions = WeaverPlugin.supportedScalaVersions,
-    axisValues = Seq(ce3Axis, VirtualAxis.jvm),
-    catsEffect3Project _
-  )
-  .customRow(
-    scalaVersions = WeaverPlugin.supportedScalaVersions,
-    axisValues = Seq(ce2Axis, VirtualAxis.js),
-    catsEffect2Project _ 
-  )
-  .customRow(
-    scalaVersions = WeaverPlugin.supportedScalaVersions,
-    axisValues = Seq(ce3Axis, VirtualAxis.js),
-    catsEffect3Project _
-  )
+  .crossCatsEffect
+  .configure(catsEffectDependencies)
   .settings(
     libraryDependencies ++= Seq(
       "com.eed3si9n.expecty" %%% "expecty"                % "0.14.1",
@@ -141,30 +121,24 @@ lazy val docs = projectMatrix
 lazy val framework = projectMatrix
   .in(file("modules/framework"))
   .dependsOn(core)
-  .jvmPlatform(
-    WeaverPlugin.supportedScalaVersions,
-    Seq(
-      libraryDependencies ++= Seq(
-        "org.scala-sbt"  % "test-interface" % "1.0",
-        "org.scala-js" %%% "scalajs-stubs"  % "1.0.0" % "provided"
-      )
-    )
-  )
-  .jsPlatform(
-    WeaverPlugin.supportedScalaVersions,
-    Seq(
-      libraryDependencies ++= Seq(
-        "org.scala-js" %% "scalajs-test-interface" % scalaJSVersion
-      )) ++ jsLinker
+  .crossCatsEffect
+  .settings(
+    libraryDependencies ++= {
+      if (virtualAxes.value.contains(VirtualAxis.jvm))
+        Seq(
+          "org.scala-sbt"  % "test-interface" % "1.0",
+          "org.scala-js" %%% "scalajs-stubs"  % "1.0.0" % "provided"
+        )
+      else
+        Seq(
+          "org.scala-js"       %% "scalajs-test-interface" % scalaJSVersion,
+          "io.github.cquiroz" %%% "scala-java-time-tzdb"   % "2.0.0" % Test
+        )
+    }
   )
   .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.simpleLayout)
-  .settings(
-    libraryDependencies ++= Seq(
-      "io.github.cquiroz" %%% "scala-java-time-tzdb" % "2.0.0" % Test
-    ),
-    fork in Test := false
-  )
+  .settings(jsLinker: _*)
 
 lazy val scalacheck = projectMatrix
   .in(file("modules/scalacheck"))

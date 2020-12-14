@@ -8,6 +8,7 @@ import sbt._
 import sbt.Keys._
 import com.jsuereth.sbtpgp.PgpKeys._
 import sbtprojectmatrix.ProjectMatrixKeys.virtualAxes
+import sbt.internal.ProjectMatrix
 
 case class CatsEffectAxis(idSuffix: String, directorySuffix: String)
     extends VirtualAxis.WeakAxis {}
@@ -16,6 +17,37 @@ case class CatsEffectAxis(idSuffix: String, directorySuffix: String)
  * Common project settings.
  */
 object WeaverPlugin extends AutoPlugin {
+
+  val CatsEffect2Axis = CatsEffectAxis("_CE2", "ce2")
+  val CatsEffect3Axis = CatsEffectAxis("_CE3", "ce3")
+
+  val defaults = Seq[VirtualAxis](
+    CatsEffect2Axis,
+    VirtualAxis.jvm,
+    VirtualAxis.scalaVersionAxis(WeaverPlugin.scala213, "2.13"))
+
+  implicit final class ProjectMatrixOps(pmx: ProjectMatrix) {
+    def crossCatsEffect = {
+      pmx.defaultAxes(defaults: _*)
+        .customRow(
+          scalaVersions = WeaverPlugin.supportedScalaVersions,
+          axisValues = Seq(CatsEffect2Axis, VirtualAxis.jvm),
+          Seq()
+        ).customRow(
+          scalaVersions = WeaverPlugin.supportedScalaVersions,
+          axisValues = Seq(CatsEffect3Axis, VirtualAxis.jvm),
+          Seq()
+        ).customRow(
+          scalaVersions = WeaverPlugin.supportedScalaVersions,
+          axisValues = Seq(CatsEffect2Axis, VirtualAxis.js),
+          Seq()
+        ).customRow(
+          scalaVersions = WeaverPlugin.supportedScalaVersions,
+          axisValues = Seq(CatsEffect3Axis, VirtualAxis.js),
+          Seq()
+        )
+    }
+  }
 
   override def requires = plugins.JvmPlugin
   override def trigger  = allRequirements
