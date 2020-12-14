@@ -59,47 +59,64 @@ lazy val allModules = Seq(
 val ce2Axis = CatsEffectAxis("_CE2", "ce2")
 val ce3Axis = CatsEffectAxis("_CE3", "ce3")
 
+def catsEffect2Project(proj: Project): Project = {
+  proj.settings(
+    libraryDependencies ++= Seq(
+      "co.fs2"        %%% "fs2-core"    % "2.4.6",
+      "org.typelevel" %%% "cats-effect" % "2.3.0"
+    )
+  )
+}
+
+def catsEffect3Project(proj: Project): Project = {
+  proj.settings(
+    libraryDependencies ++= Seq(
+      "co.fs2"        %%% "fs2-core"    % "3.0.0-M6",
+      "org.typelevel" %%% "cats-effect" % "3.0.0-M4"
+    )
+  )
+}
+
 lazy val core = projectMatrix
   .in(file("modules/core"))
-  .jvmPlatform(WeaverPlugin.supportedScalaVersions,
-               settings = Seq(
-                 libraryDependencies ++= Seq(
-                   "org.scala-js" %%% "scalajs-stubs" % "1.0.0" % "provided"
-                 )
-               ))
-  .jsPlatform(WeaverPlugin.supportedScalaVersions,
-              settings = Seq(
-                libraryDependencies ++= Seq(
-                  "io.github.cquiroz" %%% "scala-java-time" % "2.0.0"
-                )
-              ))
   .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.simpleLayout)
   .customRow(
     scalaVersions = WeaverPlugin.supportedScalaVersions,
     axisValues = Seq(ce2Axis, VirtualAxis.jvm),
-    _.settings(
-      libraryDependencies ++= Seq(
-        "co.fs2"        %%% "fs2-core"    % "2.4.6",
-        "org.typelevel" %%% "cats-effect" % "2.3.0"
-      )
-    )
+    catsEffect2Project _
   )
   .customRow(
     scalaVersions = WeaverPlugin.supportedScalaVersions,
     axisValues = Seq(ce3Axis, VirtualAxis.jvm),
-    _.settings(
-      libraryDependencies ++= Seq(
-        "co.fs2"        %%% "fs2-core"    % "3.0.0-M6",
-        "org.typelevel" %%% "cats-effect" % "3.0.0-M4"
-      )
-    )
+    catsEffect3Project _
+  )
+  .customRow(
+    scalaVersions = WeaverPlugin.supportedScalaVersions,
+    axisValues = Seq(ce2Axis, VirtualAxis.js),
+    catsEffect2Project _ 
+  )
+  .customRow(
+    scalaVersions = WeaverPlugin.supportedScalaVersions,
+    axisValues = Seq(ce3Axis, VirtualAxis.js),
+    catsEffect3Project _
   )
   .settings(
     libraryDependencies ++= Seq(
       "com.eed3si9n.expecty" %%% "expecty"                % "0.14.1",
       "org.portable-scala"   %%% "portable-scala-reflect" % "1.0.0"
-    )
+    ),
+    libraryDependencies ++= {
+      if (virtualAxes.value.contains(VirtualAxis.jvm))
+        Seq(
+          "org.scala-js" %%% "scalajs-stubs" % "1.0.0" % "provided"
+        )
+      else {
+        Seq(
+          "io.github.cquiroz" %%% "scala-java-time" % "2.0.0"
+        )
+      }
+    }
   )
 
 lazy val docs = projectMatrix
