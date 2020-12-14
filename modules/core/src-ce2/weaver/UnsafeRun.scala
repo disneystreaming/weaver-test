@@ -2,12 +2,10 @@ package weaver
 
 import java.util.concurrent.TimeUnit
 
-import cats.Parallel
-import cats.effect.{ Concurrent, ContextShift, Timer }
-import cats.effect.Resource
-import cats.effect.Blocker
 import scala.concurrent.duration.FiniteDuration
-import cats.effect.Async
+
+import cats.Parallel
+import cats.effect.{ Async, Blocker, Concurrent, ContextShift, Resource, Timer }
 
 protected[weaver] trait EffectCompat[F[_]] {
   implicit def parallel: Parallel[F]

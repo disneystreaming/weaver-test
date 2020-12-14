@@ -8,11 +8,12 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
 import cats.data.Chain
-import CECompat.Ref
 import cats.effect.{ Sync, _ }
 import cats.syntax.all._
 
 import sbt.testing.{ Task, TaskDef }
+
+import CECompat.Ref
 
 trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
 

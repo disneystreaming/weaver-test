@@ -10,6 +10,9 @@ import com.jsuereth.sbtpgp.PgpKeys._
 import sbtprojectmatrix.ProjectMatrixKeys.virtualAxes
 import sbt.internal.ProjectMatrix
 
+import org.scalajs.sbtplugin.ScalaJSPlugin.autoImport.scalaJSLinkerConfig
+import org.scalajs.linker.interface.ModuleKind
+
 case class CatsEffectAxis(idSuffix: String, directorySuffix: String)
     extends VirtualAxis.WeakAxis {}
 
@@ -27,6 +30,22 @@ object WeaverPlugin extends AutoPlugin {
     VirtualAxis.scalaVersionAxis(WeaverPlugin.scala213, "2.13"))
 
   implicit final class ProjectMatrixOps(pmx: ProjectMatrix) {
+    def onlyCatsEffect2(withJs: Boolean = true) = {
+      val tmp = pmx.defaultAxes(defaults: _*)
+        .customRow(
+          scalaVersions = WeaverPlugin.supportedScalaVersions,
+          axisValues = Seq(CatsEffect2Axis, VirtualAxis.jvm),
+          Seq()
+        )
+      if (withJs)
+        tmp.customRow(
+          scalaVersions = WeaverPlugin.supportedScalaVersions,
+          axisValues = Seq(CatsEffect2Axis, VirtualAxis.js),
+          Seq()
+        )
+      else tmp
+    }
+
     def crossCatsEffect = {
       pmx.defaultAxes(defaults: _*)
         .customRow(

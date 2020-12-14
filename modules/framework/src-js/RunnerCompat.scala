@@ -7,11 +7,12 @@ import scala.scalajs.js
 import scala.scalajs.js.JSON
 
 import cats.data.Chain
-import CECompat.Ref
 import cats.effect.Sync
 import cats.syntax.all._
 
 import sbt.testing.{ EventHandler, Logger, Task, TaskDef }
+
+import CECompat.Ref
 
 trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
   protected val args: Array[String]

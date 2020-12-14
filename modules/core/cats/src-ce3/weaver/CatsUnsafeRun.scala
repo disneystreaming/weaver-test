@@ -1,8 +1,7 @@
 package weaver
 
 import cats.effect.unsafe.implicits.global
-
-import cats.effect.{ IO, FiberIO }
+import cats.effect.{ FiberIO, IO }
 
 object CatsUnsafeRun extends CatsUnsafeRun
 

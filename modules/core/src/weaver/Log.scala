@@ -1,10 +1,11 @@
 package weaver
 
-import CECompat.Ref
 import cats.syntax.all._
 import cats.{ Applicative, Monoid, MonoidK, Show, ~> }
 
 import weaver.Log.PartiallyAppliedLevel
+
+import CECompat.Ref
 
 abstract class Log[F[_]] { self =>
   def log(l: => Log.Entry): F[Unit]

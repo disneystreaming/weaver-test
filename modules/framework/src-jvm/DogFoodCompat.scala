@@ -1,10 +1,10 @@
 package weaver
 package framework
 
+import cats.effect.Resource
 import cats.syntax.all._
 
 import sbt.testing._
-import cats.effect.Resource
 
 private[weaver] trait DogFoodCompat[F[_]] { self: DogFood[F] =>
 

@@ -6,9 +6,10 @@ import scala.util.Try
 import cats.MonadError
 import cats.effect._
 import cats.syntax.all._
-import CECompat.Ref
 
 import org.portablescala.reflect.annotation.EnableReflectiveInstantiation
+
+import CECompat.Ref
 
 /**
  * Top-level instances of this trait are detected by the framework and used to manage

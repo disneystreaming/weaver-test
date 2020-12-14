@@ -1,8 +1,7 @@
 package weaver
 
 import cats.effect.Concurrent
-import cats.effect.ExitCase.Canceled
-import cats.effect.ExitCase.Completed
+import cats.effect.ExitCase.{ Canceled, Completed }
 
 object CECompat extends CECompat
 

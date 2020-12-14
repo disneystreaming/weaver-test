@@ -30,5 +30,4 @@ object ZIOUnsafeRun extends UnsafeRun[T] {
   def sync(task: T[Unit]): Unit = runtime.unsafeRun(task)
 
   def async(task: T[Unit]): Unit = runtime.unsafeRunAsync(task)(_ => ())
-
 }

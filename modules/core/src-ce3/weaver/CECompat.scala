@@ -1,8 +1,8 @@
 package weaver
 
-import cats.syntax.all._
-import cats.effect.kernel.Outcome
 import cats.effect.Async
+import cats.effect.kernel.Outcome
+import cats.syntax.all._
 
 object CECompat extends CECompat
 
