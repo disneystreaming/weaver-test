@@ -2,6 +2,7 @@ package weaver
 
 import cats.effect.Concurrent
 import cats.effect.ExitCase.{ Canceled, Completed }
+import cats.effect.syntax.all._
 
 private[weaver] object CECompat extends CECompat
 
@@ -28,5 +29,9 @@ private[weaver] trait CECompat {
   private[weaver] def guarantee[F[_]: Concurrent, A](
       fa: F[A])(fin: F[Unit]): F[A] =
     Concurrent[F].guarantee(fa)(fin)
+
+  private[weaver] def background[F[_]: Concurrent, A, B](fa: F[A], default: A)(
+      f: F[A] => F[B]): F[B] =
+    fa.background.use(f)
 
 }
