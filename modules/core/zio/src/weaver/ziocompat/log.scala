@@ -2,8 +2,6 @@ package weaver
 package ziocompat
 
 import zio._
-import zio.interop.catz.core._
-import zio.interop.catz.implicits._
 
 object log {
 

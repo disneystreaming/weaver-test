@@ -1,34 +1,42 @@
 package weaver
 
 import cats.syntax.all._
-import cats.{ Applicative, Monoid, MonoidK, Show, ~> }
-
-import weaver.Log.PartiallyAppliedLevel
+import cats.{ Applicative, FlatMap, Monoid, MonoidK, Show, ~> }
 
 import CECompat.Ref
 
-abstract class Log[F[_]] { self =>
+abstract class Log[F[_]: FlatMap](timestamp: F[Long]) { self =>
   def log(l: => Log.Entry): F[Unit]
 
-  final def mapK[G[_]](fk: F ~> G): Log[G] = new Log[G] {
-    override def log(l: => Log.Entry) = fk(self.log(l))
-  }
+  final def mapK[G[_]: FlatMap](fk: F ~> G): Log[G] =
+    new Log[G](fk(timestamp)) {
+      override def log(l: => Log.Entry) = fk(self.log(l))
+    }
 
   final val info =
-    new PartiallyAppliedLevel[F](Log.info)(self)
+    new PartiallyAppliedLevel(Log.info)
   final val warn =
-    new PartiallyAppliedLevel[F](Log.warn)(self)
+    new PartiallyAppliedLevel(Log.warn)
   final val debug =
-    new PartiallyAppliedLevel[F](Log.debug)(self)
+    new PartiallyAppliedLevel(Log.debug)
   final val error =
-    new PartiallyAppliedLevel[F](Log.error)(self)
+    new PartiallyAppliedLevel(Log.error)
+
+  final class PartiallyAppliedLevel(level: Log.Level) {
+    def apply(
+        msg: => String,
+        ctx: Map[String, String] = Map.empty,
+        cause: Throwable = null)(
+        implicit loc: SourceLocation): F[Unit] =
+      FlatMap[F].flatMap(timestamp) { now =>
+        self.log(Log.Entry(now, msg, ctx, level, Option(cause), loc))
+      }
+  }
+
 }
 
 object Log {
   def apply[F[_]](implicit instance: Log[F]): Log[F] = instance
-
-  // Logger that doesn't do anything
-  def nop[F[_]: Applicative]: Log[F] = _ => Applicative[F].unit
 
   /**
    * Builds a logger that collects to a referential-transparent variable
@@ -38,10 +46,14 @@ object Log {
    * @tparam L Logging collection type
    */
   def collected[F[_], L[_]: MonoidK: Applicative](
-      ref: Ref[F, L[Entry]]): Log[F] = new Log[F] {
-    implicit val monoid: Monoid[L[Entry]] = MonoidK[L].algebra[Entry]
+      ref: Ref[F, L[Entry]])(implicit F: EffectCompat[F]): Log[F] = {
+    import F._
+    new Log[F](realTimeMillis) {
+      implicit val monoid: Monoid[L[Entry]] = MonoidK[L].algebra[Entry]
 
-    override def log(entry: => Entry): F[Unit] = ref.update(_ |+| entry.pure[L])
+      override def log(entry: => Entry): F[Unit] =
+        ref.update(_ |+| entry.pure[L])
+    }
   }
 
   case class Entry(
@@ -73,19 +85,6 @@ object Log {
       case `debug` => "[DEBUG]"
       case `error` => "[ERROR]"
     }
-  }
-
-  implicit class PartiallyAppliedLevel[F[_]](level: Level)(
-      implicit log: Log[F]) {
-    def apply(
-        msg: => String,
-        ctx: Map[String, String] = Map.empty,
-        cause: Throwable = null)(
-        implicit loc: SourceLocation,
-        F: EffectCompat[F]): F[Unit] =
-      F.effect.flatMap(F.realTimeMillis) { now =>
-        Log[F].log(Entry(now, msg, ctx, level, Option(cause), loc))
-      }
   }
 
 }
