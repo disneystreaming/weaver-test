@@ -13,6 +13,7 @@ import sbt.internal.ProjectMatrix
 import org.scalajs.sbtplugin.ScalaJSPlugin.autoImport.scalaJSLinkerConfig
 import org.scalajs.linker.interface.ModuleKind
 import org.scalajs.sbtplugin.ScalaJSPlugin
+import scala.collection.immutable.Nil
 
 case class CatsEffectAxis(idSuffix: String, directorySuffix: String)
     extends VirtualAxis.WeakAxis {}
@@ -219,31 +220,27 @@ object WeaverPlugin extends AutoPlugin {
     val moduleBase =
       Def.setting((Compile / scalaSource).value.getParentFile().getParentFile().getParentFile())
 
+    def suffixes(axes: Seq[VirtualAxis]) = axes.collect {
+      case VirtualAxis.js  => List("", "-js")
+      case VirtualAxis.jvm => List("", "-jvm")
+      case CatsEffect3Axis => List("", "-ce3")
+      case CatsEffect2Axis => List("", "-ce2")
+    }.toList
+
+    def sequence[A](ll: List[List[A]]): List[List[A]] =
+      ll.foldRight(List(List.empty[A])) {
+        case (listA, listListA) =>
+          listA.flatMap(a => listListA.map(a :: _))
+      }
+
+    def combos(axes: Seq[VirtualAxis]): List[String] =
+      sequence(suffixes(axes)).map(_.mkString("src", "", ""))
+
     Seq(
-      Compile / unmanagedSourceDirectories := Seq(
-        moduleBase.value / "src") ++ {
-        if (virtualAxes.value.contains(VirtualAxis.jvm))
-          Seq(moduleBase.value / "src-jvm")
-        else if (virtualAxes.value.contains(VirtualAxis.js))
-          Seq(moduleBase.value / "src-js")
-        else
-          Seq.empty
-      } ++ {
-        if (virtualAxes.value.contains(CatsEffect3Axis))
-          Seq(moduleBase.value / "src-ce3")
-        else
-          Seq(moduleBase.value / "src-ce2")
-      },
-      Test / unmanagedSourceDirectories := Seq(
-        moduleBase.value / "test" / "src"
-      ) ++ {
-        if (virtualAxes.value.contains(VirtualAxis.jvm))
-          Seq(moduleBase.value / "test" / "src-jvm")
-        else if (virtualAxes.value.contains(VirtualAxis.js))
-          Seq(moduleBase.value / "test" / "src-js")
-        else
-          Seq.empty
-      },
+      Compile / unmanagedSourceDirectories :=
+        combos(virtualAxes.value).map(moduleBase.value / _),
+      Test / unmanagedSourceDirectories :=
+        combos(virtualAxes.value).map(moduleBase.value / "test" / _),
       Test / unmanagedResourceDirectories := Seq(
         moduleBase.value / "test" / "resources"
       ),

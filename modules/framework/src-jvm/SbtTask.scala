@@ -3,8 +3,9 @@ package framework
 
 import java.util.concurrent.atomic.{ AtomicBoolean, AtomicInteger }
 
-import sbt.testing.{ Event, EventHandler, Logger, Task, TaskDef }
 import cats.data.Chain
+
+import sbt.testing.{ Event, EventHandler, Logger, Task, TaskDef }
 
 private[framework] class SbtTask(
     val taskDef: TaskDef,

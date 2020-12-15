@@ -1,12 +1,13 @@
 package weaver.ziocompat
 
+import java.util.concurrent.TimeUnit
+
 import cats.data.Chain
 
 import weaver.Log
 
 import zio._
 import zio.clock.Clock
-import java.util.concurrent.TimeUnit
 import zio.interop.catz._
 
 class RefLog(ref: Ref[Chain[Log.Entry]], clock: Clock.Service)

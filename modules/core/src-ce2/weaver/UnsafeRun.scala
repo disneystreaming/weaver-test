@@ -5,9 +5,9 @@ import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.FiniteDuration
 
 import cats.Parallel
-import cats.effect.{ Async, Blocker, Concurrent, ContextShift, Resource, Timer }
+import cats.effect.{ Async, Concurrent, ContextShift, Timer }
 
-trait EffectCompat[F[_]] {
+trait EffectCompat[F[_]] extends PlatformEffectCompat[F] {
   implicit def parallel: Parallel[F]
   implicit def effect: Concurrent[F]
   implicit def timer: Timer[F]
@@ -19,13 +19,6 @@ trait EffectCompat[F[_]] {
     Async.fromFuture(effect.delay(thunk))
   def async[A](cb: (Either[Throwable, A] => Unit) => Unit): F[A] =
     effect.async(cb)
-
-  private[weaver] def blocker[T](
-      f: BlockerCompat[F] => T): Resource[F, T] =
-    Blocker[F].map(blocker =>
-      new BlockerCompat[F] {
-        def block[A](thunk: => A): F[A] = blocker.delay(thunk)
-      }).map(f)
 }
 
 /**

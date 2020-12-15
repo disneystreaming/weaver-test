@@ -1,14 +1,14 @@
 package weaver
 package scalacheck
 
-import cats.Show
 import cats.effect.IO
-import CECompat.Ref
 import cats.syntax.all._
+import cats.{ Defer, Show }
 
 import org.scalacheck.rng.Seed
 import org.scalacheck.{ Arbitrary, Gen }
-import cats.Defer
+
+import CECompat.Ref
 
 trait IOCheckers extends Checkers[IO] {
   self: EffectSuite[IO] =>

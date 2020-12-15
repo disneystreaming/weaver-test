@@ -1,7 +1,7 @@
 package weaver
 
-import cats.effect.implicits._
 import cats.effect.Resource
+import cats.effect.implicits._
 import cats.syntax.applicative._
 import cats.syntax.applicativeError._
 
