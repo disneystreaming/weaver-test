@@ -1,39 +1,28 @@
 import WeaverPlugin._
 
-addCommandAlias(
-  "ci",
-  Seq(
-    "project root",
-    "versionDump",
-    "scalafmtCheckAll",
-    "scalafix --check",
-    "test:scalafix --check",
-    "clean",
-    "test:compile",
-    "test",
-    "docs/docusaurusCreateSite",
-    "core/publishLocal"
-  ).mkString(";", ";", "")
-)
+ThisBuild / commands += Command.command("ci") { state =>
+  "versionDump" ::
+    "scalafmtCheckAll" ::
+    "scalafix --check" ::
+    "test:scalafix --check" ::
+    "clean" ::
+    "test:compile" ::
+    "test" ::
+    "docs/docusaurusCreateSite" ::
+    "core/publishLocal" :: state
+}
 
-addCommandAlias(
-  "fix",
-  Seq(
-    "root/scalafmtAll",
-    "root/scalafmtSbt",
-    "root/scalafix",
-    "root/test:scalafix"
-  ).mkString(";", ";", "")
-)
+ThisBuild / commands += Command.command("fix") { state =>
+  "scalafmtAll" ::
+    "scalafmtSbt" ::
+    "scalafix" ::
+    "test:scalafix" :: state
+}
 
-addCommandAlias(
-  "release",
-  Seq(
-    "project root",
-    "+publishSigned",
-    "sonatypeBundleRelease"
-  ).mkString(";", ";", "")
-)
+ThisBuild / commands += Command.command("release") { state =>
+  "publishSigned" ::
+    "sonatypeBundleRelease" :: state
+}
 
 ThisBuild / scalaVersion := WeaverPlugin.scala213
 

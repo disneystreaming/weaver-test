@@ -14,9 +14,11 @@ import org.scalajs.sbtplugin.ScalaJSPlugin.autoImport.scalaJSLinkerConfig
 import org.scalajs.linker.interface.ModuleKind
 import org.scalajs.sbtplugin.ScalaJSPlugin
 import scala.collection.immutable.Nil
+import java.util.regex.MatchResult
+import lmcoursier.definitions.Reconciliation.SemVer
 
 case class CatsEffectAxis(idSuffix: String, directorySuffix: String)
-    extends VirtualAxis.WeakAxis {}
+    extends VirtualAxis.WeakAxis
 
 /**
  * Common project settings.
@@ -53,11 +55,11 @@ object WeaverPlugin extends AutoPlugin {
         .customRow(
           scalaVersions = WeaverPlugin.supportedScalaVersions,
           axisValues = Seq(CatsEffect2Axis, VirtualAxis.jvm),
-          Seq()
+          proj => proj
         ).customRow(
           scalaVersions = WeaverPlugin.supportedScalaVersions,
           axisValues = Seq(CatsEffect3Axis, VirtualAxis.jvm),
-          Seq()
+          versionOverrideForCE3
         ).customRow(
           scalaVersions = WeaverPlugin.supportedScalaVersions,
           axisValues = Seq(CatsEffect2Axis, VirtualAxis.js),
@@ -65,10 +67,27 @@ object WeaverPlugin extends AutoPlugin {
         ).customRow(
           scalaVersions = WeaverPlugin.supportedScalaVersions,
           axisValues = Seq(CatsEffect3Axis, VirtualAxis.js),
-          configureScalaJSProject(_)
+          configureScalaJSProject(_).settings(versionOverrideForCE3)
         )
     }
   }
+
+  lazy val versionOverrideForCE3: Seq[Def.Setting[_]] = Seq(
+    version := {
+      val regex = "^(\\d+).(\\d+).(\\d+).*$".r
+
+      val original = version.value
+
+      original match {
+        case regex(major, minor, patch) =>
+          original.replaceFirst(s"$major.$minor.$patch",
+                                s"$major.${minor.toInt + 1}.$patch")
+        case _ =>
+          throw new RuntimeException(
+            s"Version $original doesn't match SemVer format")
+      }
+    }
+  )
 
   def configureScalaJSProject(proj: Project): Project = {
 
@@ -76,7 +95,7 @@ object WeaverPlugin extends AutoPlugin {
       _.withModuleKind(ModuleKind.CommonJSModule)
     })
 
-    // on CI, use linker's batch mode: 
+    // on CI, use linker's batch mode:
     // https://github.com/scala-js/scala-js/blob/6622d0b8f99bec4dbe1b29c125d111fdea246d34/linker-interface/shared/src/main/scala/org/scalajs/linker/interface/StandardConfig.scala#L51
     // When you run a lot of linkers in parallel
     // they will retain intermediate state (in case you want incremental compilation)
