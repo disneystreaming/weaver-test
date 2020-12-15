@@ -55,7 +55,7 @@ object WeaverPlugin extends AutoPlugin {
         .customRow(
           scalaVersions = WeaverPlugin.supportedScalaVersions,
           axisValues = Seq(CatsEffect2Axis, VirtualAxis.jvm),
-          proj => proj
+          Seq()
         ).customRow(
           scalaVersions = WeaverPlugin.supportedScalaVersions,
           axisValues = Seq(CatsEffect3Axis, VirtualAxis.jvm),
