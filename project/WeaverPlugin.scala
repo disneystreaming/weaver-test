@@ -12,6 +12,7 @@ import sbt.internal.ProjectMatrix
 
 import org.scalajs.sbtplugin.ScalaJSPlugin.autoImport.scalaJSLinkerConfig
 import org.scalajs.linker.interface.ModuleKind
+import org.scalajs.sbtplugin.ScalaJSPlugin
 
 case class CatsEffectAxis(idSuffix: String, directorySuffix: String)
     extends VirtualAxis.WeakAxis {}
@@ -41,7 +42,7 @@ object WeaverPlugin extends AutoPlugin {
         tmp.customRow(
           scalaVersions = WeaverPlugin.supportedScalaVersions,
           axisValues = Seq(CatsEffect2Axis, VirtualAxis.js),
-          Seq()
+          project => project.enablePlugins(ScalaJSPlugin)
         )
       else tmp
     }
@@ -59,11 +60,11 @@ object WeaverPlugin extends AutoPlugin {
         ).customRow(
           scalaVersions = WeaverPlugin.supportedScalaVersions,
           axisValues = Seq(CatsEffect2Axis, VirtualAxis.js),
-          Seq()
+          project => project.enablePlugins(ScalaJSPlugin)
         ).customRow(
           scalaVersions = WeaverPlugin.supportedScalaVersions,
           axisValues = Seq(CatsEffect3Axis, VirtualAxis.js),
-          Seq()
+          project => project.enablePlugins(ScalaJSPlugin)
         )
     }
   }
