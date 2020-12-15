@@ -70,9 +70,9 @@ object DogFoodTests extends IOSuite {
             |- failure 0ms
             |  expected (src/main/DogFoodTests.scala:5)
             |
-            |    [INFO]  01:00:00 [DogFoodTests.scala:5] this test
-            |    [ERROR] 01:00:00 [DogFoodTests.scala:5] has failed
-            |    [DEBUG] 01:00:00 [DogFoodTests.scala:5] with context
+            |    [INFO]  12:54:35 [DogFoodTests.scala:5] this test
+            |    [ERROR] 12:54:35 [DogFoodTests.scala:5] has failed
+            |    [DEBUG] 12:54:35 [DogFoodTests.scala:5] with context
             |        a       -> b
             |        token   -> <something>
             |        request -> true

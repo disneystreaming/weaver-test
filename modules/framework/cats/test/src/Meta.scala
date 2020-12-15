@@ -130,7 +130,13 @@ object Meta {
   }
 
   object SetTimeUnsafeRun extends CatsUnsafeRun {
-    override def realTimeMillis: IO[Long] = IO.pure(0L)
+    private val setTimestamp = java.time.OffsetDateTime.now
+      .withHour(12)
+      .withMinute(54)
+      .withSecond(35)
+      .toEpochSecond * 1000
+
+    override def realTimeMillis: IO[Long] = IO.pure(setTimestamp)
   }
 
 }
