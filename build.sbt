@@ -42,8 +42,6 @@ ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports"
 Global / (Test / fork) := true
 Global / (Test / testOptions) += Tests.Argument("--quickstart")
 
-Global / concurrentRestrictions += Tags.limit(Tags.Test, 4)
-
 lazy val root = project
   .in(file("."))
   .enablePlugins(ScalafixPlugin)
@@ -301,7 +299,3 @@ versionDump := {
   val file = (ThisBuild / baseDirectory).value / "version"
   IO.write(file, (Compile / version).value)
 }
-
-lazy val jsLinker = Seq(
-  Test / scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) }
-)

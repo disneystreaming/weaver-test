@@ -43,7 +43,7 @@ object WeaverPlugin extends AutoPlugin {
         tmp.customRow(
           scalaVersions = WeaverPlugin.supportedScalaVersions,
           axisValues = Seq(CatsEffect2Axis, VirtualAxis.js),
-          project => project.enablePlugins(ScalaJSPlugin)
+          configureScalaJSProject(_)
         )
       else tmp
     }
@@ -61,13 +61,37 @@ object WeaverPlugin extends AutoPlugin {
         ).customRow(
           scalaVersions = WeaverPlugin.supportedScalaVersions,
           axisValues = Seq(CatsEffect2Axis, VirtualAxis.js),
-          project => project.enablePlugins(ScalaJSPlugin)
+          configureScalaJSProject(_)
         ).customRow(
           scalaVersions = WeaverPlugin.supportedScalaVersions,
           axisValues = Seq(CatsEffect3Axis, VirtualAxis.js),
-          project => project.enablePlugins(ScalaJSPlugin)
+          configureScalaJSProject(_)
         )
     }
+  }
+
+  def configureScalaJSProject(proj: Project): Project = {
+
+    val linkerConfig = Seq(Test / scalaJSLinkerConfig ~= {
+      _.withModuleKind(ModuleKind.CommonJSModule)
+    })
+
+    // on CI, use linker's batch mode: 
+    // https://github.com/scala-js/scala-js/blob/6622d0b8f99bec4dbe1b29c125d111fdea246d34/linker-interface/shared/src/main/scala/org/scalajs/linker/interface/StandardConfig.scala#L51
+    // When you run a lot of linkers in parallel
+    // they will retain intermediate state (in case you want incremental compilation)
+    // on CI we don't want that
+    val batchOnCi =
+      if (sys.env.contains("CI")) Seq(scalaJSLinkerConfig ~= {
+        _.withBatchMode(true)
+      })
+      else Seq.empty
+
+    proj.enablePlugins(ScalaJSPlugin)
+      .settings((linkerConfig ++ batchOnCi): _*)
+      .settings(
+        Test / fork := false
+      )
   }
 
   override def requires = plugins.JvmPlugin
