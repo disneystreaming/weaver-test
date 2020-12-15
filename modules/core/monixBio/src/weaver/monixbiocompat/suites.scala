@@ -25,14 +25,16 @@ object Test {
       f: Log[Task] => Task[Expectations]): Task[TestOutcome] =
     for {
       ref   <- Ref[Task].of(Chain.empty[Log.Entry])
-      start <- IO.clock.realTime(MILLISECONDS)
+      start <- ts
       res <- IO
-        .defer(f(Log.collected[Task, Chain](ref)))
+        .defer(f(Log.collected[Task, Chain](ref, ts)))
         .map(Result.fromAssertion)
         .redeemCause(c => Result.from(c.toThrowable), identity)
-      end  <- IO.clock.realTime(MILLISECONDS)
+      end  <- ts
       logs <- ref.get
     } yield TestOutcome(name, (end - start).millis, res, logs)
+
+  private val ts = IO.clock.realTime(MILLISECONDS)
 
   def apply(name: String, f: Task[Expectations]): Task[TestOutcome] =
     apply(name, (_: Log[Task]) => f)

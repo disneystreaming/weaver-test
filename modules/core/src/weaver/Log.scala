@@ -45,10 +45,10 @@ object Log {
    * @tparam F Effect type
    * @tparam L Logging collection type
    */
-  def collected[F[_], L[_]: MonoidK: Applicative](
-      ref: Ref[F, L[Entry]])(implicit F: EffectCompat[F]): Log[F] = {
-    import F._
-    new Log[F](realTimeMillis) {
+  private[weaver] def collected[F[_]: FlatMap, L[_]: MonoidK: Applicative](
+      ref: Ref[F, L[Entry]],
+      ts: F[Long]): Log[F] = {
+    new Log[F](ts) {
       implicit val monoid: Monoid[L[Entry]] = MonoidK[L].algebra[Entry]
 
       override def log(entry: => Entry): F[Unit] =

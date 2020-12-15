@@ -7,7 +7,7 @@ import scala.concurrent.duration.FiniteDuration
 import cats.Parallel
 import cats.effect.{ Async, Blocker, Concurrent, ContextShift, Resource, Timer }
 
-protected[weaver] trait EffectCompat[F[_]] {
+trait EffectCompat[F[_]] {
   implicit def parallel: Parallel[F]
   implicit def effect: Concurrent[F]
   implicit def timer: Timer[F]
@@ -34,7 +34,7 @@ protected[weaver] trait EffectCompat[F[_]] {
  * This is meant to delegate to library-specific constructs for running
  * effect types.
  */
-protected[weaver] trait UnsafeRun[F[_]] extends EffectCompat[F] {
+trait UnsafeRun[F[_]] extends EffectCompat[F] {
 
   type CancelToken
 

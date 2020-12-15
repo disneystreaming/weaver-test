@@ -64,7 +64,7 @@ object GlobalResourceF {
 
   }
 
-  protected[weaver] def createMap[F[_]: Sync]: F[Read[F] with Write[F]] =
+  private[weaver] def createMap[F[_]: Sync]: F[Read[F] with Write[F]] =
     Ref[F]
       .of(Map.empty[(Option[String], ResourceTag[_]), Any])
       .map(new ResourceMap(_))
@@ -107,7 +107,7 @@ trait ResourceTag[A] extends AnyRef {
 
 object ResourceTag extends LowPriorityImplicits
 
-protected[weaver] case class ClassBasedResourceTag[A](ct: ClassTag[A])
+private[weaver] case class ClassBasedResourceTag[A](ct: ClassTag[A])
     extends ResourceTag[A] {
 
   def description: String       = ct.toString()

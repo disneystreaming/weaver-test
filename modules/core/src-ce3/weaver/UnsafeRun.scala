@@ -6,10 +6,10 @@ import cats.Parallel
 import cats.effect.{ Async, Resource }
 import cats.syntax.all._
 
-protected[weaver] trait EffectCompat[F[_]] {
+trait EffectCompat[F[_]] {
   implicit def parallel: Parallel[F]
   implicit def effect: Async[F]
-  def realTimeMillis: F[Long]
+  def realTimeMillis: F[Long]                  = effect.realTime.map(_.toMillis)
   def sleep(duration: FiniteDuration): F[Unit] = effect.sleep(duration)
   def fromFuture[A](thunk: => scala.concurrent.Future[A]): F[A] =
     effect.fromFuture(effect.delay(thunk))
@@ -30,7 +30,7 @@ protected[weaver] trait EffectCompat[F[_]] {
  * This is meant to delegate to library-specific constructs for running
  * effect types.
  */
-protected[weaver] trait UnsafeRun[F[_]] extends EffectCompat[F] {
+trait UnsafeRun[F[_]] extends EffectCompat[F] {
 
   type CancelToken
 
@@ -39,7 +39,5 @@ protected[weaver] trait UnsafeRun[F[_]] extends EffectCompat[F] {
 
   def sync(task: F[Unit]): Unit
   def async(task: F[Unit]): Unit
-
-  def realTimeMillis: F[Long] = effect.realTime.map(_.toMillis)
 
 }

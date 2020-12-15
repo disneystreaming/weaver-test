@@ -3,26 +3,26 @@ package weaver
 import cats.effect.Async
 import cats.syntax.all._
 
-object CECompat extends CECompat
+private[weaver] object CECompat extends CECompat
 
-trait CECompat {
+private[weaver] trait CECompat {
 
-  protected[weaver] type Effect[F[_]] = Async[F]
+  private[weaver] type Effect[F[_]] = Async[F]
 
-  protected[weaver] type Ref[F[_], A] = cats.effect.kernel.Ref[F, A]
-  protected[weaver] val Ref = cats.effect.kernel.Ref
+  private[weaver] type Ref[F[_], A] = cats.effect.kernel.Ref[F, A]
+  private[weaver] val Ref = cats.effect.kernel.Ref
 
-  protected[weaver] type Semaphore[F[_]] = cats.effect.std.Semaphore[F]
-  protected[weaver] val Semaphore = cats.effect.std.Semaphore
+  private[weaver] type Semaphore[F[_]] = cats.effect.std.Semaphore[F]
+  private[weaver] val Semaphore = cats.effect.std.Semaphore
 
-  def guaranteeCase[F[_]: Async, A](
+  private[weaver] def guaranteeCase[F[_]: Async, A](
       fa: F[A])(
       cancelled: => F[Unit],
       completed: => F[Unit],
       errored: Throwable => F[Unit]): F[A] =
     Async[F].guaranteeCase(fa)(_.fold(cancelled, errored, _ *> completed))
 
-  def guarantee[F[_]: Async, A](
+  private[weaver] def guarantee[F[_]: Async, A](
       fa: F[A])(fin: F[Unit]): F[A] =
     Async[F].guarantee(fa, fin)
 
