@@ -39,5 +39,5 @@
   "twitterImage": "img/undraw_tweetstorm.svg",
   "twitter": true,
   "twitterUsername": "disneystreaming",
-  "customDocsPath": "modules/docs/target/mdoc"
+  "customDocsPath": "modules/docs/target/jvm-2.13/mdoc"
 }

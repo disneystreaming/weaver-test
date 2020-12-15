@@ -8,11 +8,11 @@ addCommandAlias(
     "scalafmtCheckAll",
     "scalafix --check",
     "test:scalafix --check",
-    "+clean",
-    "+test:compile",
-    "+test",
+    "clean",
+    "test:compile",
+    "test",
     "docs/docusaurusCreateSite",
-    "coreJVM/publishLocal"
+    "core/publishLocal"
   ).mkString(";", ";", "")
 )
 
@@ -54,7 +54,10 @@ lazy val allModules = Seq(
   framework.projectRefs,
   scalacheck.projectRefs,
   specs2.projectRefs,
-  intellijRunner.projectRefs).flatten ++ effectCores ++ effectFrameworks
+  intellijRunner.projectRefs,
+  effectCores,
+  effectFrameworks
+).flatten
 
 def catsEffectDependencies(proj: Project): Project = {
   proj.settings(
