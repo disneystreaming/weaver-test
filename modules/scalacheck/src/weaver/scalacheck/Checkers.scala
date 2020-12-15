@@ -3,11 +3,12 @@ package scalacheck
 
 import cats.Show
 import cats.effect.IO
-import cats.effect.concurrent.Ref
+import CECompat.Ref
 import cats.syntax.all._
 
 import org.scalacheck.rng.Seed
 import org.scalacheck.{ Arbitrary, Gen }
+import cats.Defer
 
 trait IOCheckers extends Checkers[IO] {
   self: EffectSuite[IO] =>
@@ -127,7 +128,7 @@ trait Checkers[F[_]] {
       gen: Gen[T],
       state: Ref[F, Status[T]],
       f: T => Prop)(params: Gen.Parameters, seed: Seed): F[Status[T]] = {
-    effect.defer {
+    Defer[F](self.effect).defer {
       gen(params, seed)
         .traverse(x => f(x).map(x -> _))
         .flatTap {

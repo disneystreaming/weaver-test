@@ -141,10 +141,10 @@ lazy val framework = projectMatrix
 
 lazy val scalacheck = projectMatrix
   .in(file("modules/scalacheck"))
+  .crossCatsEffect
   .dependsOn(core, cats % "test->compile")
   .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.simpleLayout)
-  .onlyCatsEffect2()
   .settings(
     testFrameworks := Seq(new TestFramework("weaver.framework.CatsEffect")),
     libraryDependencies ++= Seq(
@@ -154,11 +154,12 @@ lazy val scalacheck = projectMatrix
 
 lazy val specs2 = projectMatrix
   .in(file("modules/specs2"))
-  .onlyCatsEffect2()
+  .crossCatsEffect
   .dependsOn(core, cats % "test->compile")
   .configure(WeaverPlugin.profile)
   .settings(
     name := "specs2",
+    testFrameworks := Seq(new TestFramework("weaver.framework.CatsEffect")),
     libraryDependencies ++= Seq(
       "org.specs2" %%% "specs2-matcher" % "4.10.5"
     )

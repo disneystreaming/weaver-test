@@ -1,7 +1,7 @@
 package weaver
 
 import cats.effect.implicits._
-import cats.effect.{ Concurrent, Resource }
+import cats.effect.Resource
 import cats.syntax.applicative._
 import cats.syntax.applicativeError._
 
@@ -21,7 +21,7 @@ trait Suite[F[_]] extends BaseSuiteClass {
 trait EffectSuite[F[_]] extends Suite[F] with SourceLocation.Here { self =>
 
   implicit protected def effectCompat: EffectCompat[F]
-  implicit final protected def effect: Concurrent[F] = effectCompat.effect
+  implicit final protected def effect: CECompat.Effect[F] = effectCompat.effect
 
   /**
    * Raise an error that leads to the running test being tagged as "cancelled".
