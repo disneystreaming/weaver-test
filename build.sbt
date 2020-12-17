@@ -152,7 +152,7 @@ lazy val scalacheck = crossProject(JSPlatform, JVMPlatform)
   .settings(
     testFrameworks := Seq(new TestFramework("weaver.framework.CatsEffect")),
     libraryDependencies ++= Seq(
-      "org.scalacheck" %%% "scalacheck" % "1.15.1"
+      "org.scalacheck" %%% "scalacheck" % "1.15.2"
     )
   )
 
