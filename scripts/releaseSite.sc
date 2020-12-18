@@ -1,11 +1,16 @@
 import $ivy.`com.lihaoyi::requests:0.6.5`
 import $ivy.`com.lihaoyi::upickle:0.9.5`
 
+import scala.jdk.CollectionConverters._
+import java.nio.file.attribute.PosixFilePermission.OWNER_EXECUTE
+
 // format: off
 
 // Assumes mdoc has been run.
 @main
 def main(): Unit = {
+
+  if(sys.env.get("GITHUB_DEPLOY_KEY").nonEmpty) doInstallSSH()
 
   if (!os.exists(os.pwd / "modules" / "docs" / "target" / "mdoc"))
     sys.error("Have you run mdoc ?")
@@ -125,3 +130,40 @@ def redirectHtml(url: String): String = {
 }
 
 def log(s: String) = System.err.println(s"[INFO] $s")
+
+val installSSHScript: String =
+    """|#!/usr/bin/env bash
+         |
+         |set -eu
+         |
+         |set-up-ssh() {
+         |  echo "Setting up ssh..."
+         |  mkdir -p $HOME/.ssh
+         |  ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
+         |  git config --local user.name "Docusaurus bot"
+         |  git config --local user.email "${MDOC_EMAIL:-mdoc@docusaurus}"
+         |  git config --local push.default simple
+         |  DEPLOY_KEY_FILE=$HOME/.ssh/id_rsa
+         |  echo "$GITHUB_DEPLOY_KEY" | base64 --decode > ${DEPLOY_KEY_FILE}
+         |  chmod 600 ${DEPLOY_KEY_FILE}
+         |  eval "$(ssh-agent -s)"
+         |  ssh-add ${DEPLOY_KEY_FILE}
+         |}
+         |DEPLOY_KEY=${GITHUB_DEPLOY_KEY:-}
+         |
+         |if [[ -n "$DEPLOY_KEY" ]]; then
+         |  set-up-ssh
+         |fi
+      """.stripMargin
+
+@main
+def doInstallSSH() =  {
+  val tmp = os.temp(contents = installSSHScript,
+                    prefix = "docusaurus",
+                    suffix = "install_ssh.sh",
+                    perms = Set(OWNER_EXECUTE).asJava)
+  os.proc(tmp).call(cwd = os.pwd)
+}
+
+
+
