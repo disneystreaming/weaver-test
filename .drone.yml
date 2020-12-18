@@ -11,7 +11,7 @@ steps:
   - echo Built $(cat version)
   environment:
     COURSIER_CACHE: .cache/coursier
-    SBT_OPTS: "-XX:+UseG1GC -XX:MaxMetaspaceSize=2g -Xms1g -Xmx4g -Xss2M -XX:+CMSClassUnloadingEnabled"
+    SBT_OPTS: "-XX:+UseG1GC -XX:MaxMetaspaceSize=2g -Xms1g -Xmx7g -Xss2M -XX:+CMSClassUnloadingEnabled"
   volumes:
     - name: sbt-cache
       path: /root/.sbt
@@ -25,7 +25,7 @@ steps:
   - sbt release
   environment:
     COURSIER_CACHE: .cache/coursier
-    SBT_OPTS: "-XX:+UseG1GC -XX:MaxMetaspaceSize=2g -Xms1g -Xmx4g -Xss2M -XX:+CMSClassUnloadingEnabled"
+    SBT_OPTS: "-XX:+UseG1GC -XX:MaxMetaspaceSize=2g -Xms1g -Xmx7g -Xss2M -XX:+CMSClassUnloadingEnabled"
     SONATYPE_USER:
       from_secret: sonatype_username
     SONATYPE_PASSWORD:
