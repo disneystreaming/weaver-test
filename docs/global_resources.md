@@ -5,7 +5,7 @@ title: Sharing resources across suites
 
 ## A word of warning
 
-This feature works **only on JVM**, and as been tested in sbt, mill and bloop.
+This feature works **only on JVM**, and has been tested in SBT, Mill and Bloop.
 
 When using weaver manually, outside of the build tool, with a standalone runner (we do provide one), please disregard this mechanism and use classic dependency injection and/or your own wits to share resources across suites.
 
