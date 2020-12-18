@@ -133,7 +133,7 @@ object DogFoodTests extends IOSuite {
         |  of
         |  multiline
         |  (failure)
-        |  assertion failed (modules/framework/cats/test/src/Meta.scala:32)
+        |  assertion failed (modules/framework/cats/test/src/Meta.scala:28)
         |
         |  expect(1 == 2)
         |

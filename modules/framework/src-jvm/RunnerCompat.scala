@@ -8,11 +8,13 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
 import cats.data.Chain
-import cats.effect.concurrent.Ref
 import cats.effect.{ Sync, _ }
 import cats.syntax.all._
 
 import sbt.testing.{ Task, TaskDef }
+
+import CECompat.Ref
+import CECompat.Semaphore
 
 trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
 
@@ -23,6 +25,9 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
   private type MakeSuite = GlobalResourceF.Read[F] => F[EffectSuite[F]]
 
   private var cancelToken: Option[unsafeRun.CancelToken] = None
+
+  @volatile private var failedOutcomes: Chain[(SuiteName, TestOutcome)] =
+    Chain.empty
 
   override def done(): String = {
     isDone.set(true)
@@ -58,12 +63,12 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
 
       // 1 permit semaphore protecting against build tools not
       // dispatching logs through a single logger at a time.
-      val loggerPermit = new java.util.concurrent.Semaphore(1)
+      val loggerPermit = new java.util.concurrent.Semaphore(1, true)
 
       val queue  = new ConcurrentLinkedQueue[SuiteEvent]()
       val broker = new ConcurrentQueueEventBroker(queue)
-      val startingBlock = Async.fromFuture {
-        Sync[F].delay(promise.future.map(_ => ())(ExecutionContext.global))
+      val startingBlock = unsafeRun.fromFuture {
+        promise.future.map(_ => ())(ExecutionContext.global)
       }
 
       val ioTask =
@@ -75,7 +80,13 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
           broker)
 
       val sbtTask =
-        new SbtTask(taskDef, isDone, stillRunning, promise, queue, loggerPermit)
+        new SbtTask(taskDef,
+                    isDone,
+                    stillRunning,
+                    promise,
+                    queue,
+                    loggerPermit,
+                    () => failedOutcomes)
       (ioTask, sbtTask)
     }
 
@@ -112,7 +123,18 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
     resourceMap(globalResources).use { read =>
       for {
         ref <- Ref.of[F, Chain[(SuiteName, TestOutcome)]](Chain.empty)
-        _   <- tasks.parTraverse(_.run(read, ref))
+        sem <- Semaphore[F](0L)
+        maybePublish: F[Unit] =
+          sem.release
+            .productR(sem.tryAcquireN(tasks.size.toLong))
+            .flatMap { isLast =>
+              ref.get.flatMap { failed =>
+                unsafeRun
+                  .effect
+                  .delay(self.failedOutcomes = failed)
+              }.whenA(isLast)
+            }
+        _ <- tasks.parTraverse(_.run(read, ref, maybePublish))
       } yield ()
     }
   }
@@ -132,7 +154,8 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
       broker: SuiteEventBroker) {
     def run(
         globalResources: GlobalResourceF.Read[F],
-        outcomes: Ref[F, Chain[(SuiteName, TestOutcome)]]): F[Unit] = {
+        outcomes: Ref[F, Chain[(SuiteName, TestOutcome)]],
+        maybePublish: F[Unit]): F[Unit] = {
 
       val runSuite = for {
         suite <- mkSuite(globalResources)
@@ -147,23 +170,23 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
       } yield ()
 
       val finalizer =
-        outcomes.get.map(SuiteFinished(SuiteName(fqn), _)).flatMap(broker.send)
+        maybePublish.productR(broker.send(SuiteFinished(SuiteName(fqn))))
 
-      effect.guaranteeCase(runSuite) {
-        case ExitCase.Canceled  => finalizer
-        case ExitCase.Completed => finalizer
-        case ExitCase.Error(error: Throwable) =>
+      CECompat.guaranteeCase(runSuite)(
+        completed = finalizer,
+        cancelled = finalizer,
+        errored = { (error: Throwable) =>
           val outcome =
             TestOutcome("Unexpected failure",
                         0.seconds,
                         Result.from(error),
                         Chain.empty)
 
-          effect.guarantee(outcomes
+          CECompat.guarantee(outcomes
             .update(_.append(SuiteName(fqn) -> outcome))
             .productR(broker.send(TestFinished(outcome))))(finalizer)
-
-      }
+        }
+      )
     }
   }
 

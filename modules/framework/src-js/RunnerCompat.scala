@@ -7,12 +7,12 @@ import scala.scalajs.js
 import scala.scalajs.js.JSON
 
 import cats.data.Chain
-import cats.effect.concurrent.Ref
-import cats.effect.syntax.all._
-import cats.effect.{ ExitCase, Sync }
+import cats.effect.Sync
 import cats.syntax.all._
 
 import sbt.testing.{ EventHandler, Logger, Task, TaskDef }
+
+import CECompat.Ref
 
 trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
   protected val args: Array[String]
@@ -110,44 +110,45 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
         }
       } yield ()
 
-      def finalize(outcomes: Ref[F, Chain[TestOutcome]])(
-          exitCase: ExitCase[Throwable]
-      ): F[Unit] = exitCase match {
-        case ExitCase.Canceled =>
-          effect.unit
-        case ExitCase.Completed =>
-          val failedF =
-            outcomes.get.map(
-              _.filter(_.status.isFailed).map(SuiteName(fqn) -> _))
+      def finaliseCompleted(outcomes: Ref[F, Chain[TestOutcome]]): F[Unit] = {
+        val failedF = outcomes.get.map(
+          _.filter(_.status.isFailed).map(SuiteName(fqn) -> _))
 
-          failedF.flatMap {
-            case c if c.isEmpty => effect.unit
-            case failed => {
-              val ots: Chain[TestOutcomeJS] =
-                failed.map { case (SuiteName(name), to) =>
-                  TestOutcomeJS.from(name)(to)
-                }
+        failedF.flatMap {
+          case c if c.isEmpty => effect.unit
+          case failed => {
+            val ots: Chain[TestOutcomeJS] =
+              failed.map { case (SuiteName(name), to) =>
+                TestOutcomeJS.from(name)(to)
+              }
 
-              ots.traverse(reportDoneF).void
-            }
+            ots.traverse(reportDoneF).void
           }
-        case ExitCase.Error(error) =>
-          val outcome =
-            TestOutcome("Unexpected failure",
-                        0.seconds,
-                        Result.from(error),
-                        Chain.empty)
-          reportTest(outcome)
-            .productR(reportDoneF(TestOutcomeJS.from(fqn)(outcome)))
+        }
+      }
+
+      def finaliseError(outcomes: Ref[
+        F,
+        Chain[TestOutcome]]): Throwable => F[Unit] = { error =>
+        val outcome =
+          TestOutcome("Unexpected failure",
+                      0.seconds,
+                      Result.from(error),
+                      Chain.empty)
+        reportTest(outcome)
+          .productR(reportDoneF(TestOutcomeJS.from(fqn)(outcome)))
       }
 
       val action = loader match {
         case None => effect.unit
         case Some(loader) => for {
             outcomes <- Ref.of(Chain.empty[TestOutcome])
-            _ <- loader.suite
-              .flatMap(runSuite(fqn, _, outcomes))
-              .guaranteeCase(finalize(outcomes))
+            _ <- CECompat.guaranteeCase(loader.suite
+              .flatMap(runSuite(fqn, _, outcomes)))(
+              cancelled = effect.unit,
+              completed = finaliseCompleted(outcomes),
+              errored = finaliseError(outcomes)
+            )
           } yield ()
       }
 

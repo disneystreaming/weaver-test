@@ -40,7 +40,7 @@ abstract class DogFood[F[_]](
       _ <- getTasks(suites, logger).use { case (runner, tasks) =>
         runTasks(runner, eventHandler, logger)(tasks.toList)
       }
-      _      <- patience.fold(effect.unit)(timer.sleep)
+      _      <- patience.fold(effect.unit)(framework.unsafeRun.sleep)
       logs   <- logger.get
       events <- eventHandler.get
     } yield {

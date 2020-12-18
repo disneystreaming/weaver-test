@@ -4,8 +4,9 @@ import scala.concurrent.duration._
 
 import cats.Defer
 import cats.data.Chain
-import cats.effect.concurrent.Ref
 import cats.syntax.all._
+
+import CECompat.Ref
 
 object Test {
 
@@ -17,7 +18,7 @@ object Test {
       ref   <- Ref[F].of(Chain.empty[Log.Entry])
       start <- F.realTimeMillis
       res <- Defer[F]
-        .defer(f(Log.collected[F, Chain](ref)))
+        .defer(f(Log.collected[F, Chain](ref, F.realTimeMillis)))
         .map(Result.fromAssertion)
         .handleError(ex => Result.from(ex))
       end  <- F.realTimeMillis

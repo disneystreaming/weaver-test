@@ -45,12 +45,13 @@ object Reporter {
     )(failed)
   }
 
-  def log(loggers: Array[Logger])(event: SuiteEvent): Unit = event match {
+  def log(loggers: Array[Logger])(event: RunEvent): Unit = event match {
     case SuiteStarted(name) =>
       logSuiteStarted(loggers)(name)
-    case SuiteFinished(_, failed) =>
-      logRunFinished(loggers)(failed)
     case TestFinished(outcome) =>
       logTestFinished(loggers)(outcome)
+    case RunFinished(failed) =>
+      logRunFinished(loggers)(failed)
+    case SuiteFinished(_) => // do nothing
   }
 }
