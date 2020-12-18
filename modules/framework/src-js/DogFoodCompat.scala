@@ -14,7 +14,7 @@ private[weaver] trait DogFoodCompat[F[_]] { self: DogFood[F] =>
       eventHandler: sbt.testing.EventHandler,
       logger: sbt.testing.Logger)(tasks: List[sbt.testing.Task]): F[Unit] = {
     tasks.traverse { task =>
-      self.framework.unsafeRun.effect.async {
+      self.framework.unsafeRun.async {
         cb: (Either[Throwable, Unit] => Unit) =>
           task.execute(eventHandler, Array(logger), _ => cb(Right(())))
       }

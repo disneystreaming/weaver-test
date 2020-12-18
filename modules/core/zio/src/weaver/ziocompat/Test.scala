@@ -10,6 +10,7 @@ import cats.data.Chain
 import weaver.{ Expectations, Log, Result, TestOutcome }
 
 import zio._
+import zio.clock.Clock
 
 object Test {
 
@@ -21,7 +22,8 @@ object Test {
       ref   <- Ref.make(Chain.empty[Log.Entry])
       start <- zio.clock.currentTime(TimeUnit.MILLISECONDS)
       res <- f
-        .provideSomeLayer[Env[R]](ZLayer.succeed(RefLog(ref)))
+        .provideSomeLayer[Env[R]](ZLayer.fromEffect(ZIO.access[Clock](c =>
+          RefLog(ref, c.get))))
         .unrefine { case NonFatal(e) => e }
         .fold(Result.from, Result.fromAssertion)
       end  <- zio.clock.currentTime(TimeUnit.MILLISECONDS)

@@ -2,8 +2,6 @@ package weaver
 package framework
 package test
 
-import java.util.concurrent.TimeUnit
-
 import scala.concurrent.duration._
 
 abstract class MutableSuiteTest extends SimpleIOSuite {
@@ -14,9 +12,9 @@ abstract class MutableSuiteTest extends SimpleIOSuite {
 
   simpleTest("sleeping") {
     for {
-      before <- timer.clock.realTime(TimeUnit.MILLISECONDS)
-      _      <- timer.sleep(1.seconds)
-      after  <- timer.clock.realTime(TimeUnit.MILLISECONDS)
+      before <- CatsUnsafeRun.realTimeMillis
+      _      <- CatsUnsafeRun.sleep(1.seconds)
+      after  <- CatsUnsafeRun.realTimeMillis
     } yield expect(after - before >= 1000)
   }
 

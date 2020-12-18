@@ -1,22 +1,117 @@
 // For getting Scoverage out of the generated POM
 import scala.xml.Elem
 import scala.xml.transform.{ RewriteRule, RuleTransformer }
-import sbtcrossproject.CrossPlugin.autoImport.{
-  JVMPlatform,
-  crossProjectPlatform
-}
 import scalafix.sbt.ScalafixPlugin.autoImport._
 import xerial.sbt.Sonatype.SonatypeKeys._
 
 import sbt._
 import sbt.Keys._
 import com.jsuereth.sbtpgp.PgpKeys._
-import scalajscrossproject.JSPlatform
+import sbtprojectmatrix.ProjectMatrixKeys.virtualAxes
+import sbt.internal.ProjectMatrix
+
+import org.scalajs.sbtplugin.ScalaJSPlugin.autoImport.scalaJSLinkerConfig
+import org.scalajs.linker.interface.ModuleKind
+import org.scalajs.sbtplugin.ScalaJSPlugin
+import scala.collection.immutable.Nil
+import java.util.regex.MatchResult
+import lmcoursier.definitions.Reconciliation.SemVer
+
+case class CatsEffectAxis(idSuffix: String, directorySuffix: String)
+    extends VirtualAxis.WeakAxis
 
 /**
  * Common project settings.
  */
 object WeaverPlugin extends AutoPlugin {
+
+  val CatsEffect2Axis = CatsEffectAxis("_CE2", "ce2")
+  val CatsEffect3Axis = CatsEffectAxis("_CE3", "ce3")
+
+  val defaults = Seq[VirtualAxis](
+    CatsEffect2Axis,
+    VirtualAxis.jvm,
+    VirtualAxis.scalaVersionAxis(WeaverPlugin.scala213, "2.13"))
+
+  implicit final class ProjectMatrixOps(pmx: ProjectMatrix) {
+    def onlyCatsEffect2(withJs: Boolean = true) = {
+      val tmp = pmx.defaultAxes(defaults: _*)
+        .customRow(
+          scalaVersions = WeaverPlugin.supportedScalaVersions,
+          axisValues = Seq(CatsEffect2Axis, VirtualAxis.jvm),
+          Seq()
+        )
+      if (withJs)
+        tmp.customRow(
+          scalaVersions = WeaverPlugin.supportedScalaVersions,
+          axisValues = Seq(CatsEffect2Axis, VirtualAxis.js),
+          configureScalaJSProject(_)
+        )
+      else tmp
+    }
+
+    def crossCatsEffect = {
+      pmx.defaultAxes(defaults: _*)
+        .customRow(
+          scalaVersions = WeaverPlugin.supportedScalaVersions,
+          axisValues = Seq(CatsEffect2Axis, VirtualAxis.jvm),
+          Seq()
+        ).customRow(
+          scalaVersions = WeaverPlugin.supportedScalaVersions,
+          axisValues = Seq(CatsEffect3Axis, VirtualAxis.jvm),
+          versionOverrideForCE3
+        ).customRow(
+          scalaVersions = WeaverPlugin.supportedScalaVersions,
+          axisValues = Seq(CatsEffect2Axis, VirtualAxis.js),
+          configureScalaJSProject(_)
+        ).customRow(
+          scalaVersions = WeaverPlugin.supportedScalaVersions,
+          axisValues = Seq(CatsEffect3Axis, VirtualAxis.js),
+          configureScalaJSProject(_).settings(versionOverrideForCE3)
+        )
+    }
+  }
+
+  lazy val versionOverrideForCE3: Seq[Def.Setting[_]] = Seq(
+    version := {
+      val regex = "^(\\d+).(\\d+).(\\d+).*$".r
+
+      val original = version.value
+
+      original match {
+        case regex(major, minor, patch) =>
+          original.replaceFirst(s"$major.$minor.$patch",
+                                s"$major.${minor.toInt + 1}.$patch")
+        case _ =>
+          throw new RuntimeException(
+            s"Version $original doesn't match SemVer format")
+      }
+    }
+  )
+
+  def configureScalaJSProject(proj: Project): Project = {
+
+    val linkerConfig = Seq(Test / scalaJSLinkerConfig ~= {
+      _.withModuleKind(ModuleKind.CommonJSModule)
+    })
+
+    // on CI, use linker's batch mode:
+    // https://github.com/scala-js/scala-js/blob/6622d0b8f99bec4dbe1b29c125d111fdea246d34/linker-interface/shared/src/main/scala/org/scalajs/linker/interface/StandardConfig.scala#L51
+    // When you run a lot of linkers in parallel
+    // they will retain intermediate state (in case you want incremental compilation)
+    // on CI we don't want that
+    val batchOnCi =
+      if (sys.env.contains("CI")) Seq(scalaJSLinkerConfig ~= {
+        _.withBatchMode(true)
+      })
+      else Seq.empty
+
+    proj.enablePlugins(ScalaJSPlugin)
+      .settings((linkerConfig ++ batchOnCi): _*)
+      .settings(
+        Test / fork := false
+      )
+  }
 
   override def requires = plugins.JvmPlugin
   override def trigger  = allRequirements
@@ -28,7 +123,7 @@ object WeaverPlugin extends AutoPlugin {
   /** @see [[sbt.AutoPlugin]] */
   override val projectSettings = Seq(
     moduleName := s"weaver-${name.value}",
-    crossScalaVersions := supportedScalaVersions,
+    // crossScalaVersions := supportedScalaVersions,
     scalacOptions ++= compilerOptions(scalaVersion.value),
     Test / scalacOptions ~= (_ filterNot (_ == "-Xfatal-warnings")),
     // Turning off fatal warnings for ScalaDoc, otherwise we can't release.
@@ -153,30 +248,48 @@ object WeaverPlugin extends AutoPlugin {
   }
 
   // Mill-like simple layout
-  val simpleLayout: Seq[Setting[_]] = Seq(
-    Compile / unmanagedSourceDirectories := Seq(
-      baseDirectory.value.getParentFile / "src") ++ {
-      if (crossProjectPlatform.value == JVMPlatform)
-        Seq(baseDirectory.value.getParentFile / "src-jvm")
-      else if (crossProjectPlatform.value == JSPlatform)
-        Seq(baseDirectory.value.getParentFile / "src-js")
-      else
-        Seq.empty
-    },
-    Test / unmanagedSourceDirectories := Seq(
-      baseDirectory.value.getParentFile / "test" / "src"
-    ) ++ {
-      if (crossProjectPlatform.value == JVMPlatform)
-        Seq(baseDirectory.value.getParentFile / "test" / "src-jvm")
-      else if (crossProjectPlatform.value == JSPlatform)
-        Seq(baseDirectory.value.getParentFile / "test" / "src-js")
-      else
-        Seq.empty
-    },
-    Test / unmanagedResourceDirectories := Seq(
-      baseDirectory.value.getParentFile / "test" / "resources"
+  val simpleLayout: Seq[Setting[_]] = {
+    /*
+      Project matrix will override baseDirectory, making it look like this:
+      /Users/velvetbaldmime/Personal/weaver-test/.sbt/matrix/src
+
+      Which means we can't use it to identify sources layout.
+
+      Instead, we're going to use `scalaSource` and go 3 levels up from it:
+
+      sbt:root> show catsJS/scalaSource
+      [info] .../modules/framework/cats/src/main/scala
+     */
+    val moduleBase =
+      Def.setting((Compile / scalaSource).value.getParentFile().getParentFile().getParentFile())
+
+    def suffixes(axes: Seq[VirtualAxis]) = axes.collect {
+      case VirtualAxis.js  => List("", "-js")
+      case VirtualAxis.jvm => List("", "-jvm")
+      case CatsEffect3Axis => List("", "-ce3")
+      case CatsEffect2Axis => List("", "-ce2")
+    }.toList
+
+    def sequence[A](ll: List[List[A]]): List[List[A]] =
+      ll.foldRight(List(List.empty[A])) {
+        case (listA, listListA) =>
+          listA.flatMap(a => listListA.map(a :: _))
+      }
+
+    def combos(axes: Seq[VirtualAxis]): List[String] =
+      sequence(suffixes(axes)).map(_.mkString("src", "", ""))
+
+    Seq(
+      Compile / unmanagedSourceDirectories :=
+        combos(virtualAxes.value).map(moduleBase.value / _),
+      Test / unmanagedSourceDirectories :=
+        combos(virtualAxes.value).map(moduleBase.value / "test" / _),
+      Test / unmanagedResourceDirectories := Seq(
+        moduleBase.value / "test" / "resources"
+      ),
+      Test / fork := (virtualAxes.value.contains(VirtualAxis.jvm))
     )
-  ) ++ Seq(Test / fork := (crossProjectPlatform.value == JVMPlatform))
+  }
 
   lazy val publishSettings = Seq(
     organization := "com.disneystreaming",

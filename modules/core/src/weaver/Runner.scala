@@ -2,53 +2,52 @@ package weaver
 
 import cats.Monoid
 import cats.data.Chain
-import cats.effect._
-import cats.effect.concurrent.{ MVar, MVar2, Ref }
 import cats.syntax.all._
 
 import TestOutcome.{ Summary, Verbose }
 import Colours._
 
-class Runner[F[_]: Concurrent](args: List[String], maxConcurrentSuites: Int)(
+class Runner[F[_]: CECompat.Effect](
+    args: List[String],
+    maxConcurrentSuites: Int)(
     printLine: String => F[Unit]) {
 
   import Runner._
 
   // Signaling option, because we need to detect completion
-  type Channel[A] = MVar2[F, Option[A]]
+  type Channel[A] = fs2.concurrent.Queue[F, Option[A]]
 
   def run(suites: fs2.Stream[F, Suite[F]]): F[Outcome] =
     for {
-      channel  <- MVar.empty[F, Option[SpecEvent]]
-      buffer   <- Ref[F].of(Chain.empty[SpecEvent])
-      consumer <- Concurrent[F].start(consume(channel, buffer, Outcome.empty))
-      _ <- suites
-        .parEvalMap(math.max(1, maxConcurrentSuites)) { suite =>
-          suite
-            .spec(args)
+      buffer  <- CECompat.Ref[F].of(Chain.empty[SpecEvent])
+      channel <- fs2.concurrent.Queue.unbounded[F, Option[SpecEvent]]
+      outcome <-
+        CECompat.background(consume(channel, buffer), Outcome.empty) { res =>
+          suites
+            .parEvalMap(math.max(1, maxConcurrentSuites)) { suite =>
+              suite
+                .spec(args)
+                .compile
+                .toList
+                .map(SpecEvent(suite.name, _))
+                .flatMap(produce(channel))
+            }
             .compile
-            .toList
-            .map(SpecEvent(suite.name, _))
-            .flatMap(produce(channel))
+            .drain *> complete(channel) *> res
         }
-        .compile
-        .drain
-      _       <- complete(channel)
-      outcome <- consumer.join
     } yield outcome
 
   def produce(ch: Channel[SpecEvent])(event: SpecEvent): F[Unit] =
-    ch.put(Some(event))
+    ch.enqueue1(Some(event))
 
   def complete(channel: Channel[SpecEvent]): F[Unit] =
-    channel.put(None) // We are done !
+    channel.enqueue1(None) // We are done !
 
   // Recursively consumes from a channel until a "None" gets produced,
   // indicating the end of the stream.
   def consume(
       ch: Channel[SpecEvent],
-      buffer: Ref[F, Chain[SpecEvent]],
-      outcome: Outcome): F[Outcome] = {
+      buffer: CECompat.Ref[F, Chain[SpecEvent]]): F[Outcome] = {
 
     val stars = "*************"
 
@@ -76,17 +75,8 @@ class Runner[F[_]: Concurrent](args: List[String], maxConcurrentSuites: Int)(
       } yield outcome
     }
 
-    ch.take.flatMap {
-      case Some(specEvent) =>
-        for {
-          specOutcome    <- handle(specEvent)
-          updatedOutcome <- (outcome |+| specOutcome).pure[F]
-          // next please
-          res <- consume(ch, buffer, updatedOutcome)
-        } yield res
-
-      case None =>
-        // We're done !
+    ch.dequeue.unNoneTerminate.evalMap(handle).compile.foldMonoid.flatMap {
+      outcome =>
         for {
           failures <- buffer.get
           _ <- (printLine(red(stars) + "FAILURES" + red(stars)) *> failures
