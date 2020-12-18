@@ -5,24 +5,23 @@ title: Sharing resources across suites
 
 ## A word of warning
 
-This feature works **only on JVM** and violates the semantics of the [test-framework protocol](https://github.com/sbt/test-interface) that most Scala build tools (mill, sbt, bloop, etc) use. That protocol implies that all suites are supposed to run in isolation.
-
-Whilst the semantics cover most cases, it is sometimes really useful to share resources across suites, for efficiency reasons (especially if suites are run in parallel, which is decided by the build tool)
-
-Weaver-test provides this feature using what is very much a hack. At the time of writing this, the feature works with sbt, mill, bloop, but we cannot guarantee for it to work with all build tools.
-
-**Use at your own risk**
+This feature works **only on JVM**, and has been tested in SBT, Mill and Bloop.
 
 When using weaver manually, outside of the build tool, with a standalone runner (we do provide one), please disregard this mechanism and use classic dependency injection and/or your own wits to share resources across suites.
 
 ## Declaring global resources
 
-In order to declare global resources, which suites will be able to share, weaver provides a `weaver.GlobalResourcesInit` interface that users can implement. This interface sports a method that takes a `weaver.GlobalResources.Write` instance, which contains semantics to store items indexed by types.
+In order to declare global resources, which suites will be able to share, weaver provides a `GlobalResource` interface that users can implement. This interface sports a method that takes a `GlobalWrite` instance, which contains semantics to store items, indexing them by types.
 
 NB : the implementations have to be static objects.
 
 ```scala mdoc
 import weaver._
+
+// The same API / developer experience is offered with any of the following imports :
+// import weaver.monixcompat._
+// import weaver.monixbiocompat._
+// import weaver.ziocompat._
 
 import cats.effect.IO
 import cats.effect.Resource
@@ -39,9 +38,9 @@ object SharedResources extends GlobalResource {
 
 ## Accessing global resources
 
-On the suite side, accessing the global resources happen via declaring a constructor on your suite that takes a single parameter of type `weaver.GlobalResources`.
+On the suite side, accessing the global resources happen via declaring a constructor on your suite that takes a single parameter of type `GlobalRead`.
 
-This item can be used to access the resources that were previously initialised and stored in the `GlobalResourcesInit`.
+This item can be used to access the resources that were previously initialised and stored in the `GlobalResource`.
 
 ```scala mdoc
 class SharingSuite(global: GlobalRead) extends IOSuite {
@@ -72,29 +71,24 @@ class OtherSharingSuite(global: GlobalRead)
 
 Weaver guarantees the following order :
 
-* All `weaver.GlobalResourcesInit` in current compile-unit are run. Because the interface they have access to is "write-only", the order in which these instances are used should not matter.
+* All `GlobalResource` instances in current compile-unit are run. Because the interface they have access to is "write-only", the order in which these instances are used should not matter.
 * All suites are run in arbitrary order. Whether they run in parallel or not depends on the build-tool settings, not weaver.
-* Weaver then calls the finalisers of the resources created from the various `GlobalResourceInit` instances.
+* Weaver then calls the finalisers of the resources created from the various `GlobalResource` instances.
 
-This implies that **all resources declared in GlobalResourcesInit will remain alive/active until all tests have run**.
+This implies that **all resources declared in GlobalResource will remain alive/active until all tests have run**.
 
 ## Regarding "testOnly" build tool commands
 
 Some build tools provide a "testOnly" (or equivalent) command that lets you test a single suite. Because of how weaver taps into the same detection mechanism build tools use to communicate suites to the framework, you should either :
 
-* pass your `weaver.GlobalResourcesInit` implementations to the `testOnly` command, alongside the suite you really want to run
-* ensure that suites can recover when the resource they need is not found in `weaver.GlobalResource`
+* pass your `GlobalResource` implementations to the `testOnly` command, alongside the suite you really want to run
+* ensure that suites can recover when the resource they need is not found in `GlobalResource`
 
 An example of how to do this:
 
 ```scala mdoc
 import cats.effect.{ IO, Resource }
 import weaver._
-
-// The same developer experience is offered with any of the following imports :
-// import weaver.monixcompat
-// import weaver.monixbiocompat
-// import weaver.ziocompat
 
 object MyResources extends GlobalResource {
   override def sharedResources(global: GlobalWrite): Resource[IO, Unit] =
@@ -140,8 +134,8 @@ import cats.effect.Resource
 // Class subject to type-erasure
 case class Foo[A](value : A)
 
-object FailingSharedResources extends GlobalResourcesInit {
-  def sharedResources(global: Global): Resource[IO, Unit] =
+object FailingSharedResources extends GlobalResource {
+  def sharedResources(global: GlobalWrite): Resource[IO, Unit] =
     global.putR(Foo("hello"))
 }
 ```
