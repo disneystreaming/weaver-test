@@ -53,9 +53,3 @@ object MySuite extends SimpleIOSuite {
 
 }
 ```
-
-## Controlling parallelism
-
-You can moderate the number of tests run in parallel by overriding the `maxParallelism` member of a suite.
-
-If you wish to run tests serially, simply set it to 1.

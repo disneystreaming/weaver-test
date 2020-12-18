@@ -4,18 +4,21 @@
       "installation",
       "motivation"
     ],
-    "Usage": [
+    "Effect types": [
       "cats",
+      "monix",
+      "monix_bio",
+      "zio"
+    ],
+    "Features": [
       "expectations",
       "resources",
       "global_resources",
       "logging",
       "tagging",
       "scalacheck",
-      "zio",
-      "monix",
-      "monix_bio",
-      "specs2"
+      "specs2",
+      "parallelism"
     ],
     "Sample reports": [
       "multiple_suites_success",
