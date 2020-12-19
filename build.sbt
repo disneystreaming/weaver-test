@@ -29,26 +29,6 @@ ThisBuild / scalaVersion := WeaverPlugin.scala213
 
 ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.4.4"
 
-lazy val dumpBuildMatrix = taskKey[Unit]("")
-
-val allEffectCoresFilter: ScopeFilter =
-  ScopeFilter(
-    inProjects(effectFrameworks: _*),
-    inConfigurations(Compile)
-  )
-
-val allIntegrationsCoresFilter: ScopeFilter =
-  ScopeFilter(
-    inProjects((scalacheck.projectRefs ++ specs2.projectRefs): _*),
-    inConfigurations(Compile)
-  )
-
-ThisBuild / dumpBuildMatrix := {
-  val x = scalaVersion.all(allEffectCoresFilter).value
-
-  println(x)
-}
-
 Global / (Test / fork) := true
 Global / (Test / testOptions) += Tests.Argument("--quickstart")
 
@@ -113,6 +93,18 @@ lazy val core = projectMatrix
 lazy val projectsWithAxes = Def.task {
   (name.value, virtualAxes.value, version.value)
 }
+
+val allEffectCoresFilter: ScopeFilter =
+  ScopeFilter(
+    inProjects(effectFrameworks: _*),
+    inConfigurations(Compile)
+  )
+
+val allIntegrationsCoresFilter: ScopeFilter =
+  ScopeFilter(
+    inProjects((scalacheck.projectRefs ++ specs2.projectRefs): _*),
+    inConfigurations(Compile)
+  )
 
 lazy val docs = projectMatrix
   .in(file("modules/docs"))
