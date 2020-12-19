@@ -4,9 +4,8 @@ jobs:
   job:
     strategy:
       matrix:
-        os: [macos-latest, windows-latest, ubuntu-latest]
         javaVersion: [1.8, 1.11]
-    runs-on: ${{matrix.os}}
+    runs-on: ubuntu-latest
     steps:
     - name: Checkout repo
       uses: actions/checkout@v2
