@@ -5,8 +5,8 @@ title: Installation
 
 All of the artifacts from the table below are:
 
-1. Available for Scala 2.12 and 2.13
-2. Available for JVM and Scala.js
+1. Available for **Scala 2.12 and 2.13**
+2. Available for **JVM and Scala.js**
 
 ```scala mdoc:passthrough
 import weaver.docs._

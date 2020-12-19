@@ -1,4 +1,3 @@
-import sbt.internal.ProjectMatrix
 import WeaverPlugin._
 
 ThisBuild / commands += Command.command("ci") { state =>

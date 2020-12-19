@@ -41,7 +41,7 @@ case class Table(
       case Some(c) =>
         if (c.jvm && c.js) {
           s"✅ `${c.version}`"
-        } else c.toString()
+        } else "❌" // TODO: do we always assume platform-complete artifacts?
       case None => "❌"
     }
   }
@@ -83,7 +83,7 @@ object Table {
 
   def create(name: String, artifacts: List[Artifact]): Table = {
 
-    val grouped = artifacts.groupBy(g => g.name)
+    val grouped = artifacts.groupBy(_.name)
 
     val rows = grouped.map {
       case (name, artifacts) =>
