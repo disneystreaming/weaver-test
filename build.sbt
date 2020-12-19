@@ -1,3 +1,4 @@
+import sbt.internal.ProjectMatrix
 import WeaverPlugin._
 
 ThisBuild / commands += Command.command("ci") { state =>
@@ -27,6 +28,26 @@ ThisBuild / commands += Command.command("release") { state =>
 ThisBuild / scalaVersion := WeaverPlugin.scala213
 
 ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.4.4"
+
+lazy val dumpBuildMatrix = taskKey[Unit]("")
+
+val allEffectCoresFilter: ScopeFilter =
+  ScopeFilter(
+    inProjects(effectFrameworks: _*),
+    inConfigurations(Compile)
+  )
+
+val allIntegrationsCoresFilter: ScopeFilter =
+  ScopeFilter(
+    inProjects((scalacheck.projectRefs ++ specs2.projectRefs): _*),
+    inConfigurations(Compile)
+  )
+
+ThisBuild / dumpBuildMatrix := {
+  val x = scalaVersion.all(allEffectCoresFilter).value
+
+  println(x)
+}
 
 Global / (Test / fork) := true
 Global / (Test / testOptions) += Tests.Argument("--quickstart")
@@ -89,6 +110,10 @@ lazy val core = projectMatrix
     }
   )
 
+lazy val projectsWithAxes = Def.task {
+  (name.value, virtualAxes.value, version.value)
+}
+
 lazy val docs = projectMatrix
   .in(file("modules/docs"))
   .jvmPlatform(WeaverPlugin.supportedScalaVersions)
@@ -105,7 +130,54 @@ lazy val docs = projectMatrix
       "org.http4s"  %% "http4s-blaze-server" % "0.21.0",
       "org.http4s"  %% "http4s-blaze-client" % "0.21.0",
       "com.lihaoyi" %% "fansi"               % "0.2.7"
-    )
+    ),
+    sourceGenerators in Compile += Def.taskDyn {
+      val filePath =
+        sourceManaged.in(Compile).value / "BuildMatrix.scala"
+
+      def q(s: String) = '"' + s + '"'
+
+      def process(f: Iterable[(String, Seq[VirtualAxis], String)]) = f.map {
+        case (name, axes, ver) =>
+          val isJVM = axes.contains(VirtualAxis.jvm)
+          val isJS  = axes.contains(VirtualAxis.js)
+          val scalaVersion = axes.collectFirst {
+            case a: VirtualAxis.ScalaVersionAxis => a
+          }.get.scalaVersion
+
+          val CE = axes.collectFirst {
+            case CatsEffect2Axis => "CE2"
+            case CatsEffect3Axis => "CE3"
+          }.get
+
+          List(
+            s"name = ${q(name)}",
+            s"jvm = $isJVM",
+            s"js = $isJS",
+            s"scalaVersion = ${q(scalaVersion)}",
+            s"catsEffect = $CE",
+            s"version = ${q(ver)}"
+          ).mkString("Artifact(", ",", ")")
+      }.mkString("List(", ",\n", ")")
+
+      val effects = process(projectsWithAxes.all(allEffectCoresFilter).value)
+      val integrations =
+        process(projectsWithAxes.all(allIntegrationsCoresFilter).value)
+
+      IO.write(
+        filePath,
+        s"""
+        | package weaver.docs
+        |
+        | object BuildMatrix {
+        |    val effects = $effects
+        |    val integrations = $integrations
+        | }
+        """.stripMargin
+      )
+
+      Def.task(Seq(filePath))
+    }
   )
 
 lazy val framework = projectMatrix
