@@ -48,6 +48,8 @@ lazy val allModules = Seq(
   effectFrameworks
 ).flatten
 
+lazy val catsEffect3Version = "3.0.0-M4"
+
 def catsEffectDependencies(proj: Project): Project = {
   proj.settings(
     libraryDependencies ++= {
@@ -59,7 +61,7 @@ def catsEffectDependencies(proj: Project): Project = {
       else
         Seq(
           "co.fs2"        %%% "fs2-core"    % "3.0.0-M6",
-          "org.typelevel" %%% "cats-effect" % "3.0.0-M4"
+          "org.typelevel" %%% "cats-effect" % catsEffect3Version
         )
     }
   )
@@ -161,6 +163,7 @@ lazy val docs = projectMatrix
         | package weaver.docs
         |
         | object BuildMatrix {
+        |    val catsEffect3Version = ${q(catsEffect3Version)}
         |    val effects = $effects
         |    val integrations = $integrations
         | }

@@ -46,9 +46,9 @@ case class Table(
     }
   }
 
-  def render = {
+  def render(catsEffect3Version: String) = {
     val sb = new StringBuilder
-    sb.append(_row(Seq(name, "Cats Effect 2", "Cats Effect 3"), header = true))
+    sb.append(_row(Seq(name, "Cats Effect 2", s"Cats Effect $catsEffect3Version"), header = true))
 
     rows.map { case Row(name, ce2, ce3) =>
       sb.append(_row(Seq(name, _cell(ce2), _cell(ce3))))

@@ -11,8 +11,13 @@ All of the artifacts from the table below are:
 ```scala mdoc:passthrough
 import weaver.docs._
 
-val effects = Table.create("Effect types", BuildMatrix.effects).render
-val integrations = Table.create("Integrations", BuildMatrix.integrations).render
+val effects = Table
+    .create("Effect types", BuildMatrix.effects)
+    .render(BuildMatrix.catsEffect3Version)
+    
+val integrations = Table
+    .create("Integrations", BuildMatrix.integrations)
+    .render(BuildMatrix.catsEffect3Version)
 
 println(effects)
 println(integrations)
