@@ -156,7 +156,6 @@ val installSSHScript: String =
          |fi
       """.stripMargin
 
-@main
 def doInstallSSH() =  {
   val tmp = os.temp(contents = installSSHScript,
                     prefix = "docusaurus",
