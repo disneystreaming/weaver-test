@@ -12,7 +12,7 @@ def main(): Unit = {
 
   if(sys.env.get("GITHUB_DEPLOY_KEY").nonEmpty) doInstallSSH()
 
-  if (!os.exists(os.pwd / "modules" / "docs" / "target" / "mdoc"))
+  if (!os.exists(os.pwd / "modules" / "docs" / "target" / "jvm-2.13" / "mdoc"))
     sys.error("Have you run mdoc ?")
 
   val website = os.pwd / "website"
@@ -156,7 +156,6 @@ val installSSHScript: String =
          |fi
       """.stripMargin
 
-@main
 def doInstallSSH() =  {
   val tmp = os.temp(contents = installSSHScript,
                     prefix = "docusaurus",
@@ -164,6 +163,3 @@ def doInstallSSH() =  {
                     perms = Set(OWNER_EXECUTE).asJava)
   os.proc(tmp).call(cwd = os.pwd)
 }
-
-
-
