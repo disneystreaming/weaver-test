@@ -46,7 +46,7 @@ steps:
   commands:
   - mkdir -p $HOME/.ssh
   - ssh-keyscan -t rsa github.com >> $HOME/.ssh/known_hosts
-  - amm scripts/releaseSite.sc
+  - amm scripts/releaseSite.sc main
   - echo done publishing website
   environment:
     COURSIER_CACHE: .cache/coursier
