@@ -1,0 +1,32 @@
+{
+  "version-0.6.0-M2-docs": {
+    "Overview": [
+      "version-0.6.0-M2-installation",
+      "version-0.6.0-M2-motivation"
+    ],
+    "Effect types": [
+      "version-0.6.0-M2-cats",
+      "version-0.6.0-M2-monix",
+      "version-0.6.0-M2-monix_bio",
+      "version-0.6.0-M2-zio"
+    ],
+    "Features": [
+      "version-0.6.0-M2-expectations",
+      "version-0.6.0-M2-resources",
+      "version-0.6.0-M2-global_resources",
+      "version-0.6.0-M2-logging",
+      "version-0.6.0-M2-tagging",
+      "version-0.6.0-M2-scalacheck",
+      "version-0.6.0-M2-specs2",
+      "version-0.6.0-M2-parallelism"
+    ],
+    "Sample reports": [
+      "version-0.6.0-M2-multiple_suites_success",
+      "version-0.6.0-M2-multiple_suites_failures",
+      "version-0.6.0-M2-multiple_suites_logging"
+    ],
+    "IDE integrations": [
+      "version-0.6.0-M2-intellij"
+    ]
+  }
+}
