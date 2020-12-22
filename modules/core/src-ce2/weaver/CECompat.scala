@@ -3,7 +3,7 @@ package weaver
 import cats.Applicative
 import cats.effect.ExitCase.{ Canceled, Completed }
 import cats.effect.syntax.all._
-import cats.effect.{Concurrent, Resource}
+import cats.effect.{ Concurrent, Resource }
 import cats.syntax.all._
 
 private[weaver] object CECompat extends CECompat

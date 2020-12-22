@@ -13,10 +13,10 @@ ThisBuild / commands += Command.command("ci") { state =>
 }
 
 ThisBuild / commands += Command.command("fix") { state =>
-  "scalafmtAll" ::
-    "scalafmtSbt" ::
-    "scalafix" ::
-    "test:scalafix" :: state
+  "scalafix" ::
+    "test:scalafix" ::
+    "scalafmtAll" ::
+    "scalafmtSbt" :: state
 }
 
 ThisBuild / commands += Command.command("release") { state =>
