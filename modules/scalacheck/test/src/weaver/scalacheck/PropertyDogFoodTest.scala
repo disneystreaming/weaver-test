@@ -7,7 +7,6 @@ import cats.effect.{ IO, Resource }
 import cats.syntax.all._
 
 import weaver.framework._
-import org.scalacheck.Gen
 
 object PropertyDogFoodTest extends IOSuite {
 
@@ -18,14 +17,24 @@ object PropertyDogFoodTest extends IOSuite {
   test("Failed property tests get reported properly") { dogfood =>
     for {
       results <- dogfood.runSuite(Meta.FailedChecks)
-      logs = results._1
+      logs   = results._1
       events = results._2
     } yield {
       val errorLogs = logs.collect {
         case LoggedEvent.Error(msg) => msg
       }
       exists(errorLogs) { log =>
-        val expectedMessage = "Property test failed on try 5 with input 0"
+        // Go into software engineering they say
+        // Learn how to make amazing algorithms
+        // Build robust and deterministic software
+        val (attempt, value) =
+          if (ScalaCompat.isScala3)
+            ("4", "-2147483648")
+          else
+            ("2", "0")
+
+        val expectedMessage =
+          s"Property test failed on try $attempt with input $value"
         expect(log.contains(expectedMessage))
       }
     }
@@ -35,7 +44,7 @@ object PropertyDogFoodTest extends IOSuite {
   test("Checks are parallelised") { dogfood =>
     for {
       events <- dogfood.runSuite(Meta.ParallelChecks).map(_._2)
-      _           <- expect(events.size == 1).failFast
+      _      <- expect(events.size == 1).failFast
     } yield {
       expect(events.headOption.get.duration() < 10000)
     }
@@ -60,7 +69,7 @@ object Meta {
   object FailedChecks extends SimpleIOSuite with IOCheckers {
 
     override def checkConfig: CheckConfig =
-      super.checkConfig.copy(perPropertyParallelism = 1, initialSeed = Some(1L))
+      super.checkConfig.copy(perPropertyParallelism = 1, initialSeed = Some(5L))
 
     simpleTest("foobar") {
       forall { (x: Int) =>

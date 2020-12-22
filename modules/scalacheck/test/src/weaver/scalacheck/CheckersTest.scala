@@ -14,44 +14,44 @@ object CheckersTest extends SimpleIOSuite with IOCheckers {
     super.checkConfig.copy(perPropertyParallelism = 100)
 
   simpleTest("universal") {
-    forall(Gen.posNum[Int]) { a =>
+    forall(Gen.posNum[Int]).apply { a =>
       expect(a > 0)
     }
   }
 
   simpleTest("form 1") {
     forall { (a: Int) =>
-      expect(a * 2 == 2 * a)
+      IO(expect(a * 2 == 2 * a))
     }
   }
 
   simpleTest("form 2") {
     forall { (a1: Int, a2: Int) =>
-      expect(a1 * a2 == a2 * a1)
+      IO(expect(a1 * a2 == a2 * a1))
     }
   }
 
   simpleTest("form 3") {
     forall { (a1: Int, a2: Int, a3: Int) =>
-      expect(a1 * a2 * a3 == a3 * a2 * a1)
+      IO(expect(a1 * a2 * a3 == a3 * a2 * a1))
     }
   }
 
   simpleTest("form 4") {
     forall { (a1: Int, a2: Int, a3: Int, a4: Int) =>
-      expect(a1 * a2 * a3 * a4 == a4 * a3 * a2 * a1)
+      IO(expect(a1 * a2 * a3 * a4 == a4 * a3 * a2 * a1))
     }
   }
 
   simpleTest("form 5") {
     forall { (a1: Int, a2: Int, a3: Int, a4: Int, a5: Int) =>
-      expect(a1 * a2 * a3 * a4 * a5 == a5 * a4 * a3 * a2 * a1)
+      IO(expect(a1 * a2 * a3 * a4 * a5 == a5 * a4 * a3 * a2 * a1))
     }
   }
 
   simpleTest("form 6") {
     forall { (a1: Int, a2: Int, a3: Int, a4: Int, a5: Int, a6: Int) =>
-      expect(a1 * a2 * a3 * a4 * a5 * a6 == a6 * a5 * a4 * a3 * a2 * a1)
+      IO(expect(a1 * a2 * a3 * a4 * a5 * a6 == a6 * a5 * a4 * a3 * a2 * a1))
     }
   }
 
