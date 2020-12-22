@@ -1,0 +1,206 @@
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>Sharing resources across suites · Weaver Test</title><meta name="viewport" content="width=device-width"/><meta name="generator" content="Docusaurus"/><meta name="description" content="## A word of warning"/><meta name="docsearch:version" content="0.6.0-M2"/><meta name="docsearch:language" content="en"/><meta property="og:title" content="Sharing resources across suites · Weaver Test"/><meta property="og:type" content="website"/><meta property="og:url" content="http(s)://disneystreaming.github.io//weaver-test/"/><meta property="og:description" content="## A word of warning"/><meta property="og:image" content="http(s)://disneystreaming.github.io//weaver-test/img/undraw_online.svg"/><meta name="twitter:card" content="summary"/><meta name="twitter:image" content="http(s)://disneystreaming.github.io//weaver-test/img/undraw_tweetstorm.svg"/><link rel="shortcut icon" href="/weaver-test/img/dss-profile-white-transparent.svg"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css"/><script type="text/javascript" src="https: //buttons.github.io/buttons.js"></script><script src="/weaver-test/js/scrollSpy.js"></script><link rel="stylesheet" href="/weaver-test/css/main.css"/><script src="/weaver-test/js/codetabs.js"></script></head><body class="sideNavVisible separateOnPageNav"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/weaver-test/"><img class="logo" src="/weaver-test/img/dss-profile-white-transparent.svg" alt="Weaver Test"/><h2 class="headerTitleWithLogo">Weaver Test</h2></a><a href="/weaver-test/versions"><h3>0.6.0-M2</h3></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class="siteNavGroupActive"><a href="/weaver-test/docs/0.6.0-M2/installation" target="_self">Docs</a></li><li class=""><a href="https://github.com/disneystreaming/weaver-test" target="_blank">GitHub</a></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="docsNavContainer" id="docsNav"><nav class="toc"><div class="toggleNav"><section class="navWrapper wrapper"><div class="navBreadcrumb wrapper"><div class="navToggle" id="navToggler"><div class="hamburger-menu"><div class="line1"></div><div class="line2"></div><div class="line3"></div></div></div><h2><i>›</i><span>Features</span></h2><div class="tocToggler" id="tocToggler"><i class="icon-toc"></i></div></div><div class="navGroups"><div class="navGroup"><h3 class="navGroupCategoryTitle">Overview</h3><ul class=""><li class="navListItem"><a class="navItem" href="/weaver-test/docs/0.6.0-M2/installation">Installation</a></li><li class="navListItem"><a class="navItem" href="/weaver-test/docs/0.6.0-M2/motivation">Motivation</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">Effect types</h3><ul class=""><li class="navListItem"><a class="navItem" href="/weaver-test/docs/0.6.0-M2/cats">Cats-effect usage</a></li><li class="navListItem"><a class="navItem" href="/weaver-test/docs/0.6.0-M2/monix">Monix usage</a></li><li class="navListItem"><a class="navItem" href="/weaver-test/docs/0.6.0-M2/monix_bio">Monix BIO usage</a></li><li class="navListItem"><a class="navItem" href="/weaver-test/docs/0.6.0-M2/zio">ZIO usage</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">Features</h3><ul class=""><li class="navListItem"><a class="navItem" href="/weaver-test/docs/0.6.0-M2/expectations">Expectations (assertions)</a></li><li class="navListItem"><a class="navItem" href="/weaver-test/docs/0.6.0-M2/resources">Sharing resources</a></li><li class="navListItem navListItemActive"><a class="navItem" href="/weaver-test/docs/0.6.0-M2/global_resources">Sharing resources across suites</a></li><li class="navListItem"><a class="navItem" href="/weaver-test/docs/0.6.0-M2/logging">Logging information</a></li><li class="navListItem"><a class="navItem" href="/weaver-test/docs/0.6.0-M2/tagging">Tagging</a></li><li class="navListItem"><a class="navItem" href="/weaver-test/docs/0.6.0-M2/scalacheck">ScalaCheck integration</a></li><li class="navListItem"><a class="navItem" href="/weaver-test/docs/0.6.0-M2/specs2">specs2 integration</a></li><li class="navListItem"><a class="navItem" href="/weaver-test/docs/0.6.0-M2/parallelism">Configuring parallelism</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">Sample reports</h3><ul class=""><li class="navListItem"><a class="navItem" href="/weaver-test/docs/0.6.0-M2/multiple_suites_success">Successes</a></li><li class="navListItem"><a class="navItem" href="/weaver-test/docs/0.6.0-M2/multiple_suites_failures">Failures</a></li><li class="navListItem"><a class="navItem" href="/weaver-test/docs/0.6.0-M2/multiple_suites_logging">Logging</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">IDE integrations</h3><ul class=""><li class="navListItem"><a class="navItem" href="/weaver-test/docs/0.6.0-M2/intellij">intellij plugin</a></li></ul></div></div></section></div><script>
+            var coll = document.getElementsByClassName('collapsible');
+            var checkActiveCategory = true;
+            for (var i = 0; i < coll.length; i++) {
+              var links = coll[i].nextElementSibling.getElementsByTagName('*');
+              if (checkActiveCategory){
+                for (var j = 0; j < links.length; j++) {
+                  if (links[j].classList.contains('navListItemActive')){
+                    coll[i].nextElementSibling.classList.toggle('hide');
+                    coll[i].childNodes[1].classList.toggle('rotate');
+                    checkActiveCategory = false;
+                    break;
+                  }
+                }
+              }
+
+              coll[i].addEventListener('click', function() {
+                var arrow = this.childNodes[1];
+                arrow.classList.toggle('rotate');
+                var content = this.nextElementSibling;
+                content.classList.toggle('hide');
+              });
+            }
+
+            document.addEventListener('DOMContentLoaded', function() {
+              createToggler('#navToggler', '#docsNav', 'docsSliderActive');
+              createToggler('#tocToggler', 'body', 'tocActive');
+
+              var headings = document.querySelector('.toc-headings');
+              headings && headings.addEventListener('click', function(event) {
+                var el = event.target;
+                while(el !== headings){
+                  if (el.tagName === 'A') {
+                    document.body.classList.remove('tocActive');
+                    break;
+                  } else{
+                    el = el.parentNode;
+                  }
+                }
+              }, false);
+
+              function createToggler(togglerSelector, targetSelector, className) {
+                var toggler = document.querySelector(togglerSelector);
+                var target = document.querySelector(targetSelector);
+
+                if (!toggler) {
+                  return;
+                }
+
+                toggler.onclick = function(event) {
+                  event.preventDefault();
+
+                  target.classList.toggle(className);
+                };
+              }
+            });
+        </script></nav></div><div class="container mainContainer docsContainer"><div class="wrapper"><div class="post"><header class="postHeader"><h1 id="__docusaurus" class="postHeaderTitle">Sharing resources across suites</h1></header><article><div><span><h2><a class="anchor" aria-hidden="true" id="a-word-of-warning"></a><a href="#a-word-of-warning" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>A word of warning</h2>
+<p>This feature works <strong>only on JVM</strong>, and has been tested in SBT, Mill and Bloop.</p>
+<p>When using weaver manually, outside of the build tool, with a standalone runner (we do provide one), please disregard this mechanism and use classic dependency injection and/or your own wits to share resources across suites.</p>
+<h2><a class="anchor" aria-hidden="true" id="declaring-global-resources"></a><a href="#declaring-global-resources" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Declaring global resources</h2>
+<p>In order to declare global resources, which suites will be able to share, weaver provides a <code>GlobalResource</code> interface that users can implement. This interface sports a method that takes a <code>GlobalWrite</code> instance, which contains semantics to store items, indexing them by types.</p>
+<p>NB : the implementations have to be static objects.</p>
+<pre><code class="hljs css language-scala"><span class="hljs-keyword">import</span> weaver._
+
+<span class="hljs-comment">// The same API / developer experience is offered with any of the following imports :</span>
+<span class="hljs-comment">// import weaver.monixcompat._</span>
+<span class="hljs-comment">// import weaver.monixbiocompat._</span>
+<span class="hljs-comment">// import weaver.ziocompat._</span>
+
+<span class="hljs-keyword">import</span> cats.effect.<span class="hljs-type">IO</span>
+<span class="hljs-keyword">import</span> cats.effect.<span class="hljs-type">Resource</span>
+
+<span class="hljs-comment">// note how this is a static object</span>
+<span class="hljs-class"><span class="hljs-keyword">object</span> <span class="hljs-title">SharedResources</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">GlobalResource</span> </span>{
+  <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">sharedResources</span></span>(global: <span class="hljs-type">GlobalWrite</span>): <span class="hljs-type">Resource</span>[<span class="hljs-type">IO</span>, <span class="hljs-type">Unit</span>] =
+    <span class="hljs-keyword">for</span> {
+      foo &lt;- <span class="hljs-type">Resource</span>.pure[<span class="hljs-type">IO</span>, <span class="hljs-type">String</span>](<span class="hljs-string">"hello world!"</span>)
+      _   &lt;- global.putR(foo)
+    } <span class="hljs-keyword">yield</span> ()
+}
+</code></pre>
+<h2><a class="anchor" aria-hidden="true" id="accessing-global-resources"></a><a href="#accessing-global-resources" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Accessing global resources</h2>
+<p>On the suite side, accessing the global resources happen via declaring a constructor on your suite that takes a single parameter of type <code>GlobalRead</code>.</p>
+<p>This item can be used to access the resources that were previously initialised and stored in the <code>GlobalResource</code>.</p>
+<pre><code class="hljs css language-scala"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">SharingSuite</span>(<span class="hljs-params">global: <span class="hljs-type">GlobalRead</span></span>) <span class="hljs-keyword">extends</span> <span class="hljs-title">IOSuite</span> </span>{
+  <span class="hljs-class"><span class="hljs-keyword">type</span> <span class="hljs-title">Res</span> </span>= <span class="hljs-type">String</span>
+  <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">sharedResource</span></span>: <span class="hljs-type">Resource</span>[<span class="hljs-type">IO</span>, <span class="hljs-type">String</span>] =
+    global.getOrFailR[<span class="hljs-type">String</span>]()
+
+  test(<span class="hljs-string">"a stranger, from the outside ! ooooh"</span>) { sharedString =&gt;
+    <span class="hljs-type">IO</span>(expect(sharedString == <span class="hljs-string">"hello world!"</span>))
+  }
+}
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">OtherSharingSuite</span>(<span class="hljs-params">global: <span class="hljs-type">GlobalRead</span></span>)</span>
+    <span class="hljs-keyword">extends</span> <span class="hljs-type">IOSuite</span> {
+  <span class="hljs-class"><span class="hljs-keyword">type</span> <span class="hljs-title">Res</span> </span>= <span class="hljs-type">Option</span>[<span class="hljs-type">Int</span>]
+
+  <span class="hljs-comment">// We didn't store an `Int` value in our `GlobalResourcesInit` impl</span>
+  <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">sharedResource</span></span>: <span class="hljs-type">Resource</span>[<span class="hljs-type">IO</span>, <span class="hljs-type">Option</span>[<span class="hljs-type">Int</span>]] =
+    global.getR[<span class="hljs-type">Int</span>]()
+
+  test(<span class="hljs-string">"oops, forgot something here"</span>) { sharedInt =&gt;
+    <span class="hljs-type">IO</span>(expect(sharedInt.isEmpty))
+  }
+}
+</code></pre>
+<h2><a class="anchor" aria-hidden="true" id="lifecycle"></a><a href="#lifecycle" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Lifecycle</h2>
+<p>Weaver guarantees the following order :</p>
+<ul>
+<li>All <code>GlobalResource</code> instances in current compile-unit are run. Because the interface they have access to is &quot;write-only&quot;, the order in which these instances are used should not matter.</li>
+<li>All suites are run in arbitrary order. Whether they run in parallel or not depends on the build-tool settings, not weaver.</li>
+<li>Weaver then calls the finalisers of the resources created from the various <code>GlobalResource</code> instances.</li>
+</ul>
+<p>This implies that <strong>all resources declared in GlobalResource will remain alive/active until all tests have run</strong>.</p>
+<h2><a class="anchor" aria-hidden="true" id="regarding-testonly-build-tool-commands"></a><a href="#regarding-testonly-build-tool-commands" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Regarding &quot;testOnly&quot; build tool commands</h2>
+<p>Some build tools provide a &quot;testOnly&quot; (or equivalent) command that lets you test a single suite. Because of how weaver taps into the same detection mechanism build tools use to communicate suites to the framework, you should either :</p>
+<ul>
+<li>pass your <code>GlobalResource</code> implementations to the <code>testOnly</code> command, alongside the suite you really want to run</li>
+<li>ensure that suites can recover when the resource they need is not found in <code>GlobalResource</code></li>
+</ul>
+<p>An example of how to do this:</p>
+<pre><code class="hljs css language-scala"><span class="hljs-keyword">import</span> cats.effect.{ <span class="hljs-type">IO</span>, <span class="hljs-type">Resource</span> }
+<span class="hljs-keyword">import</span> weaver._
+
+<span class="hljs-class"><span class="hljs-keyword">object</span> <span class="hljs-title">MyResources</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">GlobalResource</span> </span>{
+  <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">sharedResources</span></span>(global: <span class="hljs-type">GlobalWrite</span>): <span class="hljs-type">Resource</span>[<span class="hljs-type">IO</span>, <span class="hljs-type">Unit</span>] =
+    baseResources.flatMap(global.putR(_))
+
+  <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">baseResources</span></span>: <span class="hljs-type">Resource</span>[<span class="hljs-type">IO</span>, <span class="hljs-type">String</span>] = <span class="hljs-type">Resource</span>.pure[<span class="hljs-type">IO</span>, <span class="hljs-type">String</span>](<span class="hljs-string">"hello world!"</span>)
+
+  <span class="hljs-comment">// Provides a fallback to support running individual tests via testOnly</span>
+  <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">sharedResourceOrFallback</span></span>(read: <span class="hljs-type">GlobalRead</span>): <span class="hljs-type">Resource</span>[<span class="hljs-type">IO</span>, <span class="hljs-type">String</span>] =
+    read.getR[<span class="hljs-type">String</span>]().flatMap {
+      <span class="hljs-keyword">case</span> <span class="hljs-type">Some</span>(value) =&gt; <span class="hljs-type">Resource</span>.liftF(<span class="hljs-type">IO</span>(value))
+      <span class="hljs-keyword">case</span> <span class="hljs-type">None</span>        =&gt; baseResources
+    }
+}
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">MySuite</span>(<span class="hljs-params">global: <span class="hljs-type">GlobalRead</span></span>) <span class="hljs-keyword">extends</span> <span class="hljs-title">IOSuite</span> </span>{
+  <span class="hljs-keyword">import</span> <span class="hljs-type">MyResources</span>._
+
+  <span class="hljs-keyword">override</span> <span class="hljs-class"><span class="hljs-keyword">type</span> <span class="hljs-title">Res</span> </span>= <span class="hljs-type">String</span>
+
+  <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">sharedResource</span></span>: <span class="hljs-type">Resource</span>[<span class="hljs-type">IO</span>, <span class="hljs-type">String</span>] = sharedResourceOrFallback(global)
+
+  test(<span class="hljs-string">"a stranger, from the outside ! ooooh"</span>) { sharedString =&gt;
+    <span class="hljs-type">IO</span>(expect(sharedString == <span class="hljs-string">"hello world!"</span>))
+  }
+}
+</code></pre>
+<h2><a class="anchor" aria-hidden="true" id="regarding-global-resource-indexing"></a><a href="#regarding-global-resource-indexing" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Regarding global resource indexing</h2>
+<h3><a class="anchor" aria-hidden="true" id="runtime-constraints"></a><a href="#runtime-constraints" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Runtime constraints</h3>
+<p>The shared items are indexed via <code>weaver.ResourceTag</code>, a custom typeclass that has a default instance for based on <code>scala.reflect.ClassTag</code>. This implies that the default instance only works for types that are not subject to type-erasure.</p>
+<p>If the user wants to share resources which are subject to type-erasure (ie that have type parameters, such as <code>org.http4s.client.Client</code>), they have to provide an instance themselves, or alternatively use a monomorphic wrapper (which is not subject to type-erasure).</p>
+<pre><code class="hljs css language-scala"><span class="hljs-keyword">import</span> weaver._
+
+<span class="hljs-keyword">import</span> cats.effect.<span class="hljs-type">IO</span>
+<span class="hljs-keyword">import</span> cats.effect.<span class="hljs-type">Resource</span>
+
+<span class="hljs-comment">// Class subject to type-erasure</span>
+<span class="hljs-keyword">case</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Foo</span>[<span class="hljs-type">A</span>](<span class="hljs-params">value : <span class="hljs-type">A</span></span>)</span>
+
+<span class="hljs-class"><span class="hljs-keyword">object</span> <span class="hljs-title">FailingSharedResources</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">GlobalResource</span> </span>{
+  <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">sharedResources</span></span>(global: <span class="hljs-type">GlobalWrite</span>): <span class="hljs-type">Resource</span>[<span class="hljs-type">IO</span>, <span class="hljs-type">Unit</span>] =
+    global.putR(<span class="hljs-type">Foo</span>(<span class="hljs-string">"hello"</span>))
+}
+<span class="hljs-comment">// error:</span>
+<span class="hljs-comment">// </span>
+<span class="hljs-comment">// Could not find an implicit ResourceTag instance for type repl.MdocSession.App.Foo[String]</span>
+<span class="hljs-comment">// This is likely because repl.MdocSession.App.Foo is subject to type erasure. You can implement a ResourceTag manually or wrap the item you are trying to store/access, in some monomorphic case class that is not subject to type erasure</span>
+<span class="hljs-comment">// </span>
+<span class="hljs-comment">// </span>
+<span class="hljs-comment">// Error occurred in an application involving default arguments.</span>
+<span class="hljs-comment">//     global.putR(Foo("hello"))</span>
+<span class="hljs-comment">//     ^^^^^^^^^^^^^^^^^^^^^^^^^</span>
+</code></pre>
+<h3><a class="anchor" aria-hidden="true" id="labelling"></a><a href="#labelling" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Labelling</h3>
+<p>On the two sides of (production and consumption) of the global resources, it is possible to label the resources with string values, to discriminate between several resources of the same.</p>
+<pre><code class="hljs css language-scala"><span class="hljs-keyword">import</span> cats.syntax.all._
+
+<span class="hljs-class"><span class="hljs-keyword">object</span> <span class="hljs-title">LabelSharedResources</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">GlobalResource</span> </span>{
+  <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">sharedResources</span></span>(global: <span class="hljs-type">GlobalWrite</span>): <span class="hljs-type">Resource</span>[<span class="hljs-type">IO</span>, <span class="hljs-type">Unit</span>] =
+    <span class="hljs-keyword">for</span> {
+      _ &lt;- global.putR(<span class="hljs-number">1</span>, <span class="hljs-string">"one"</span>.some)
+      _ &lt;- global.putR(<span class="hljs-number">2</span>, <span class="hljs-string">"two"</span>.some)
+    } <span class="hljs-keyword">yield</span> ()
+}
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">LabelSharingSuite</span>(<span class="hljs-params">global: <span class="hljs-type">GlobalRead</span></span>)</span>
+    <span class="hljs-keyword">extends</span> <span class="hljs-type">IOSuite</span> {
+
+  <span class="hljs-class"><span class="hljs-keyword">type</span> <span class="hljs-title">Res</span> </span>= <span class="hljs-type">Int</span>
+
+  <span class="hljs-comment">// We didn't store an `Int` value in our `GlobalResourcesInit` impl</span>
+  <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">sharedResource</span></span>: <span class="hljs-type">Resource</span>[<span class="hljs-type">IO</span>, <span class="hljs-type">Int</span>] = <span class="hljs-keyword">for</span> {
+    one &lt;- global.getOrFailR[<span class="hljs-type">Int</span>](<span class="hljs-string">"one"</span>.some)
+    two &lt;- global.getOrFailR[<span class="hljs-type">Int</span>](<span class="hljs-string">"two"</span>.some)
+  } <span class="hljs-keyword">yield</span> one + two
+
+  test(<span class="hljs-string">"labels work"</span>) { sharedInt =&gt;
+    <span class="hljs-type">IO</span>(expect(sharedInt == <span class="hljs-number">3</span>))
+  }
+}
+</code></pre>
+</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/weaver-test/docs/0.6.0-M2/resources"><span class="arrow-prev">← </span><span>Sharing resources</span></a><a class="docs-next button" href="/weaver-test/docs/0.6.0-M2/logging"><span>Logging information</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#a-word-of-warning">A word of warning</a></li><li><a href="#declaring-global-resources">Declaring global resources</a></li><li><a href="#accessing-global-resources">Accessing global resources</a></li><li><a href="#lifecycle">Lifecycle</a></li><li><a href="#regarding-testonly-build-tool-commands">Regarding &quot;testOnly&quot; build tool commands</a></li><li><a href="#regarding-global-resource-indexing">Regarding global resource indexing</a><ul class="toc-headings"><li><a href="#runtime-constraints">Runtime constraints</a></li><li><a href="#labelling">Labelling</a></li></ul></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/weaver-test/" class="nav-home"></a><div><h5>Community</h5><a href="https://twitter.com/disneystreaming" target="_blank" rel="noreferrer noopener">Twitter</a></div><div><h5>More</h5><a href="https://github.com/disneystreaming/weaver-test">GitHub</a><a class="github-button" href="https://github.com/disneystreaming/weaver-test" data-icon="octicon-star" data-count-href="/facebook/docusaurus/stargazers" data-show-count="true" data-count-aria-label="# stargazers on GitHub" aria-label="Star this project on GitHub">Star</a><div class="social"><a href="https://twitter.com/disneystreaming" class="twitter-follow-button">Follow @disneystreaming</a></div></div></section><a href="https://github.com/disneystreaming" target="_blank" rel="noreferrer noopener" class="dssOpenSource"><img src="/weaver-test/img/dss-white-transparent.svg" alt="Disney Streaming Services Open Source" width="204" height="54"/></a><section class="copyright">Copyright © 2020 Disney Streaming Services</section></footer></div><script>window.twttr=(function(d,s, id){var js,fjs=d.getElementsByTagName(s)[0],t=window.twttr||{};if(d.getElementById(id))return t;js=d.createElement(s);js.id=id;js.src='https://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js, fjs);t._e = [];t.ready = function(f) {t._e.push(f);};return t;}(document, 'script', 'twitter-wjs'));</script></body></html>
