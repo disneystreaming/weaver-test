@@ -33,7 +33,6 @@ Global / (Test / testOptions) += Tests.Argument("--quickstart")
 
 lazy val root = project
   .in(file("."))
-  .enablePlugins(ScalafixPlugin)
   .aggregate(allModules: _*)
   .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.doNotPublishArtifact)
@@ -112,7 +111,7 @@ val allIntegrationsCoresFilter: ScopeFilter =
 
 lazy val docs = projectMatrix
   .in(file("modules/docs"))
-  .jvmPlatform(WeaverPlugin.suppertedScala2Versions)
+  .jvmPlatform(WeaverPlugin.supportedScala2Versions)
   .enablePlugins(DocusaurusPlugin, MdocPlugin)
   .dependsOn(core, scalacheck, cats, zio, monix, monixBio, specs2)
   .settings(

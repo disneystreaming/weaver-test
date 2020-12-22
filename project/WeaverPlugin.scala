@@ -17,6 +17,7 @@ import scala.collection.immutable.Nil
 import java.util.regex.MatchResult
 import lmcoursier.definitions.Reconciliation.SemVer
 import sbt.VirtualAxis.ScalaVersionAxis
+import _root_.scalafix.sbt.ScalafixPlugin
 
 case class CatsEffectAxis(idSuffix: String, directorySuffix: String)
     extends VirtualAxis.WeakAxis
@@ -29,47 +30,82 @@ object WeaverPlugin extends AutoPlugin {
   val CatsEffect2Axis = CatsEffectAxis("_CE2", "ce2")
   val CatsEffect3Axis = CatsEffectAxis("_CE3", "ce3")
 
-  val defaults = Seq[VirtualAxis](
-    CatsEffect2Axis,
-    VirtualAxis.jvm,
-    VirtualAxis.scalaVersionAxis(WeaverPlugin.scala213, "2.13"))
-
   implicit final class ProjectMatrixOps(pmx: ProjectMatrix) {
-    def onlyCatsEffect2(withJs: Boolean = true, onlyScala2: Boolean = false) = {
-      val tmp = pmx.defaultAxes(defaults: _*)
-        .customRow(
-          scalaVersions = if(onlyScala2) WeaverPlugin.suppertedScala2Versions else WeaverPlugin.supportedScalaVersions,
-          axisValues = Seq(CatsEffect2Axis, VirtualAxis.jvm),
-          Seq()
+    type ConfigureX = ProjectMatrix => ProjectMatrix
+    type Configure  = Project => Project
+
+    val defaults = Seq[VirtualAxis](
+      CatsEffect2Axis,
+      VirtualAxis.jvm,
+      VirtualAxis.scalaVersionAxis(WeaverPlugin.scala213, "2.13"))
+
+    def addOne(
+        scalaVersion: String,
+        platform: VirtualAxis.PlatformAxis,
+        catsEffectAxis: CatsEffectAxis): ConfigureX = {
+      projectMatrix =>
+        val addScalafix: Configure =
+          if (scalaVersion != scala3) (_: Project).enablePlugins(ScalafixPlugin)
+          else (_: Project).disablePlugins(ScalafixPlugin)
+
+        val scalaJSSettings: Configure =
+          if (platform == VirtualAxis.js) configureScalaJSProject else identity
+
+        val ce3VersionOverride: Configure =
+          if (catsEffectAxis == CatsEffect3Axis)
+            _.settings(versionOverrideForCE3)
+          else identity
+
+        val configureProject =
+          addScalafix andThen scalaJSSettings andThen ce3VersionOverride
+
+        projectMatrix.defaultAxes(defaults: _*).customRow(
+          scalaVersions = List(scalaVersion),
+          axisValues = Seq(catsEffectAxis, platform),
+          configureProject
         )
-      if (withJs)
-        tmp.customRow(
-          scalaVersions = if(onlyScala2) WeaverPlugin.suppertedScala2Versions else WeaverPlugin.supportedScalaVersions,
-          axisValues = Seq(CatsEffect2Axis, VirtualAxis.js),
-          configureScalaJSProject(_)
-        )
-      else tmp
     }
 
-    def crossCatsEffect = {
-      pmx.defaultAxes(defaults: _*)
-        .customRow(
-          scalaVersions = WeaverPlugin.supportedScalaVersions,
-          axisValues = Seq(CatsEffect2Axis, VirtualAxis.jvm),
-          Seq()
-        ).customRow(
-          scalaVersions = WeaverPlugin.supportedScalaVersions,
-          axisValues = Seq(CatsEffect3Axis, VirtualAxis.jvm),
-          versionOverrideForCE3
-        ).customRow(
-          scalaVersions = WeaverPlugin.supportedScalaVersions,
-          axisValues = Seq(CatsEffect2Axis, VirtualAxis.js),
-          configureScalaJSProject(_)
-        ).customRow(
-          scalaVersions = WeaverPlugin.supportedScalaVersions,
-          axisValues = Seq(CatsEffect3Axis, VirtualAxis.js),
-          configureScalaJSProject(_).settings(versionOverrideForCE3)
-        )
+    def add(
+        scalaVersions: Iterable[String],
+        platform: VirtualAxis.PlatformAxis,
+        catsEffectAxis: CatsEffectAxis): ConfigureX = {
+      scalaVersions.map(addOne(_, platform, catsEffectAxis)).reduce(_ andThen _)
+    }
+
+    def onlyCatsEffect2(
+        withJs: Boolean = true,
+        onlyScala2: Boolean = false): ProjectMatrix = {
+      val default =
+        add(supportedScala2Versions, VirtualAxis.jvm, CatsEffect2Axis)
+
+      val scala3Rows: ConfigureX =
+        if (!onlyScala2) {
+          if (withJs)
+            addOne(scala3, VirtualAxis.jvm, CatsEffect2Axis) andThen
+              addOne(scala3, VirtualAxis.js, CatsEffect2Axis)
+          else
+            addOne(scala3, VirtualAxis.jvm, CatsEffect2Axis)
+        } else identity
+
+      val jsRows: ConfigureX =
+        if (withJs) {
+          add(supportedScala2Versions, VirtualAxis.js, CatsEffect2Axis)
+        } else identity
+
+      val configure = default andThen scala3Rows andThen jsRows
+
+      configure(pmx)
+    }
+
+    def crossCatsEffect: ProjectMatrix = {
+      val configure: ConfigureX =
+        add(supportedScalaVersions, VirtualAxis.jvm, CatsEffect2Axis) andThen
+          add(supportedScalaVersions, VirtualAxis.js, CatsEffect2Axis) andThen
+          add(supportedScalaVersions, VirtualAxis.jvm, CatsEffect3Axis) andThen
+          add(supportedScalaVersions, VirtualAxis.js, CatsEffect3Axis)
+
+      configure(pmx)
     }
   }
 
@@ -122,7 +158,7 @@ object WeaverPlugin extends AutoPlugin {
   lazy val scala3                 = "3.0.0-M3"
   lazy val supportedScalaVersions = List(scala212, scala213, scala3)
 
-  lazy val suppertedScala2Versions = List(scala212, scala213)
+  lazy val supportedScala2Versions = List(scala212, scala213)
 
   /** @see [[sbt.AutoPlugin]] */
   override val projectSettings = Seq(
@@ -168,7 +204,7 @@ object WeaverPlugin extends AutoPlugin {
         commonCompilerOptions.filterNot(flg =>
           flg.contains("explaintypes") || flg.contains(
             "-Xlint") || flg.contains(
-            "-Ywarn-") || flg.contains("-Xcheckinit")) 
+            "-Ywarn-") || flg.contains("-Xcheckinit"))
       else commonCompilerOptions
 
     allowed ++ {
@@ -264,6 +300,7 @@ object WeaverPlugin extends AutoPlugin {
       case "coverage" => pr
       case _          => pr.disablePlugins(scoverage.ScoverageSbtPlugin)
     }
+
     withCoverage
   }
 
