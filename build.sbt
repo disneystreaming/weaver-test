@@ -48,7 +48,7 @@ lazy val allModules = Seq(
   effectFrameworks
 ).flatten
 
-lazy val catsEffect3Version = "3.0.0-M4"
+lazy val catsEffect3Version = "3.0.0-M5"
 
 def catsEffectDependencies(proj: Project): Project = {
   proj.settings(
@@ -60,7 +60,7 @@ def catsEffectDependencies(proj: Project): Project = {
         )
       else
         Seq(
-          "co.fs2"        %%% "fs2-core"    % "3.0.0-M6",
+          "co.fs2"        %%% "fs2-core"    % "3.0.0-M7",
           "org.typelevel" %%% "cats-effect" % catsEffect3Version
         )
     }

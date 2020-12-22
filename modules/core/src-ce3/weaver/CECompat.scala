@@ -1,7 +1,9 @@
 package weaver
 
-import cats.effect.Async
+import cats.Applicative
+import cats.effect.kernel.GenConcurrent
 import cats.effect.syntax.all._
+import cats.effect.{ Async, Resource }
 import cats.syntax.all._
 
 private[weaver] object CECompat extends CECompat
@@ -31,5 +33,25 @@ private[weaver] trait CECompat {
       f: F[A] => F[B]): F[B] =
     fa.background.use(fOutcome =>
       f(fOutcome.flatMap(_.embed(onCancel = Async[F].pure(default)))))
+
+  private[weaver] def resourceLift[F[_]: Applicative, A](
+      fa: F[A]): Resource[F, A] = Resource.eval(fa)
+
+  private[weaver] trait Queue[F[_], A] {
+    protected def ceQueue: cats.effect.std.Queue[F, A]
+
+    def enqueue(a: A): F[Unit]          = ceQueue.offer(a)
+    def dequeueStream: fs2.Stream[F, A] = fs2.Stream.repeatEval(ceQueue.take)
+  }
+
+  object Queue {
+    def unbounded[F[_], A](implicit gc: GenConcurrent[F, _]) =
+      cats.effect.std.Queue.unbounded[F, A].map {
+        q =>
+          new Queue[F, A] {
+            override val ceQueue = q
+          }
+      }
+  }
 
 }
