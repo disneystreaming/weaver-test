@@ -6,7 +6,7 @@ import cats.data.Chain
 import cats.effect.{ IO, Resource }
 import cats.syntax.all._
 
-import sbt.testing.Status
+import sbt.testing.Status.Error
 
 object DogFoodTests extends IOSuite {
 
@@ -33,7 +33,7 @@ object DogFoodTests extends IOSuite {
           val name = event.fullyQualifiedName()
           expect.all(
             name == "weaver.framework.test.Meta$CrashingSuite",
-            event.status() == Status.Error
+            event.status() == Error
           )
         } and exists(errorLogs) { log =>
           expect.all(
@@ -128,14 +128,18 @@ object DogFoodTests extends IOSuite {
           case LoggedEvent.Error(msg) => msg
         }.get
 
-        val expected = """
+        // HONESTLY.
+        val (location, capturedExpression) =
+          if (Platform.isScala3) (27, "1 == 2") else (28, "expect(1 == 2)")
+
+        val expected = s"""
         |- lots 0ms
         |  of
         |  multiline
         |  (failure)
-        |  assertion failed (modules/framework/cats/test/src/Meta.scala:28)
+        |  assertion failed (modules/framework/cats/test/src/Meta.scala:$location)
         |
-        |  expect(1 == 2)
+        |  $capturedExpression
         |
         """.stripMargin.trim
 
@@ -232,13 +236,13 @@ object DogFoodTests extends IOSuite {
   }
 
   private def expectEqual(
-      expected: String,
-      actual: String)(implicit loc: SourceLocation): Expectations = {
+      actual: String,
+      expected: String)(implicit loc: SourceLocation): Expectations = {
     if (expected.trim != actual.trim) {
       val report = multiLineComparisonReport(expected.trim, actual.trim)
 
       failure(
-        s"Output is not as expected (line-by-line-comparison below): \n\n$report")
+        s"Output is not as expected (line-by-line-comparison below, expected content is on the LEFT): \n\n$report")
     } else
       Expectations.Helpers.success
   }

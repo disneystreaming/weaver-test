@@ -22,6 +22,11 @@ trait Checkers[F[_]] {
   // Configuration for property-based tests
   def checkConfig: CheckConfig = CheckConfig.default
 
+  def forallCheck[A1: Arbitrary: Show](f: A1 => Prop)(
+      implicit loc: SourceLocation): F[Expectations] =
+    forall(implicitly[Arbitrary[A1]].arbitrary)(f)
+
+
   def forall[A1: Arbitrary: Show](f: A1 => Prop)(
       implicit loc: SourceLocation): F[Expectations] =
     forall(implicitly[Arbitrary[A1]].arbitrary)(f)

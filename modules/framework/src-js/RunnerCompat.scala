@@ -55,7 +55,7 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
   override def done(): String = {
     val sb = new StringBuilder
 
-    val s = { str: String =>
+    val s = { (str: String) =>
       val _ = sb.append(str + TaskCompat.lineSeparator)
     }
 

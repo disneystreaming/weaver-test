@@ -75,8 +75,7 @@ class Runner[F[_]: CECompat.Effect](
       } yield outcome
     }
 
-    ch.dequeueStream.unNoneTerminate.evalMap(
-      handle).compile.foldMonoid.flatMap {
+    ch.dequeueStream.unNoneTerminate.evalMap(handle).compile.foldMonoid.flatMap {
       outcome =>
         for {
           failures <- buffer.get

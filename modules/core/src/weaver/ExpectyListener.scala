@@ -1,18 +1,11 @@
 package weaver
 
+import com.eed3si9n.expecty._
 import cats.data.{ NonEmptyList, ValidatedNel }
 import cats.syntax.all._
 
-import com.eed3si9n.expecty._
 
-class Expect
-    extends Recorder[Boolean, Expectations]
-    with UnaryRecorder[Boolean, Expectations] {
-
-  def all(recordings: Boolean*): Expectations =
-    macro VarargsRecorderMacro.apply[Boolean, Expectations]
-
-  class ExpectyListener extends RecorderListener[Boolean, Expectations] {
+class ExpectyListener extends RecorderListener[Boolean, Expectations] {
     def sourceLocation(loc: Location): SourceLocation = {
       SourceLocation(loc.path, loc.relativePath, loc.line)
     }
@@ -45,6 +38,3 @@ class Expect
       Expectations(res)
     }
   }
-
-  override lazy val listener = new ExpectyListener
-}

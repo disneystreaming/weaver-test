@@ -7,6 +7,7 @@ import cats.effect.{ IO, Resource }
 import cats.syntax.all._
 
 import weaver.framework._
+import org.scalacheck.Gen
 
 object PropertyDogFoodTest extends IOSuite {
 
@@ -16,7 +17,9 @@ object PropertyDogFoodTest extends IOSuite {
 
   test("Failed property tests get reported properly") { dogfood =>
     for {
-      (logs, events) <- dogfood.runSuite(Meta.FailedChecks)
+      results <- dogfood.runSuite(Meta.FailedChecks)
+      logs = results._1
+      events = results._2
     } yield {
       val errorLogs = logs.collect {
         case LoggedEvent.Error(msg) => msg
@@ -31,7 +34,7 @@ object PropertyDogFoodTest extends IOSuite {
   // 100 checks sleeping 1 second each should not take 100 seconds
   test("Checks are parallelised") { dogfood =>
     for {
-      (_, events) <- dogfood.runSuite(Meta.ParallelChecks)
+      events <- dogfood.runSuite(Meta.ParallelChecks).map(_._2)
       _           <- expect(events.size == 1).failFast
     } yield {
       expect(events.headOption.get.duration() < 10000)
@@ -60,8 +63,8 @@ object Meta {
       super.checkConfig.copy(perPropertyParallelism = 1, initialSeed = Some(1L))
 
     simpleTest("foobar") {
-      forall { x: Int =>
-        expect(x > 0)
+      forall { (x: Int) =>
+        IO(expect(x > 0))
       }
     }
   }

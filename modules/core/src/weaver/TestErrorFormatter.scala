@@ -64,6 +64,8 @@ object TestErrorFormatter {
             append(Snip(excl))
           case (Some(_: Element), Some(excl)) =>
             append(Snip(excl))
+
+          case (Some(Snip(_)), Some(_)) => throw new Exception("wat")
         }
     }
 

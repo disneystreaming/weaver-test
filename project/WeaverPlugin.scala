@@ -16,6 +16,7 @@ import org.scalajs.sbtplugin.ScalaJSPlugin
 import scala.collection.immutable.Nil
 import java.util.regex.MatchResult
 import lmcoursier.definitions.Reconciliation.SemVer
+import sbt.VirtualAxis.ScalaVersionAxis
 
 case class CatsEffectAxis(idSuffix: String, directorySuffix: String)
     extends VirtualAxis.WeakAxis
@@ -34,16 +35,16 @@ object WeaverPlugin extends AutoPlugin {
     VirtualAxis.scalaVersionAxis(WeaverPlugin.scala213, "2.13"))
 
   implicit final class ProjectMatrixOps(pmx: ProjectMatrix) {
-    def onlyCatsEffect2(withJs: Boolean = true) = {
+    def onlyCatsEffect2(withJs: Boolean = true, onlyScala2: Boolean = false) = {
       val tmp = pmx.defaultAxes(defaults: _*)
         .customRow(
-          scalaVersions = WeaverPlugin.supportedScalaVersions,
+          scalaVersions = if(onlyScala2) WeaverPlugin.suppertedScala2Versions else WeaverPlugin.supportedScalaVersions,
           axisValues = Seq(CatsEffect2Axis, VirtualAxis.jvm),
           Seq()
         )
       if (withJs)
         tmp.customRow(
-          scalaVersions = WeaverPlugin.supportedScalaVersions,
+          scalaVersions = if(onlyScala2) WeaverPlugin.suppertedScala2Versions else WeaverPlugin.supportedScalaVersions,
           axisValues = Seq(CatsEffect2Axis, VirtualAxis.js),
           configureScalaJSProject(_)
         )
@@ -118,7 +119,10 @@ object WeaverPlugin extends AutoPlugin {
 
   lazy val scala212               = "2.12.12"
   lazy val scala213               = "2.13.3"
-  lazy val supportedScalaVersions = List(scala212, scala213)
+  lazy val scala3                 = "3.0.0-M3"
+  lazy val supportedScalaVersions = List(scala212, scala213, scala3)
+
+  lazy val suppertedScala2Versions = List(scala212, scala213)
 
   /** @see [[sbt.AutoPlugin]] */
   override val projectSettings = Seq(
@@ -130,28 +134,44 @@ object WeaverPlugin extends AutoPlugin {
     Compile / doc / scalacOptions ~= (_ filterNot (_ == "-Xfatal-warnings")),
     // ScalaDoc settings
     autoAPIMappings := true,
-    ThisBuild / scalacOptions ++= Seq(
-      // Note, this is used by the doc-source-url feature to determine the
-      // relative path of a given source file. If it's not a prefix of a the
-      // absolute path of the source file, the absolute path of that file
-      // will be put into the FILE_SOURCE variable, which is
-      // definitely not what we want.
-      "-sourcepath",
-      file(".").getAbsolutePath.replaceAll("[.]$", "")
-    ),
+    // ThisBuild / scalacOptions ++= {
+    //   if((ThisBuild / scalacOptions).)
+    //   Seq(
+    //   // Note, this is used by the doc-source-url feature to determine the
+    //   // relative path of a given source file. If it's not a prefix of a the
+    //   // absolute path of the source file, the absolute path of that file
+    //   // will be put into the FILE_SOURCE variable, which is
+    //   // definitely not what we want.
+    //   "-sourcepath",
+    //   file(".").getAbsolutePath.replaceAll("[.]$", "")
+    // }
+    // ),
     // https://github.com/sbt/sbt/issues/2654
     incOptions := incOptions.value.withLogRecompileOnMacro(false),
     // https://scalacenter.github.io/scalafix/docs/users/installation.html
-    semanticdbEnabled := true,
+    semanticdbEnabled := !scalaVersion.value.startsWith("3.0"),
     semanticdbVersion := scalafixSemanticdb.revision,
-    addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1"),
-    addCompilerPlugin(
-      "org.typelevel" %% "kind-projector" % "0.11.2" cross CrossVersion.full
-    )
+    libraryDependencies ++= {
+      if (scalaVersion.value.startsWith("3.")) Seq.empty
+      else Seq(
+        compilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1"),
+        compilerPlugin(
+          "org.typelevel" %% "kind-projector" % "0.11.2" cross CrossVersion.full
+        )
+      )
+    }
   ) ++ coverageSettings ++ publishSettings
 
   def compilerOptions(scalaVersion: String) = {
-    commonCompilerOptions ++ {
+    val allowed =
+      if (scalaVersion.startsWith("3."))
+        commonCompilerOptions.filterNot(flg =>
+          flg.contains("explaintypes") || flg.contains(
+            "-Xlint") || flg.contains(
+            "-Ywarn-") || flg.contains("-Xcheckinit")) 
+      else commonCompilerOptions
+
+    allowed ++ {
       if (priorTo2_13(scalaVersion)) compilerOptions2_12_Only
       else Seq.empty
     }
@@ -268,6 +288,9 @@ object WeaverPlugin extends AutoPlugin {
       case VirtualAxis.jvm => List("", "-jvm")
       case CatsEffect3Axis => List("", "-ce3")
       case CatsEffect2Axis => List("", "-ce2")
+      case ScalaVersionAxis(ver, _) =>
+        if (ver.startsWith("3.")) List("", "-scala-3")
+        else List("", "-scala-2")
     }.toList
 
     def sequence[A](ll: List[List[A]]): List[List[A]] =

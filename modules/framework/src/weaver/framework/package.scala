@@ -12,7 +12,7 @@ package object framework {
       loader: ClassLoader)(
       implicit A: ClassTag[A],
       C: ClassTag[C]): A => C = {
-    Reflect.lookupInstantiatableClass(qualifiedName) match {
+    Reflect.lookupInstantiatableClass(qualifiedName, loader) match {
       case None =>
         throw new Exception(s"Could not find class $qualifiedName")
           with NoStackTrace
@@ -40,7 +40,7 @@ package object framework {
       qualifiedName: String,
       loader: ClassLoader): Any = {
     val moduleName = qualifiedName + "$"
-    Reflect.lookupLoadableModuleClass(moduleName) match {
+    Reflect.lookupLoadableModuleClass(moduleName, loader) match {
       case None =>
         throw new Exception(s"Could not load object $moduleName")
           with NoStackTrace

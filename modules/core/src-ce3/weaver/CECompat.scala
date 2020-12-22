@@ -5,6 +5,9 @@ import cats.effect.kernel.GenConcurrent
 import cats.effect.syntax.all._
 import cats.effect.{ Async, Resource }
 import cats.syntax.all._
+import cats.effect.Resource
+import cats.Applicative
+import cats.effect.kernel.GenConcurrent
 
 private[weaver] object CECompat extends CECompat
 
@@ -40,7 +43,7 @@ private[weaver] trait CECompat {
   private[weaver] trait Queue[F[_], A] {
     protected def ceQueue: cats.effect.std.Queue[F, A]
 
-    def enqueue(a: A): F[Unit]          = ceQueue.offer(a)
+    def enqueue(a: A): F[Unit] = ceQueue.offer(a)
     def dequeueStream: fs2.Stream[F, A] = fs2.Stream.repeatEval(ceQueue.take)
   }
 

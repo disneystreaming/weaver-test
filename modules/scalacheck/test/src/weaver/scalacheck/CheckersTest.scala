@@ -20,7 +20,7 @@ object CheckersTest extends SimpleIOSuite with IOCheckers {
   }
 
   simpleTest("form 1") {
-    forall { a: Int =>
+    forall { (a: Int) =>
       expect(a * 2 == 2 * a)
     }
   }
