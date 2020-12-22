@@ -17,12 +17,13 @@ private[weaver] trait DogFoodCompat[F[_]] { self: DogFood[F] =>
       eventHandler: EventHandler,
       logger: Logger)(tasks: List[sbt.testing.Task]): F[Unit] = {
 
-    effect.void{
-    tasks.toVector.parTraverse { task =>
-      blocker.block(task.execute(
-        eventHandler,
-        Array(logger)))
-    }}
+    effect.void {
+      tasks.toVector.parTraverse { task =>
+        blocker.block(task.execute(
+          eventHandler,
+          Array(logger)))
+      }
+    }
   }
 
   def done(runner: Runner): F[String] =
