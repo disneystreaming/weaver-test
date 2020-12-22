@@ -15,12 +15,12 @@ class Runner[F[_]: CECompat.Effect](
   import Runner._
 
   // Signaling option, because we need to detect completion
-  type Channel[A] = fs2.concurrent.Queue[F, Option[A]]
+  private type Channel[A] = CECompat.Queue[F, Option[A]]
 
   def run(suites: fs2.Stream[F, Suite[F]]): F[Outcome] =
     for {
       buffer  <- CECompat.Ref[F].of(Chain.empty[SpecEvent])
-      channel <- fs2.concurrent.Queue.unbounded[F, Option[SpecEvent]]
+      channel <- CECompat.Queue.unbounded[F, Option[SpecEvent]]
       outcome <-
         CECompat.background(consume(channel, buffer), Outcome.empty) { res =>
           suites
@@ -37,15 +37,15 @@ class Runner[F[_]: CECompat.Effect](
         }
     } yield outcome
 
-  def produce(ch: Channel[SpecEvent])(event: SpecEvent): F[Unit] =
-    ch.enqueue1(Some(event))
+  private def produce(ch: Channel[SpecEvent])(event: SpecEvent): F[Unit] =
+    ch.enqueue(Some(event))
 
-  def complete(channel: Channel[SpecEvent]): F[Unit] =
-    channel.enqueue1(None) // We are done !
+  private def complete(channel: Channel[SpecEvent]): F[Unit] =
+    channel.enqueue(None) // We are done !
 
   // Recursively consumes from a channel until a "None" gets produced,
   // indicating the end of the stream.
-  def consume(
+  private def consume(
       ch: Channel[SpecEvent],
       buffer: CECompat.Ref[F, Chain[SpecEvent]]): F[Outcome] = {
 
@@ -75,7 +75,8 @@ class Runner[F[_]: CECompat.Effect](
       } yield outcome
     }
 
-    ch.dequeue.unNoneTerminate.evalMap(handle).compile.foldMonoid.flatMap {
+    ch.dequeueStream.unNoneTerminate.evalMap(
+      handle).compile.foldMonoid.flatMap {
       outcome =>
         for {
           failures <- buffer.get

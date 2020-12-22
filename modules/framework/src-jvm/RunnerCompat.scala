@@ -142,7 +142,7 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
   private def resourceMap(
       globalResources: List[GlobalResourceF[F]]
   ): Resource[F, GlobalResourceF.Read[F]] =
-    Resource.liftF(GlobalResourceF.createMap[F]).flatTap { map =>
+    CECompat.resourceLift(GlobalResourceF.createMap[F]).flatTap { map =>
       globalResources.traverse(_.sharedResources(map)).void
     }
 

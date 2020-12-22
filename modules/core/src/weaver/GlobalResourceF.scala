@@ -38,7 +38,7 @@ object GlobalResourceF {
         implicit rt: ResourceTag[A]): F[Unit]
     def putR[A](value: A, label: Option[String] = None)(
         implicit rt: ResourceTag[A]): Resource[F, Unit] =
-      Resource.liftF(put(value, label))
+      CECompat.resourceLift(put(value, label))
   }
 
   trait Read[F[_]] {
@@ -48,7 +48,7 @@ object GlobalResourceF {
 
     def getR[A](label: Option[String] = None)(
         implicit rt: ResourceTag[A]): Resource[F, Option[A]] =
-      Resource.liftF(get[A](label))
+      CECompat.resourceLift(get[A](label))
 
     def getOrFail[A](label: Option[String] = None)(
         implicit rt: ResourceTag[A]
@@ -60,7 +60,7 @@ object GlobalResourceF {
       }
     def getOrFailR[A](label: Option[String] = None)(
         implicit rt: ResourceTag[A]): Resource[F, A] =
-      Resource.liftF(getOrFail[A](label))
+      CECompat.resourceLift(getOrFail[A](label))
 
   }
 
