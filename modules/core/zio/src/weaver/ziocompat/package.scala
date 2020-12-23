@@ -3,6 +3,7 @@ package weaver
 import java.util.concurrent.TimeUnit
 
 import cats.data.Chain
+
 import zio._
 import zio.clock.Clock
 import zio.interop.catz._

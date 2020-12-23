@@ -4,6 +4,7 @@ package ziocompat
 import scala.util.Try
 
 import cats.data.Chain
+
 import fs2._
 import zio._
 import zio.clock.Clock
