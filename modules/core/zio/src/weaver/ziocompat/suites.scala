@@ -3,8 +3,10 @@ package ziocompat
 
 import scala.util.Try
 
+import cats.data.Chain
 import fs2._
 import zio._
+import zio.clock.Clock
 import zio.interop.catz._
 
 trait BaseZIOSuite extends RunnableSuite[T] {
@@ -14,7 +16,7 @@ trait BaseZIOSuite extends RunnableSuite[T] {
 abstract class BaseMutableZIOSuite[Res <: Has[_]](implicit tag: Tag[Res])
     extends BaseZIOSuite {
 
-  val sharedLayer: ZLayer[ZEnv, Throwable, Res]
+  val sharedLayer: ZLayer[ZEnv with LogModule, Throwable, Res]
 
   def maxParallelism: Int = 10000
 
@@ -30,7 +32,7 @@ abstract class BaseMutableZIOSuite[Res <: Has[_]](implicit tag: Tag[Res])
     registerTest(name)(Test(name.name, ZIO(run)))
 
   def test(name: TestName)(
-      run: => ZIO[PerTestEnv[Res], Throwable, Expectations]): Unit =
+      run: => ZIO[Env[Res], Throwable, Expectations]): Unit =
     registerTest(name)(Test(name.name, ZIO.fromTry(Try { run }).flatten))
 
   override def spec(args: List[String]): Stream[T, TestOutcome] =
@@ -42,8 +44,15 @@ abstract class BaseMutableZIOSuite[Res <: Has[_]](implicit tag: Tag[Res])
       }
       if (filteredTests.isEmpty) Stream.empty // no need to allocate resources
       else {
-        val suiteLayer = sharedLayer.passthrough
         for {
+          ref <-
+            Stream.resource(
+              FiberRef.make(Chain.empty[Log.Entry]).toManaged_.toResourceZIO)
+          perTestLayer: RLayer[ZEnv, LogModule with ZEnv] =
+            ZEnv.any ++ ZLayer.fromEffect(ZIO.access[Clock](c =>
+              FiberRefLog(ref, c.get)))
+          suiteLayer =
+            (perTestLayer >+> sharedLayer).passthrough
           resource <- Stream.resource(suiteLayer.build.toResourceZIO)
           result <- Stream
             .emits(filteredTests)
