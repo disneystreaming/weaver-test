@@ -122,11 +122,12 @@ object Formatter {
       val fullMinutes = seconds / 60
       val remSeconds  = seconds % 60
 
-      if (remSeconds == 0) {
+      if (remSeconds == 0)
         s"${fullMinutes}min"
-      } else {
+      else if (remSeconds >= 10L)
         s"${fullMinutes}:${remSeconds}min"
-      }
+      else
+        s"${fullMinutes}:0${remSeconds}min"
     }
   }
 }

@@ -55,5 +55,4 @@ private[weaver] trait CECompat {
           }
       }
   }
-
 }

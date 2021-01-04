@@ -18,7 +18,7 @@ object Meta {
   object Rendering extends SimpleIOSuite {
     override implicit protected def effectCompat: UnsafeRun[IO] =
       SetTimeUnsafeRun
-    implicit val sourceLocation = TimeCop.sourceLocation
+    implicit val sourceLocation: SourceLocation = TimeCop.sourceLocation
 
     simpleTest("lots\nof\nmultiline\n(success)") {
       expect(1 == 1)
@@ -40,7 +40,7 @@ object Meta {
   object FailingTestStatusReporting extends SimpleIOSuite {
     override implicit protected def effectCompat: UnsafeRun[IO] =
       SetTimeUnsafeRun
-    implicit val sourceLocation = TimeCop.sourceLocation
+    implicit val sourceLocation: SourceLocation = TimeCop.sourceLocation
 
     simpleTest("I succeeded") {
       success
@@ -58,7 +58,7 @@ object Meta {
   object FailingSuiteWithlogs extends SimpleIOSuite {
     override implicit protected def effectCompat: UnsafeRun[IO] =
       SetTimeUnsafeRun
-    implicit val sourceLocation = TimeCop.sourceLocation
+    implicit val sourceLocation: SourceLocation = TimeCop.sourceLocation
 
     loggedTest("failure") { log =>
       val context = Map(

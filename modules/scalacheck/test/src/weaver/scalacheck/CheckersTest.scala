@@ -20,7 +20,7 @@ object CheckersTest extends SimpleIOSuite with IOCheckers {
   }
 
   simpleTest("form 1") {
-    forall { a: Int =>
+    forall { (a: Int) =>
       expect(a * 2 == 2 * a)
     }
   }
@@ -55,7 +55,13 @@ object CheckersTest extends SimpleIOSuite with IOCheckers {
     }
   }
 
-  simpleTest("io form") {
+  simpleTest("IO form (1)") {
+    forall { (a1: Int) =>
+      IO.sleep(100.millis).map(_ => expect(a1 * 2 == a1 + a1))
+    }
+  }
+
+  simpleTest("IO form (2)") {
     forall { (a1: Int, a2: Int) =>
       IO.sleep(1.second).map(_ => expect(a1 + a2 == a2 + a1))
     }
