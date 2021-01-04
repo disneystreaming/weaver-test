@@ -7,6 +7,7 @@ ThisBuild / commands += Command.command("ci") { state =>
     "test:scalafix --check" ::
     "clean" ::
     "test:compile" ::
+    "test:fastLinkJS" :: // do this separately as it's memory intensive
     "test" ::
     "docs/docusaurusCreateSite" ::
     "core/publishLocal" :: state
@@ -74,7 +75,7 @@ lazy val core = projectMatrix
   .configure(catsEffectDependencies)
   .settings(
     libraryDependencies ++= Seq(
-      "com.eed3si9n.expecty" %%% "expecty"                % "0.14.1-SNAPSHOT",
+      "com.eed3si9n.expecty" %%% "expecty"                % "0.15.0",
       ("org.portable-scala"  %%% "portable-scala-reflect" % "1.0.0").withDottyCompat(
         scalaVersion.value)
     ),
@@ -86,8 +87,7 @@ lazy val core = projectMatrix
         )
       else {
         Seq(
-          ("io.github.cquiroz" %%% "scala-java-time" % "2.0.0").withDottyCompat(
-            scalaVersion.value)
+          "io.github.cquiroz" %%% "scala-java-time" % "2.1.0"
         )
       }
     }
@@ -192,8 +192,7 @@ lazy val framework = projectMatrix
         Seq(
           ("org.scala-js" %% "scalajs-test-interface" % scalaJSVersion).withDottyCompat(
             scalaVersion.value),
-          ("io.github.cquiroz" %%% "scala-java-time-tzdb" % "2.0.0" % Test).withDottyCompat(
-            scalaVersion.value)
+          "io.github.cquiroz" %%% "scala-java-time-tzdb" % "2.1.0" % Test
         )
     }
   )
@@ -304,8 +303,7 @@ lazy val cats = projectMatrix
     testFrameworks := Seq(new TestFramework("weaver.framework.CatsEffect")),
     libraryDependencies += {
       // if(virtualAxes.contains(VirtualAxis.js))
-      ("io.github.cquiroz" %%% "scala-java-time-tzdb" % "2.0.0" % Test).withDottyCompat(
-        scalaVersion.value)
+      "io.github.cquiroz" %%% "scala-java-time-tzdb" % "2.1.0" % Test
     }
   )
 

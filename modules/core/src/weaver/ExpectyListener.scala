@@ -21,7 +21,8 @@ class ExpectyListener extends RecorderListener[Boolean, Expectations] {
     val res = recording.recordedExprs.foldMap[Exp] {
       expr =>
         lazy val rendering: String =
-          new ExpressionRenderer(showTypes = false).render(expr)
+          new ExpressionRenderer(showTypes = false, shortString = true).render(
+            expr)
 
         if (!expr.value) {
           val msg = recordedMessage()
