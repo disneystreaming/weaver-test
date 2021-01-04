@@ -18,6 +18,7 @@ import java.util.regex.MatchResult
 import lmcoursier.definitions.Reconciliation.SemVer
 import sbt.VirtualAxis.ScalaVersionAxis
 import _root_.scalafix.sbt.ScalafixPlugin
+import org.scalafmt.sbt.ScalafmtPlugin
 
 case class CatsEffectAxis(idSuffix: String, directorySuffix: String)
     extends VirtualAxis.WeakAxis
@@ -45,9 +46,13 @@ object WeaverPlugin extends AutoPlugin {
         catsEffectAxis: CatsEffectAxis): ConfigureX = {
       projectMatrix =>
         val addScalafix: Configure =
-          if (scalaVersion != scala3) (_: Project).enablePlugins(ScalafixPlugin)
+          if (scalaVersion == scala213) (_: Project).enablePlugins(ScalafixPlugin)
           else (_: Project).disablePlugins(ScalafixPlugin)
 
+        val addScalafmt: Configure =
+          if (scalaVersion == scala213) (_: Project).enablePlugins(ScalafmtPlugin)
+          else (_: Project).disablePlugins(ScalafmtPlugin)
+        
         val scalaJSSettings: Configure =
           if (platform == VirtualAxis.js) configureScalaJSProject else identity
 
@@ -57,7 +62,7 @@ object WeaverPlugin extends AutoPlugin {
           else identity
 
         val configureProject =
-          addScalafix andThen scalaJSSettings andThen ce3VersionOverride
+          addScalafix andThen addScalafmt andThen scalaJSSettings andThen ce3VersionOverride
 
         projectMatrix.defaultAxes(defaults: _*).customRow(
           scalaVersions = List(scalaVersion),
