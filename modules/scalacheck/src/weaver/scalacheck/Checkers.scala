@@ -3,7 +3,7 @@ package scalacheck
 
 import cats.effect.IO
 import cats.syntax.all._
-import cats.{ Defer, Show }
+import cats.{Applicative, Defer, Show}
 
 import org.scalacheck.rng.Seed
 import org.scalacheck.{ Arbitrary, Gen }
@@ -16,40 +16,39 @@ trait IOCheckers extends Checkers[IO] {
 
 trait Checkers[F[_]] {
   self: EffectSuite[F] =>
+  import Checkers._
 
-  type Prop = F[Expectations]
+  type PropF[A] = Prop[F, A]
 
-  type ExpectableF[B] = Expectable[F, B]
-
-  def liftExpectable[A, B: ExpectableF](f: A => B): A => Prop = {
-    f andThen (b => Expectable[F, B].lift(b))
+  private def liftProp[A, B: PropF](f: A => B): A => F[Expectations] = {
+    f andThen (b => Prop[F, B].lift(b))
   }
 
   // Configuration for property-based tests
   def checkConfig: CheckConfig = CheckConfig.default
 
-  def forall[A1: Arbitrary: Show, B: ExpectableF](f: A1 => B)(
+  def forall[A1: Arbitrary: Show, B: PropF](f: A1 => B)(
       implicit loc: SourceLocation): F[Expectations] =
-    forall(implicitly[Arbitrary[A1]].arbitrary)(liftExpectable(f))
+    forall(implicitly[Arbitrary[A1]].arbitrary)(liftProp(f))
 
-  def forall[A1: Arbitrary: Show, A2: Arbitrary: Show, B: ExpectableF](f: (
+  def forall[A1: Arbitrary: Show, A2: Arbitrary: Show, B: PropF](f: (
       A1,
       A2) => B)(
       implicit loc: SourceLocation): F[Expectations] =
-    forall(implicitly[Arbitrary[(A1, A2)]].arbitrary)(liftExpectable(
+    forall(implicitly[Arbitrary[(A1, A2)]].arbitrary)(liftProp(
       f.tupled))
 
   def forall[
       A1: Arbitrary: Show,
       A2: Arbitrary: Show,
       A3: Arbitrary: Show,
-      B: ExpectableF](
+      B: PropF](
       f: (A1, A2, A3) => B)(
       implicit loc: SourceLocation): F[Expectations] = {
     implicit val tuple3Show: Show[(A1, A2, A3)] = {
       case (a1, a2, a3) => s"(${a1.show},${a2.show},${a3.show})"
     }
-    forall(implicitly[Arbitrary[(A1, A2, A3)]].arbitrary)(liftExpectable(
+    forall(implicitly[Arbitrary[(A1, A2, A3)]].arbitrary)(liftProp(
       f.tupled))
   }
 
@@ -58,14 +57,14 @@ trait Checkers[F[_]] {
       A2: Arbitrary: Show,
       A3: Arbitrary: Show,
       A4: Arbitrary: Show,
-      B: ExpectableF
+      B: PropF
   ](f: (A1, A2, A3, A4) => B)(
       implicit loc: SourceLocation): F[Expectations] = {
     implicit val tuple3Show: Show[(A1, A2, A3, A4)] = {
       case (a1, a2, a3, a4) => s"(${a1.show},${a2.show},${a3.show},${a4.show})"
     }
     forall(implicitly[Arbitrary[(A1, A2, A3, A4)]].arbitrary)(
-      liftExpectable(f.tupled))
+      liftProp(f.tupled))
   }
 
   def forall[
@@ -74,7 +73,7 @@ trait Checkers[F[_]] {
       A3: Arbitrary: Show,
       A4: Arbitrary: Show,
       A5: Arbitrary: Show,
-      B: ExpectableF
+      B: PropF
   ](f: (A1, A2, A3, A4, A5) => B)(
       implicit loc: SourceLocation): F[Expectations] = {
     implicit val tuple3Show: Show[(A1, A2, A3, A4, A5)] = {
@@ -82,7 +81,7 @@ trait Checkers[F[_]] {
         s"(${a1.show},${a2.show},${a3.show},${a4.show},${a5.show})"
     }
     forall(implicitly[Arbitrary[(A1, A2, A3, A4, A5)]].arbitrary)(
-      liftExpectable(f.tupled))
+      liftProp(f.tupled))
   }
 
   def forall[
@@ -92,7 +91,7 @@ trait Checkers[F[_]] {
       A4: Arbitrary: Show,
       A5: Arbitrary: Show,
       A6: Arbitrary: Show,
-      B: ExpectableF
+      B: PropF
   ](f: (A1, A2, A3, A4, A5, A6) => B)(
       implicit loc: SourceLocation): F[Expectations] = {
     implicit val tuple3Show: Show[(A1, A2, A3, A4, A5, A6)] = {
@@ -100,17 +99,17 @@ trait Checkers[F[_]] {
         s"(${a1.show},${a2.show},${a3.show},${a4.show},${a5.show},${a6.show})"
     }
     forall(implicitly[Arbitrary[(A1, A2, A3, A4, A5, A6)]].arbitrary)(
-      liftExpectable(f.tupled))
+      liftProp(f.tupled))
   }
 
   /** ScalaCheck test parameters instance. */
   val numbers = fs2.Stream.iterate(1)(_ + 1)
 
-  def forall[A: Show](gen: Gen[A])(f: A => Prop)(
+  def forall[A: Show](gen: Gen[A])(f: A => F[Expectations])(
       implicit loc: SourceLocation): F[Expectations] =
     Ref[F].of(Status.start[A]).flatMap(forall_(gen, f))
 
-  private def forall_[A: Show](gen: Gen[A], f: A => Prop)(
+  private def forall_[A: Show](gen: Gen[A], f: A => F[Expectations])(
       state: Ref[F, Status[A]])(
       implicit loc: SourceLocation): F[Expectations] = {
     paramStream
@@ -141,13 +140,15 @@ trait Checkers[F[_]] {
   private def testOneTupled[T: Show](
       gen: Gen[T],
       state: Ref[F, Status[T]],
-      f: T => Prop)(ps: (Gen.Parameters, Seed)) =
+      f: T => F[Expectations])(ps: (Gen.Parameters, Seed)) =
     testOne(gen, state, f)(ps._1, ps._2)
 
   private def testOne[T: Show](
       gen: Gen[T],
       state: Ref[F, Status[T]],
-      f: T => Prop)(params: Gen.Parameters, seed: Seed): F[Status[T]] = {
+      f: T => F[Expectations])(
+      params: Gen.Parameters,
+      seed: Seed): F[Status[T]] = {
     Defer[F](self.effect).defer {
       gen(params, seed)
         .traverse(x => f(x).map(x -> _))
@@ -200,6 +201,28 @@ trait Checkers[F[_]] {
   }
   private object Status {
     def start[T] = Status[T](0, 0, None)
+  }
+
+}
+
+private[weaver] object Checkers {
+  trait Prop[F[_], A] {
+    def lift(a: A): F[Expectations]
+  }
+
+  object Prop {
+    def apply[F[_], B](implicit ev: Prop[F, B]): Prop[F, B] = ev
+
+    implicit def wrap[F[_]: Applicative]: Prop[F, Expectations] =
+      new Prop[F, Expectations] {
+        def lift(a: Expectations): F[Expectations] = Applicative[F].pure(a)
+      }
+
+    implicit def unwrapped[F[_]]: Prop[F, F[Expectations]] =
+      new Prop[F, F[Expectations]] {
+        def lift(a: F[Expectations]): F[Expectations] = a
+      }
+
   }
 
 }
