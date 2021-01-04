@@ -46,13 +46,15 @@ object WeaverPlugin extends AutoPlugin {
         catsEffectAxis: CatsEffectAxis): ConfigureX = {
       projectMatrix =>
         val addScalafix: Configure =
-          if (scalaVersion == scala213) (_: Project).enablePlugins(ScalafixPlugin)
+          if (scalaVersion == scala213)
+            (_: Project).enablePlugins(ScalafixPlugin)
           else (_: Project).disablePlugins(ScalafixPlugin)
 
         val addScalafmt: Configure =
-          if (scalaVersion == scala213) (_: Project).enablePlugins(ScalafmtPlugin)
+          if (scalaVersion == scala213)
+            (_: Project).enablePlugins(ScalafmtPlugin)
           else (_: Project).disablePlugins(ScalafmtPlugin)
-        
+
         val scalaJSSettings: Configure =
           if (platform == VirtualAxis.js) configureScalaJSProject else identity
 
@@ -168,25 +170,25 @@ object WeaverPlugin extends AutoPlugin {
   /** @see [[sbt.AutoPlugin]] */
   override val projectSettings = Seq(
     moduleName := s"weaver-${name.value}",
-    // crossScalaVersions := supportedScalaVersions,
     scalacOptions ++= compilerOptions(scalaVersion.value),
     Test / scalacOptions ~= (_ filterNot (_ == "-Xfatal-warnings")),
     // Turning off fatal warnings for ScalaDoc, otherwise we can't release.
     Compile / doc / scalacOptions ~= (_ filterNot (_ == "-Xfatal-warnings")),
     // ScalaDoc settings
     autoAPIMappings := true,
-    // ThisBuild / scalacOptions ++= {
-    //   if((ThisBuild / scalacOptions).)
-    //   Seq(
-    //   // Note, this is used by the doc-source-url feature to determine the
-    //   // relative path of a given source file. If it's not a prefix of a the
-    //   // absolute path of the source file, the absolute path of that file
-    //   // will be put into the FILE_SOURCE variable, which is
-    //   // definitely not what we want.
-    //   "-sourcepath",
-    //   file(".").getAbsolutePath.replaceAll("[.]$", "")
-    // }
-    // ),
+    ThisBuild / scalacOptions ++= {
+      if (!(ThisBuild / scalacOptions).value.contains("-sourcepath"))
+        Seq(
+          // Note, this is used by the doc-source-url feature to determine the
+          // relative path of a given source file. If it's not a prefix of a the
+          // absolute path of the source file, the absolute path of that file
+          // will be put into the FILE_SOURCE variable, which is
+          // definitely not what we want.
+          "-sourcepath",
+          file(".").getAbsolutePath.replaceAll("[.]$", "")
+        )
+      else Seq.empty
+    },
     // https://github.com/sbt/sbt/issues/2654
     incOptions := incOptions.value.withLogRecompileOnMacro(false),
     // https://scalacenter.github.io/scalafix/docs/users/installation.html

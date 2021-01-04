@@ -73,7 +73,7 @@ object Meta {
 
     simpleTest("foobar") {
       forall { (x: Int) =>
-        IO(expect(x > 0))
+        expect(x > 0)
       }
     }
   }

@@ -302,7 +302,6 @@ lazy val cats = projectMatrix
     name := "cats",
     testFrameworks := Seq(new TestFramework("weaver.framework.CatsEffect")),
     libraryDependencies += {
-      // if(virtualAxes.contains(VirtualAxis.js))
       "io.github.cquiroz" %%% "scala-java-time-tzdb" % "2.1.0" % Test
     }
   )
