@@ -71,7 +71,7 @@ lazy val core = projectMatrix
   .in(file("modules/core"))
   .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.simpleLayout)
-  .crossCatsEffect
+  .full
   .configure(catsEffectDependencies)
   .settings(
     libraryDependencies ++= Seq(
@@ -189,7 +189,7 @@ lazy val docs = projectMatrix
 lazy val framework = projectMatrix
   .in(file("modules/framework"))
   .dependsOn(core)
-  .crossCatsEffect
+  .full
   .settings(
     libraryDependencies ++= {
       if (virtualAxes.value.contains(VirtualAxis.jvm))
@@ -211,7 +211,7 @@ lazy val framework = projectMatrix
 
 lazy val scalacheck = projectMatrix
   .in(file("modules/scalacheck"))
-  .crossCatsEffect
+  .full
   .dependsOn(core, cats % "test->compile")
   .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.simpleLayout)
@@ -224,15 +224,14 @@ lazy val scalacheck = projectMatrix
 
 lazy val specs2 = projectMatrix
   .in(file("modules/specs2"))
-  .crossCatsEffect
+  .sparse(withCE3 = true, withJS = true, withScala3 = false)
   .dependsOn(core, cats % "test->compile")
   .configure(WeaverPlugin.profile)
   .settings(
     name := "specs2",
     testFrameworks := Seq(new TestFramework("weaver.framework.CatsEffect")),
     libraryDependencies ++= Seq(
-      ("org.specs2" %%% "specs2-matcher" % "4.10.5").withDottyCompat(
-        scalaVersion.value)
+      "org.specs2" %%% "specs2-matcher" % "4.10.5"
     )
   )
   .settings(WeaverPlugin.simpleLayout)
@@ -246,7 +245,7 @@ lazy val effectCores: Seq[ProjectReference] =
 
 lazy val coreCats = projectMatrix
   .in(file("modules/core/cats"))
-  .crossCatsEffect
+  .full
   .dependsOn(core)
   .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.simpleLayout)
@@ -254,7 +253,7 @@ lazy val coreCats = projectMatrix
 
 lazy val coreMonix = projectMatrix
   .in(file("modules/core/monix"))
-  .onlyCatsEffect2(onlyScala2 = true)
+  .sparse(withCE3 = false, withJS = true, withScala3 = false)
   .dependsOn(core)
   .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.simpleLayout)
@@ -267,7 +266,7 @@ lazy val coreMonix = projectMatrix
 
 lazy val coreMonixBio = projectMatrix
   .in(file("modules/core/monixBio"))
-  .onlyCatsEffect2(onlyScala2 = true)
+  .sparse(withCE3 = false, withJS = true, withScala3 = false)
   .dependsOn(core)
   .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.simpleLayout)
@@ -280,7 +279,7 @@ lazy val coreMonixBio = projectMatrix
 
 lazy val coreZio = projectMatrix
   .in(file("modules/core/zio"))
-  .onlyCatsEffect2(onlyScala2 = true)
+  .sparse(withCE3 = false, withJS = true, withScala3 = false)
   .dependsOn(core)
   .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.simpleLayout)
@@ -305,7 +304,7 @@ lazy val effectFrameworks: Seq[ProjectReference] = Seq(
 lazy val cats = projectMatrix
   .in(file("modules/framework/cats"))
   .dependsOn(framework, coreCats)
-  .crossCatsEffect
+  .full
   .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.simpleLayout)
   .settings(
@@ -318,7 +317,7 @@ lazy val cats = projectMatrix
 
 lazy val monix = projectMatrix
   .in(file("modules/framework/monix"))
-  .onlyCatsEffect2(onlyScala2 = true)
+  .sparse(withCE3 = false, withJS = true, withScala3 = false)
   .dependsOn(framework, coreMonix)
   .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.simpleLayout)
@@ -329,7 +328,7 @@ lazy val monix = projectMatrix
 
 lazy val monixBio = projectMatrix
   .in(file("modules/framework/monix-bio"))
-  .onlyCatsEffect2(onlyScala2 = true)
+  .sparse(withCE3 = false, withJS = true, withScala3 = false)
   .dependsOn(framework, coreMonixBio)
   .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.simpleLayout)
@@ -340,7 +339,7 @@ lazy val monixBio = projectMatrix
 
 lazy val zio = projectMatrix
   .in(file("modules/framework/zio"))
-  .onlyCatsEffect2(onlyScala2 = true)
+  .sparse(withCE3 = false, withJS = true, withScala3 = false)
   .dependsOn(framework, coreZio)
   .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.simpleLayout)
@@ -354,7 +353,7 @@ lazy val zio = projectMatrix
 // #################################################################################################
 
 lazy val intellijRunner = projectMatrix
-  .onlyCatsEffect2(withJs = false, onlyScala2 = true)
+  .sparse(withCE3 = false, withJS = false, withScala3 = false)
   .in(file("modules/intellij-runner"))
   .dependsOn(core, framework, framework % "test->compile")
   .configure(WeaverPlugin.profile)

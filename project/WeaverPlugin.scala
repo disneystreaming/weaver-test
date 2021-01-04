@@ -79,41 +79,32 @@ object WeaverPlugin extends AutoPlugin {
         catsEffectAxis: CatsEffectAxis): ConfigureX = {
       scalaVersions.map(addOne(_, platform, catsEffectAxis)).reduce(_ andThen _)
     }
+    def full = sparse(true, true, true)
 
-    def onlyCatsEffect2(
-        withJs: Boolean = true,
-        onlyScala2: Boolean = false): ProjectMatrix = {
-      val default =
-        add(supportedScala2Versions, VirtualAxis.jvm, CatsEffect2Axis)
+    def sparse(
+        withCE3: Boolean,
+        withJS: Boolean,
+        withScala3: Boolean
+    ): ProjectMatrix = {
+      val defaultScalaVersions = supportedScala2Versions
+      val defaultPlatform      = List(VirtualAxis.jvm)
+      val defaultCE            = List(CatsEffect2Axis)
 
-      val scala3Rows: ConfigureX =
-        if (!onlyScala2) {
-          if (withJs)
-            addOne(scala3, VirtualAxis.jvm, CatsEffect2Axis) andThen
-              addOne(scala3, VirtualAxis.js, CatsEffect2Axis)
-          else
-            addOne(scala3, VirtualAxis.jvm, CatsEffect2Axis)
-        } else identity
+      val addJs     = if (withJS) List(VirtualAxis.js) else Nil
+      val addScala3 = if (withScala3) List(scala3) else Nil
+      val addCE3    = if (withCE3) List(CatsEffect3Axis) else Nil
 
-      val jsRows: ConfigureX =
-        if (withJs) {
-          add(supportedScala2Versions, VirtualAxis.js, CatsEffect2Axis)
-        } else identity
+      val configurators = for {
+        scalaVersion <- defaultScalaVersions ++ addScala3
+        platform     <- defaultPlatform ++ addJs
+        catsEffect   <- defaultCE ++ addCE3
+      } yield addOne(scalaVersion, platform, catsEffect)
 
-      val configure = default andThen scala3Rows andThen jsRows
-
-      configure(pmx)
-    }
-
-    def crossCatsEffect: ProjectMatrix = {
-      val configure: ConfigureX =
-        add(supportedScalaVersions, VirtualAxis.jvm, CatsEffect2Axis) andThen
-          add(supportedScalaVersions, VirtualAxis.js, CatsEffect2Axis) andThen
-          add(supportedScalaVersions, VirtualAxis.jvm, CatsEffect3Axis) andThen
-          add(supportedScalaVersions, VirtualAxis.js, CatsEffect3Axis)
+      val configure: ConfigureX = configurators.reduce(_ andThen _)
 
       configure(pmx)
     }
+
   }
 
   lazy val versionOverrideForCE3: Seq[Def.Setting[_]] = Seq(
