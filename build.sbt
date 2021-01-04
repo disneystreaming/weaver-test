@@ -159,6 +159,14 @@ lazy val docs = projectMatrix
       val integrations =
         process(projectsWithAxes.all(allIntegrationsCoresFilter).value)
 
+      val artifactsCE2Version = (cats.finder(
+        VirtualAxis.jvm,
+        CatsEffect2Axis).apply(scala213) / version).value
+
+      val artifactsCE3Version = (cats.finder(
+        VirtualAxis.jvm,
+        CatsEffect3Axis).apply(scala213) / version).value
+
       IO.write(
         filePath,
         s"""
@@ -166,6 +174,8 @@ lazy val docs = projectMatrix
         |
         | object BuildMatrix {
         |    val catsEffect3Version = ${q(catsEffect3Version)}
+        |    val artifactsCE2Version = ${q(artifactsCE2Version)}
+        |    val artifactsCE3Version = ${q(artifactsCE3Version)}
         |    val effects = $effects
         |    val integrations = $integrations
         | }
