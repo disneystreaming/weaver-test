@@ -30,10 +30,10 @@ object ExpectationsTests extends SimpleIOSuite {
   }
 
   pureTest("forall (success)") {
-    forall(List(true, true))(value => expect(value == true))
+    forEach(List(true, true))(value => expect(value == true))
   }
 
   pureTest("forall (failure)") {
-    not(forall(List(true, false))(value => expect(value == true)))
+    not(forEach(List(true, false))(value => expect(value == true)))
   }
 }

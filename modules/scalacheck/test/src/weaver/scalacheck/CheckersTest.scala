@@ -13,10 +13,6 @@ object CheckersTest extends SimpleIOSuite with IOCheckers {
   override def checkConfig: CheckConfig =
     super.checkConfig.copy(perPropertyParallelism = 100)
 
-  simpleTest("forall is resolved unambiguously") {
-    forall(List(true, true)) { (value: Boolean) => expect(value) }
-  }
-
   simpleTest("universal") {
     forall(Gen.posNum[Int]) { a =>
       expect(a > 0)
