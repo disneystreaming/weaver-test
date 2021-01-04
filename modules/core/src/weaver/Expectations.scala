@@ -12,13 +12,15 @@ trait Expectable[F[_], A] {
 
 object Expectable {
   def apply[F[_], B](implicit ev: Expectable[F, B]): Expectable[F, B] = ev
-  implicit def syncExpectable[F[_]: Sync]: Expectable[F, Expectations] = new Expectable[F, Expectations] {
-    def lift(a: Expectations): F[Expectations] = Sync[F].delay(a)
-  }
+  implicit def syncExpectable[F[_]: Sync]: Expectable[F, Expectations] =
+    new Expectable[F, Expectations] {
+      def lift(a: Expectations): F[Expectations] = Sync[F].delay(a)
+    }
 
-  implicit def expectable[F[_]]: Expectable[F, F[Expectations]] = new Expectable[F, F[Expectations]] {
-    def lift(a: F[Expectations]): F[Expectations] = a
-  }
+  implicit def expectable[F[_]]: Expectable[F, F[Expectations]] =
+    new Expectable[F, F[Expectations]] {
+      def lift(a: F[Expectations]): F[Expectations] = a
+    }
 
 }
 
