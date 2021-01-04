@@ -25,7 +25,7 @@ object MySuite2 extends SimpleIOSuite {
   pureTest("Foldable operations") {
     val list = List(1,2,3)
     import cats.instances.list._
-    forall(list)(i => expect(i > 0)) and
+    forEach(list)(i => expect(i > 0)) and
     exists(list)(i => expect(i == 3))
   }
 
