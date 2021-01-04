@@ -14,7 +14,7 @@ object CheckersTest extends SimpleIOSuite with IOCheckers {
     super.checkConfig.copy(perPropertyParallelism = 100)
 
   simpleTest("universal") {
-    forall(Gen.posNum[Int]).apply { a =>
+    forall(Gen.posNum[Int]) { a =>
       expect(a > 0)
     }
   }

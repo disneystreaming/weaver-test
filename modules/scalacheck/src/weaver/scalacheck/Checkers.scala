@@ -30,13 +30,13 @@ trait Checkers[F[_]] {
 
   def forall[A1: Arbitrary: Show, B: ExpectableF](f: A1 => B)(
       implicit loc: SourceLocation): F[Expectations] =
-    forall(implicitly[Arbitrary[A1]].arbitrary).apply(liftExpectable(f))
+    forall(implicitly[Arbitrary[A1]].arbitrary)(liftExpectable(f))
 
   def forall[A1: Arbitrary: Show, A2: Arbitrary: Show, B: ExpectableF](f: (
       A1,
       A2) => B)(
       implicit loc: SourceLocation): F[Expectations] =
-    forall(implicitly[Arbitrary[(A1, A2)]].arbitrary).apply(liftExpectable(
+    forall(implicitly[Arbitrary[(A1, A2)]].arbitrary)(liftExpectable(
       f.tupled))
 
   def forall[
@@ -49,7 +49,7 @@ trait Checkers[F[_]] {
     implicit val tuple3Show: Show[(A1, A2, A3)] = {
       case (a1, a2, a3) => s"(${a1.show},${a2.show},${a3.show})"
     }
-    forall(implicitly[Arbitrary[(A1, A2, A3)]].arbitrary).apply(liftExpectable(
+    forall(implicitly[Arbitrary[(A1, A2, A3)]].arbitrary)(liftExpectable(
       f.tupled))
   }
 
@@ -64,7 +64,7 @@ trait Checkers[F[_]] {
     implicit val tuple3Show: Show[(A1, A2, A3, A4)] = {
       case (a1, a2, a3, a4) => s"(${a1.show},${a2.show},${a3.show},${a4.show})"
     }
-    forall(implicitly[Arbitrary[(A1, A2, A3, A4)]].arbitrary).apply(
+    forall(implicitly[Arbitrary[(A1, A2, A3, A4)]].arbitrary)(
       liftExpectable(f.tupled))
   }
 
@@ -81,7 +81,7 @@ trait Checkers[F[_]] {
       case (a1, a2, a3, a4, a5) =>
         s"(${a1.show},${a2.show},${a3.show},${a4.show},${a5.show})"
     }
-    forall(implicitly[Arbitrary[(A1, A2, A3, A4, A5)]].arbitrary).apply(
+    forall(implicitly[Arbitrary[(A1, A2, A3, A4, A5)]].arbitrary)(
       liftExpectable(f.tupled))
   }
 
@@ -99,22 +99,16 @@ trait Checkers[F[_]] {
       case (a1, a2, a3, a4, a5, a6) =>
         s"(${a1.show},${a2.show},${a3.show},${a4.show},${a5.show},${a6.show})"
     }
-    forall(implicitly[Arbitrary[(A1, A2, A3, A4, A5, A6)]].arbitrary).apply(
+    forall(implicitly[Arbitrary[(A1, A2, A3, A4, A5, A6)]].arbitrary)(
       liftExpectable(f.tupled))
   }
 
   /** ScalaCheck test parameters instance. */
   val numbers = fs2.Stream.iterate(1)(_ + 1)
 
-  def forall[A](gen: Gen[A])(implicit sw: Show[A], loc: SourceLocation) =
-    new PartiallyAppliedGenForall[A](gen)
-
-  class PartiallyAppliedGenForall[A](gen: Gen[A])(
-      implicit sw: Show[A],
-      loc: SourceLocation) {
-    def apply(f: A => Prop) =
-      Ref[F].of(Status.start[A]).flatMap(forall_(gen, f))
-  }
+  def forall[A: Show](gen: Gen[A])(f: A => Prop)(
+      implicit loc: SourceLocation): F[Expectations] =
+    Ref[F].of(Status.start[A]).flatMap(forall_(gen, f))
 
   private def forall_[A: Show](gen: Gen[A], f: A => Prop)(
       state: Ref[F, Status[A]])(
