@@ -21,41 +21,47 @@ object CheckersTest extends SimpleIOSuite with IOCheckers {
 
   simpleTest("form 1") {
     forall { (a: Int) =>
-      IO(expect(a * 2 == 2 * a))
+      expect(a * 2 == 2 * a)
     }
   }
 
   simpleTest("form 2") {
     forall { (a1: Int, a2: Int) =>
-      IO(expect(a1 * a2 == a2 * a1))
+      expect(a1 * a2 == a2 * a1)
     }
   }
 
   simpleTest("form 3") {
     forall { (a1: Int, a2: Int, a3: Int) =>
-      IO(expect(a1 * a2 * a3 == a3 * a2 * a1))
+      expect(a1 * a2 * a3 == a3 * a2 * a1)
     }
   }
 
   simpleTest("form 4") {
     forall { (a1: Int, a2: Int, a3: Int, a4: Int) =>
-      IO(expect(a1 * a2 * a3 * a4 == a4 * a3 * a2 * a1))
+      expect(a1 * a2 * a3 * a4 == a4 * a3 * a2 * a1)
     }
   }
 
   simpleTest("form 5") {
     forall { (a1: Int, a2: Int, a3: Int, a4: Int, a5: Int) =>
-      IO(expect(a1 * a2 * a3 * a4 * a5 == a5 * a4 * a3 * a2 * a1))
+      expect(a1 * a2 * a3 * a4 * a5 == a5 * a4 * a3 * a2 * a1)
     }
   }
 
   simpleTest("form 6") {
     forall { (a1: Int, a2: Int, a3: Int, a4: Int, a5: Int, a6: Int) =>
-      IO(expect(a1 * a2 * a3 * a4 * a5 * a6 == a6 * a5 * a4 * a3 * a2 * a1))
+      expect(a1 * a2 * a3 * a4 * a5 * a6 == a6 * a5 * a4 * a3 * a2 * a1)
     }
   }
 
-  simpleTest("io form") {
+  simpleTest("IO form (1)") {
+    forall { (a1: Int) =>
+      IO.sleep(100.millis).map(_ => expect(a1 * 2 == a1 + a1))
+    }
+  }
+
+  simpleTest("IO form (2)") {
     forall { (a1: Int, a2: Int) =>
       IO.sleep(1.second).map(_ => expect(a1 + a2 == a2 + a1))
     }

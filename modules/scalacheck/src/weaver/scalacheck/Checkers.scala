@@ -19,37 +19,30 @@ trait Checkers[F[_]] {
 
   type Prop = F[Expectations]
 
+  type ExpectableF[B] = Expectable[F, B]
+
+  def liftExpectable[A, B: ExpectableF](f: A => B): A => Prop = {
+    f andThen(b => Expectable[F, B].lift(b))
+  }
+
   // Configuration for property-based tests
   def checkConfig: CheckConfig = CheckConfig.default
 
-  def forall[A1: Arbitrary: Show](f: A1 => Prop)(
+  def forall[A1: Arbitrary: Show, B: ExpectableF](f: A1 => B)(
       implicit loc: SourceLocation): F[Expectations] =
-    forall(implicitly[Arbitrary[A1]].arbitrary).apply(f)
+    forall(implicitly[Arbitrary[A1]].arbitrary).apply(liftExpectable(f))
 
-  def forall[A1: Arbitrary: Show, A2: Arbitrary: Show](f: (A1, A2) => Prop)(
+  def forall[A1: Arbitrary: Show, A2: Arbitrary: Show, B: ExpectableF](f: (A1, A2) => B)(
       implicit loc: SourceLocation): F[Expectations] =
-    forall(implicitly[Arbitrary[(A1, A2)]].arbitrary).apply(f.tupled)
+    forall(implicitly[Arbitrary[(A1, A2)]].arbitrary).apply(liftExpectable(f.tupled))
 
-  def forall[A1: Arbitrary: Show, A2: Arbitrary: Show, A3: Arbitrary: Show](
-      f: (A1, A2, A3) => Prop)(
+  def forall[A1: Arbitrary: Show, A2: Arbitrary: Show, A3: Arbitrary: Show, B: ExpectableF](
+      f: (A1, A2, A3) => B)(
       implicit loc: SourceLocation): F[Expectations] = {
     implicit val tuple3Show: Show[(A1, A2, A3)] = {
       case (a1, a2, a3) => s"(${a1.show},${a2.show},${a3.show})"
     }
-    forall(implicitly[Arbitrary[(A1, A2, A3)]].arbitrary).apply(f.tupled)
-  }
-
-  def forall[
-      A1: Arbitrary: Show,
-      A2: Arbitrary: Show,
-      A3: Arbitrary: Show,
-      A4: Arbitrary: Show
-  ](f: (A1, A2, A3, A4) => Prop)(
-      implicit loc: SourceLocation): F[Expectations] = {
-    implicit val tuple3Show: Show[(A1, A2, A3, A4)] = {
-      case (a1, a2, a3, a4) => s"(${a1.show},${a2.show},${a3.show},${a4.show})"
-    }
-    forall(implicitly[Arbitrary[(A1, A2, A3, A4)]].arbitrary).apply(f.tupled)
+    forall(implicitly[Arbitrary[(A1, A2, A3)]].arbitrary).apply(liftExpectable(f.tupled))
   }
 
   def forall[
@@ -57,15 +50,13 @@ trait Checkers[F[_]] {
       A2: Arbitrary: Show,
       A3: Arbitrary: Show,
       A4: Arbitrary: Show,
-      A5: Arbitrary: Show
-  ](f: (A1, A2, A3, A4, A5) => Prop)(
+      B: ExpectableF
+  ](f: (A1, A2, A3, A4) => B)(
       implicit loc: SourceLocation): F[Expectations] = {
-    implicit val tuple3Show: Show[(A1, A2, A3, A4, A5)] = {
-      case (a1, a2, a3, a4, a5) =>
-        s"(${a1.show},${a2.show},${a3.show},${a4.show},${a5.show})"
+    implicit val tuple3Show: Show[(A1, A2, A3, A4)] = {
+      case (a1, a2, a3, a4) => s"(${a1.show},${a2.show},${a3.show},${a4.show})"
     }
-    forall(implicitly[Arbitrary[(A1, A2, A3, A4, A5)]].arbitrary).apply(
-      f.tupled)
+    forall(implicitly[Arbitrary[(A1, A2, A3, A4)]].arbitrary).apply(liftExpectable(f.tupled))
   }
 
   def forall[
@@ -74,15 +65,33 @@ trait Checkers[F[_]] {
       A3: Arbitrary: Show,
       A4: Arbitrary: Show,
       A5: Arbitrary: Show,
-      A6: Arbitrary: Show
-  ](f: (A1, A2, A3, A4, A5, A6) => Prop)(
+      B: ExpectableF
+  ](f: (A1, A2, A3, A4, A5) => B)(
+      implicit loc: SourceLocation): F[Expectations] = {
+    implicit val tuple3Show: Show[(A1, A2, A3, A4, A5)] = {
+      case (a1, a2, a3, a4, a5) =>
+        s"(${a1.show},${a2.show},${a3.show},${a4.show},${a5.show})"
+    }
+    forall(implicitly[Arbitrary[(A1, A2, A3, A4, A5)]].arbitrary).apply(
+      liftExpectable(f.tupled))
+  }
+
+  def forall[
+      A1: Arbitrary: Show,
+      A2: Arbitrary: Show,
+      A3: Arbitrary: Show,
+      A4: Arbitrary: Show,
+      A5: Arbitrary: Show,
+      A6: Arbitrary: Show,
+      B: ExpectableF
+  ](f: (A1, A2, A3, A4, A5, A6) => B)(
       implicit loc: SourceLocation): F[Expectations] = {
     implicit val tuple3Show: Show[(A1, A2, A3, A4, A5, A6)] = {
       case (a1, a2, a3, a4, a5, a6) =>
         s"(${a1.show},${a2.show},${a3.show},${a4.show},${a5.show},${a6.show})"
     }
     forall(implicitly[Arbitrary[(A1, A2, A3, A4, A5, A6)]].arbitrary).apply(
-      f.tupled)
+      liftExpectable(f.tupled))
   }
 
   /** ScalaCheck test parameters instance. */

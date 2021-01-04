@@ -6,6 +6,22 @@ import cats.data.{ NonEmptyList, Validated, ValidatedNel }
 import cats.effect.Sync
 import cats.syntax.all._
 
+trait Expectable[F[_], A] {
+  def lift(a: A): F[Expectations]
+}
+
+object Expectable {
+  def apply[F[_], B](implicit ev: Expectable[F, B]): Expectable[F, B] = ev
+  implicit def syncExpectable[F[_]: Sync]: Expectable[F, Expectations] = new Expectable[F, Expectations] {
+    def lift(a: Expectations): F[Expectations] = Sync[F].delay(a)
+  }
+
+  implicit def expectable[F[_]]: Expectable[F, F[Expectations]] = new Expectable[F, F[Expectations]] {
+    def lift(a: F[Expectations]): F[Expectations] = a
+  }
+
+}
+
 case class Expectations(val run: ValidatedNel[AssertionException, Unit]) {
   self =>
 
