@@ -205,7 +205,7 @@ trait Checkers[F[_]] {
 
 }
 
-private[weaver] object Checkers {
+object Checkers {
   trait Prop[F[_], A] {
     def lift(a: A): F[Expectations]
   }
