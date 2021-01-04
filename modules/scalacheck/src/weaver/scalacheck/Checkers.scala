@@ -3,7 +3,7 @@ package scalacheck
 
 import cats.effect.IO
 import cats.syntax.all._
-import cats.{Applicative, Defer, Show}
+import cats.{ Applicative, Defer, Show }
 
 import org.scalacheck.rng.Seed
 import org.scalacheck.{ Arbitrary, Gen }
