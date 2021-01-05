@@ -17,8 +17,7 @@ object PropertyDogFoodTest extends IOSuite {
   test("Failed property tests get reported properly") { dogfood =>
     for {
       results <- dogfood.runSuite(Meta.FailedChecks)
-      logs   = results._1
-      events = results._2
+      logs = results._1
     } yield {
       val errorLogs = logs.collect {
         case LoggedEvent.Error(msg) => msg
@@ -53,7 +52,7 @@ object PropertyDogFoodTest extends IOSuite {
 }
 
 object Meta {
-  object ParallelChecks extends SimpleIOSuite with IOCheckers {
+  object ParallelChecks extends SimpleIOSuite with Checkers {
 
     override def checkConfig: CheckConfig =
       super.checkConfig
@@ -66,7 +65,7 @@ object Meta {
     }
   }
 
-  object FailedChecks extends SimpleIOSuite with IOCheckers {
+  object FailedChecks extends SimpleIOSuite with Checkers {
 
     override def checkConfig: CheckConfig =
       super.checkConfig.copy(perPropertyParallelism = 1, initialSeed = Some(5L))

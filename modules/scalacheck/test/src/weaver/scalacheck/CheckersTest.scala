@@ -8,7 +8,7 @@ import cats.syntax.all._
 
 import org.scalacheck.Gen
 
-object CheckersTest extends SimpleIOSuite with IOCheckers {
+object CheckersTest extends SimpleIOSuite with Checkers {
 
   override def checkConfig: CheckConfig =
     super.checkConfig.copy(perPropertyParallelism = 100)

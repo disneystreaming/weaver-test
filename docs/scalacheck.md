@@ -33,7 +33,7 @@ import org.scalacheck.Gen
 import weaver._
 import weaver.scalacheck._
 
-object ForallExamples extends SimpleIOSuite with IOCheckers {
+object ForallExamples extends SimpleIOSuite with Checkers {
 
   // Using a single `Gen` instance
   simpleTest("Single Gen form") {
