@@ -17,7 +17,7 @@ object PropertyDogFoodTest extends IOSuite {
   test("Failed property tests get reported properly") { dogfood =>
     for {
       results <- dogfood.runSuite(Meta.FailedChecks)
-      logs   = results._1
+      logs = results._1
     } yield {
       val errorLogs = logs.collect {
         case LoggedEvent.Error(msg) => msg
