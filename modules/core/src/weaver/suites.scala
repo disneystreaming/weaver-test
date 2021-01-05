@@ -17,9 +17,16 @@ trait Suite[F[_]] extends BaseSuiteClass {
   def spec(args: List[String]): Stream[F, TestOutcome]
 }
 
-// format: off
-trait EffectSuite[F[_]] extends Suite[F] with SourceLocation.Here { self =>
+// A version of EffectSuite that has a type member instead of a type parameter.
+protected[weaver] trait EffectSuiteAux {
+  type EffectType[A]
+  implicit protected def effect: CECompat.Effect[EffectType]
+}
 
+// format: off
+trait EffectSuite[F[_]] extends Suite[F] with EffectSuiteAux with SourceLocation.Here { self =>
+
+  final type EffectType[A] = F[A]
   implicit protected def effectCompat: EffectCompat[F]
   implicit final protected def effect: CECompat.Effect[F] = effectCompat.effect
 

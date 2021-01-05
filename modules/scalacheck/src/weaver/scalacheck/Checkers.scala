@@ -1,7 +1,6 @@
 package weaver
 package scalacheck
 
-import cats.effect.IO
 import cats.syntax.all._
 import cats.{ Applicative, Defer, Show }
 
@@ -10,13 +9,11 @@ import org.scalacheck.{ Arbitrary, Gen }
 
 import CECompat.Ref
 
-trait IOCheckers extends Checkers[IO] {
-  self: EffectSuite[IO] =>
-}
-
-trait Checkers[F[_]] {
-  self: EffectSuite[F] =>
+trait Checkers {
+  self: EffectSuiteAux =>
   import Checkers._
+
+  type F[A] = this.EffectType[A]
 
   type PropF[A] = Prop[F, A]
 
@@ -29,7 +26,7 @@ trait Checkers[F[_]] {
 
   def forall[A1: Arbitrary: Show, B: PropF](f: A1 => B)(
       implicit loc: SourceLocation): F[Expectations] =
-    forall(implicitly[Arbitrary[A1]].arbitrary)(liftProp(f))
+    forall(implicitly[Arbitrary[A1]].arbitrary)(liftProp[A1, B](f))
 
   def forall[A1: Arbitrary: Show, A2: Arbitrary: Show, B: PropF](f: (
       A1,
@@ -120,9 +117,11 @@ trait Checkers[F[_]] {
       .takeRight(1) // getting the first error (which finishes the stream)
       .compile
       .last
-      .map {
-        case Some(status) => status.endResult
-        case None         => Expectations.Helpers.success
+      .map { (x: Option[Status[A]]) =>
+        x match {
+          case Some(status) => status.endResult
+          case None         => Expectations.Helpers.success
+        }
       }
   }
 
@@ -152,10 +151,12 @@ trait Checkers[F[_]] {
     Defer[F](self.effect).defer {
       gen(params, seed)
         .traverse(x => f(x).map(x -> _))
-        .flatTap {
-          case Some((_, ex)) if ex.run.isValid => state.update(_.addSuccess)
-          case Some((t, ex))                   => state.update(_.addFailure(t.show, ex))
-          case None                            => state.update(_.addDiscard)
+        .flatTap { (x: Option[(T, Expectations)]) =>
+          x match {
+            case Some((_, ex)) if ex.run.isValid => state.update(_.addSuccess)
+            case Some((t, ex))                   => state.update(_.addFailure(t.show, ex))
+            case None                            => state.update(_.addDiscard)
+          }
         }
         .productR(state.get)
     }
