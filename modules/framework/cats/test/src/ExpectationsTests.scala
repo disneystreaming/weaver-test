@@ -36,4 +36,5 @@ object ExpectationsTests extends SimpleIOSuite {
   pureTest("forall (failure)") {
     not(forEach(List(true, false))(value => expect(value == true)))
   }
+
 }
