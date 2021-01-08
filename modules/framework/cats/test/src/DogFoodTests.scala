@@ -58,7 +58,7 @@ object DogFoodTests extends IOSuite {
         |
         """.stripMargin.trim
 
-        expectEqual(statusReport, expected)
+        expect.sameString(statusReport, expected)
     }
   }
 
@@ -81,7 +81,7 @@ object DogFoodTests extends IOSuite {
         exists(extractLogEventAfterFailures(logs) {
           case LoggedEvent.Error(msg) => msg
         }) { actual =>
-          expectEqual(actual, expected)
+          expect.sameString(actual, expected)
         }
     }
   }
@@ -117,7 +117,7 @@ object DogFoodTests extends IOSuite {
           |
           |""".stripMargin.trim
 
-        expectEqual(actual, expected)
+        expect.sameString(actual, expected)
     }
   }
 
@@ -143,7 +143,7 @@ object DogFoodTests extends IOSuite {
         |
         """.stripMargin.trim
 
-        expectEqual(actual, expected)
+        expect.sameString(actual, expected)
     }
   }
 
@@ -162,7 +162,7 @@ object DogFoodTests extends IOSuite {
         |  (success)
         """.stripMargin.trim
 
-        expectEqual(actual, expected)
+        expect.sameString(actual, expected)
     }
   }
 
@@ -182,7 +182,7 @@ object DogFoodTests extends IOSuite {
         |  Ignore me (src/main/DogFoodTests.scala:5)
         """.stripMargin.trim
 
-        expectEqual(actual, expected)
+        expect.sameString(actual, expected)
     }
   }
 
@@ -203,48 +203,8 @@ object DogFoodTests extends IOSuite {
         |  I was cancelled :( (src/main/DogFoodTests.scala:5)
         """.stripMargin.trim
 
-        expectEqual(actual, expected)
+        expect.sameString(actual, expected)
     }
-  }
-
-  private def multiLineComparisonReport(expectedS: String, actual: String) = {
-    val expectedLines = expectedS.split("\n").map(Option.apply).toVector
-    val actualLines   = actual.split("\n").map(Option.apply).toVector
-
-    val lines = expectedLines.size max actualLines.size
-    val maxExpectedLineLength = "<missing>".length max expectedLines
-      .map(_.map(_.length + 2).getOrElse(0))
-      .max
-    def padStr(s: String, l: Int) = s + (" " * (l - s.length))
-
-    (expectedLines
-      .padTo(lines, None))
-      .zip(actualLines.padTo(lines, None))
-      .map {
-        case (None, Some(actualLine)) =>
-          padStr("<missing>", maxExpectedLineLength) + " != " + s"'$actualLine'"
-        case (Some(expectedLine), Some(actualLine)) =>
-          val op = if (expectedLine == actualLine) "==" else "!="
-          padStr(s"'$expectedLine'",
-                 maxExpectedLineLength) + s" $op " + s"'$actualLine'"
-        case (Some(expectedLine), None) =>
-          padStr(s"'$expectedLine'",
-                 maxExpectedLineLength) + " != " + s"<missing>"
-        case (None, None) => "something impossible happened"
-      }
-      .mkString("\n")
-  }
-
-  private def expectEqual(
-      actual: String,
-      expected: String)(implicit loc: SourceLocation): Expectations = {
-    if (expected.trim != actual.trim) {
-      val report = multiLineComparisonReport(expected.trim, actual.trim)
-
-      failure(
-        s"Output is not as expected (line-by-line-comparison below, expected content is on the LEFT): \n\n$report")
-    } else
-      Expectations.Helpers.success
   }
 
   private def outputBeforeFailures(logs: Chain[LoggedEvent]): Chain[String] = {
