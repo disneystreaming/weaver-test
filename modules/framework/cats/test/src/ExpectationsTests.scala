@@ -37,4 +37,8 @@ object ExpectationsTests extends SimpleIOSuite {
     not(forEach(List(true, false))(value => expect(value == true)))
   }
 
+  pureTest("string comparison") {
+    expect.sameString("foo", "foo") and
+      not(expect.sameString("bar", "foo"))
+  }
 }
