@@ -58,6 +58,8 @@ object ExpectationsTests extends SimpleIOSuite {
       }
     }
 
-    expect.sameAs(Foo("foo", 1))(Foo("foo", 2))
+    val a = Foo("foo", 1)
+
+    ensure(a).is(a)
   }
 }

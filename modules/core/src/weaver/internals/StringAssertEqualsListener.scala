@@ -4,7 +4,7 @@ import cats.data.{ NonEmptyList, Validated }
 
 import com.eed3si9n.expecty._
 
-class StringAssertEqualsListener[A]
+private[weaver] class StringAssertEqualsListener[A]
     extends RecorderListener[String, Expectations] {
 
   def sourceLocation(loc: Location): SourceLocation = {

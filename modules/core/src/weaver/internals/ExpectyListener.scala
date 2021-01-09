@@ -6,7 +6,8 @@ import cats.syntax.all._
 
 import com.eed3si9n.expecty._
 
-class ExpectyListener extends RecorderListener[Boolean, Expectations] {
+private[weaver] class ExpectyListener
+    extends RecorderListener[Boolean, Expectations] {
   def sourceLocation(loc: Location): SourceLocation = {
     SourceLocation(loc.path, loc.relativePath, loc.line)
   }

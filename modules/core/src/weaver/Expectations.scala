@@ -134,15 +134,6 @@ object Expectations {
     def inEach[L[_], A](la: L[A])(f: A => Expectations)(
         implicit L: Foldable[L]): Expectations = forEach(la)(f)
 
-    def verify(condition: Boolean, hint: String)(
-        implicit pos: SourceLocation): Expectations =
-      if (condition) success
-      else failure(hint)
-
-    def verify(condition: Boolean)(
-        implicit pos: SourceLocation): Expectations =
-      verify(condition, "assertion failed!")
-
     def not(assertion: Expectations)(
         implicit pos: SourceLocation): Expectations = assertion.run match {
       case Valid(_)   => failure("Assertion was true")
