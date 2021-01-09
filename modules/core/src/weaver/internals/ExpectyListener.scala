@@ -1,4 +1,5 @@
 package weaver
+package internals
 
 import cats.data.{ NonEmptyList, ValidatedNel }
 import cats.syntax.all._

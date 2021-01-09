@@ -2,6 +2,8 @@ package weaver
 package framework
 package test
 
+import cats.Show
+
 object ExpectationsTests extends SimpleIOSuite {
 
   pureTest("and") {
@@ -40,5 +42,22 @@ object ExpectationsTests extends SimpleIOSuite {
   pureTest("string comparison") {
     expect.sameString("foo", "foo") and
       not(expect.sameString("bar", "foo"))
+  }
+
+  pureTest("case class comparison") {
+    case class Foo(s: String, i: Int)
+    object Foo {
+      implicit val show = Show.show[Foo] {
+        case Foo(s, i) =>
+          s"""
+          |Foo {
+          |  s: ${Show[String].show(s)}
+          |  i: ${Show[Int].show(i)}
+          |}
+          """.stripMargin.trim()
+      }
+    }
+
+    expect.sameAs(Foo("foo", 1))(Foo("foo", 2))
   }
 }
