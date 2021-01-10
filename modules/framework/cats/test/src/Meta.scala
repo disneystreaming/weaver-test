@@ -40,7 +40,7 @@ object Meta {
       import cats.Show
       case class Foo(s: String, i: Int)
       object Foo {
-        implicit val show = Show.show[Foo] {
+        implicit val show: Show[Foo] = Show.show[Foo] {
           case Foo(s, i) =>
             s"""
           |Foo {
