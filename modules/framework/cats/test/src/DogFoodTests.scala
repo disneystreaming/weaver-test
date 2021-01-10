@@ -58,7 +58,7 @@ object DogFoodTests extends IOSuite {
         |
         """.stripMargin.trim
 
-        expect.sameString(statusReport, expected)
+        expect.same(statusReport, expected)
     }
   }
 
@@ -81,7 +81,7 @@ object DogFoodTests extends IOSuite {
         exists(extractLogEventAfterFailures(logs) {
           case LoggedEvent.Error(msg) => msg
         }) { actual =>
-          expect.sameString(actual, expected)
+          expect.same(actual, expected)
         }
     }
   }
@@ -117,7 +117,7 @@ object DogFoodTests extends IOSuite {
           |
           |""".stripMargin.trim
 
-        expect.sameString(actual, expected)
+        expect.same(actual, expected)
     }
   }
 
@@ -143,7 +143,7 @@ object DogFoodTests extends IOSuite {
         |
         """.stripMargin.trim
 
-        expect.sameString(actual, expected)
+        expect.same(actual, expected)
     }
   }
 
@@ -162,7 +162,7 @@ object DogFoodTests extends IOSuite {
         |  (success)
         """.stripMargin.trim
 
-        expect.sameString(actual, expected)
+        expect.same(actual, expected)
     }
   }
 
@@ -182,7 +182,7 @@ object DogFoodTests extends IOSuite {
         |  Ignore me (src/main/DogFoodTests.scala:5)
         """.stripMargin.trim
 
-        expect.sameString(actual, expected)
+        expect.same(actual, expected)
     }
   }
 
@@ -203,7 +203,30 @@ object DogFoodTests extends IOSuite {
         |  I was cancelled :( (src/main/DogFoodTests.scala:5)
         """.stripMargin.trim
 
-        expect.sameString(actual, expected)
+        expect.same(actual, expected)
+    }
+  }
+
+  test(
+    "expect.same delegates to show when an insteance is found") {
+    _.runSuite(Meta.Rendering).map {
+      case (logs, _) =>
+        val actual =
+          extractLogEventAfterFailures(logs) {
+            case LoggedEvent.Error(msg) if msg.contains("(cats.Show)") => msg
+          }.get
+
+        val expected = """
+        |- (cats.Show) 0ms
+        |  Values not equal: (src/main/DogFoodTests.scala:5)
+        |
+        |  Foo {     |  Foo {
+        |    s: foo  |    s: foo
+        |    i: [1]  |    i: [2]
+        |  }         |  }
+        """.stripMargin.trim
+
+        expect.same(actual, expected)
     }
   }
 

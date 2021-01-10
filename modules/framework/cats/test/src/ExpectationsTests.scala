@@ -2,7 +2,7 @@ package weaver
 package framework
 package test
 
-import cats.Show
+import cats.kernel.Eq
 
 object ExpectationsTests extends SimpleIOSuite {
 
@@ -39,27 +39,14 @@ object ExpectationsTests extends SimpleIOSuite {
     not(forEach(List(true, false))(value => expect(value == true)))
   }
 
-  pureTest("string comparison") {
-    expect.sameString("foo", "foo") and
-      not(expect.sameString("bar", "foo"))
+  pureTest("equality check") {
+    expect.same("foo", "foo") and
+      not(expect.same("bar", "foo"))
   }
 
-  pureTest("case class comparison") {
-    case class Foo(s: String, i: Int)
-    object Foo {
-      implicit val show = Show.show[Foo] {
-        case Foo(s, i) =>
-          s"""
-          |Foo {
-          |  s: ${Show[String].show(s)}
-          |  i: ${Show[Int].show(i)}
-          |}
-          """.stripMargin.trim()
-      }
-    }
-
-    val a = Foo("foo", 1)
-
-    ensure(a).is(a)
+  pureTest("expect.same respects cats.kernel.Eq") {
+    implicit val eqInt: Eq[Int] = Eq.allEqual
+    expect.same(0, 1)
   }
+
 }

@@ -23,7 +23,7 @@ object MySuite2 extends SimpleIOSuite {
   }
 
   pureTest("Pretty string diffs") {
-    expect.sameString("foo", "bar")
+    expect.same("foo", "bar")
   }
 
   pureTest("Foldable operations") {
