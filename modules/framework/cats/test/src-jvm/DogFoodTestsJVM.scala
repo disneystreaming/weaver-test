@@ -4,6 +4,7 @@ package test
 
 import cats.effect.{ IO, Resource }
 import cats.syntax.all._
+
 import sbt.testing.Status
 
 object DogFoodTestsJVM extends IOSuite {

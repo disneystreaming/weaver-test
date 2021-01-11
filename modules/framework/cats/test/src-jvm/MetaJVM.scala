@@ -4,8 +4,9 @@ package test
 
 import java.io.File
 
-import cats.effect._
 import scala.concurrent.duration._
+
+import cats.effect._
 
 // The build tool will only detect and run top-level test suites. We can however nest objects
 // that contain failing tests, to allow for testing the framework without failing the build
