@@ -29,7 +29,7 @@ private class MemoisedResource[F[_]: Concurrent, A] {
         compute <- ref.modify {
           case Uninitialised =>
             val newState = InUse(valuePromise, finaliserPromise.get.flatten, 1)
-            val compute = resource.allocated.attempt.flatMap {
+            val compute = Concurrent[F].attempt(resource.allocated).flatMap {
               case Right((a, fin)) => for {
                   _ <- valuePromise.complete(Right(a))
                   _ <- finaliserPromise.complete(fin)

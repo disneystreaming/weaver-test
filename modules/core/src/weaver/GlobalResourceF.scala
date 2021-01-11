@@ -33,22 +33,61 @@ trait GlobalResourceF[F[_]] extends GlobalResourceBase {
 object GlobalResourceF {
 
   trait Write[F[_]] {
-    protected implicit def F: Sync[F]
+    protected implicit def F: CECompat.Effect[F]
+    protected def rawPut[A](
+        pureOrLazy: Either[A, Resource[F, A]],
+        label: Option[String])(implicit rt: ResourceTag[A]): F[Unit]
+
     def put[A](value: A, label: Option[String] = None)(
-        implicit rt: ResourceTag[A]): F[Unit]
+        implicit rt: ResourceTag[A]): F[Unit] = rawPut(Left(value), label)
     def putR[A](value: A, label: Option[String] = None)(
         implicit rt: ResourceTag[A]): Resource[F, Unit] =
       CECompat.resourceLift(put(value, label))
+
+    /**
+     * Memoises a resource so to optimise its sharing. The memoised resource gets allocated
+     * lazily, when the first suite that needs it starts running, and gets finalised as soon
+     * as all suites that need it concurrently are done.
+     *
+     * In case the resource was already finalised when a suite needs, it gets re-allocated
+     * on demand.
+     *
+     * This can be useful for constructs that consume large amount of machine resources
+     * (CPU, memory, connections), to ensure they are cleaned-up when they should.
+     */
+    def putLazy[A](
+        resource: Resource[F, A],
+        label: Option[String] = None)(implicit rt: ResourceTag[A]): F[Unit] =
+      MemoisedResource(resource).flatMap(r => rawPut(Right(r), label))
+
+    def putLazyR[A](
+        resource: Resource[F, A],
+        label: Option[String] = None)(implicit
+    rt: ResourceTag[A]): Resource[F, Unit] =
+      CECompat.resourceLift(putLazy(resource, label))
   }
 
   trait Read[F[_]] {
     protected implicit def F: MonadError[F, Throwable]
+
+    protected def rawGet[A](label: Option[String] = None)(
+        implicit rt: ResourceTag[A]): F[Option[Either[A, Resource[F, A]]]]
+
     def get[A](label: Option[String] = None)(
-        implicit rt: ResourceTag[A]): F[Option[A]]
+        implicit rt: ResourceTag[A]): F[Option[A]] = rawGet[A](label).map {
+      case Some(Left(value)) => Some(value)
+      case _                 => None
+    }
 
     def getR[A](label: Option[String] = None)(
         implicit rt: ResourceTag[A]): Resource[F, Option[A]] =
-      CECompat.resourceLift(get[A](label))
+      CECompat.resourceLift {
+        rawGet[A](label)
+      }.flatMap {
+        case Some(Left(value))     => Resource.pure(Some(value))
+        case Some(Right(resource)) => resource.map(Some(_))
+        case None                  => Resource.pure(None)
+      }
 
     def getOrFail[A](label: Option[String] = None)(
         implicit rt: ResourceTag[A]
@@ -58,31 +97,49 @@ object GlobalResourceF {
         case None =>
           F.raiseError(GlobalResourceF.ResourceNotFound(label, rt.description))
       }
+
     def getOrFailR[A](label: Option[String] = None)(
         implicit rt: ResourceTag[A]): Resource[F, A] =
-      CECompat.resourceLift(getOrFail[A](label))
-
+      getR[A](label).flatMap {
+        case Some(value) => Resource.pure[F, A](value)
+        case None =>
+          CECompat.resourceLift(F.raiseError(GlobalResourceF.ResourceNotFound(
+            label,
+            rt.description)))
+      }
   }
 
-  private[weaver] def createMap[F[_]: Sync]: F[Read[F] with Write[F]] =
+  def createMap[F[_]: CECompat.Effect]: F[Read[F] with Write[F]] =
     Ref[F]
-      .of(Map.empty[(Option[String], ResourceTag[_]), Any])
+      .of(Map.empty[(Option[String], ResourceTag[_]),
+                    Either[Any, Resource[F, Any]]])
       .map(new ResourceMap(_))
 
   private class ResourceMap[F[_]](
-      ref: Ref[F, Map[(Option[String], ResourceTag[_]), Any]])(
-      implicit val F: Sync[F])
+      ref: Ref[
+        F,
+        Map[(Option[String], ResourceTag[_]), Either[Any, Resource[F, Any]]]])(
+      implicit val F: CECompat.Effect[F])
       extends Read[F]
       with Write[F] { self =>
 
-    def put[A](value: A, label: Option[String])(
+    def rawPut[A](pureOrLazy: Either[A, Resource[F, A]], label: Option[String])(
         implicit rt: ResourceTag[A]): F[Unit] = {
-      ref.update(_ + ((label, rt) -> value))
+      ref.update(_ + ((label, rt) -> pureOrLazy))
     }
 
-    def get[A](label: Option[String])(
-        implicit rt: ResourceTag[A]): F[Option[A]] =
-      ref.get.map(_.get(label -> rt).flatMap(rt.cast))
+    def rawGet[A](label: Option[String])(
+        implicit rt: ResourceTag[A]): F[Option[Either[A, Resource[F, A]]]] =
+      ref.get.map(_.get(label -> rt)).map {
+        case None              => None
+        case Some(Left(value)) => rt.cast(value).map(Left(_))
+        case Some(Right(resource)) =>
+          Some(Right(resource.map(rt.cast).map {
+            case None =>
+              F.raiseError(ResourceNotFound(label, rt.description))
+            case Some(value) => F.pure(value)
+          }.flatMap(CECompat.resourceLift(_))))
+      }
 
   }
 
@@ -91,6 +148,7 @@ object GlobalResourceF {
     override def getMessage(): String =
       s"Could not find a resource of type $typeDesc with label ${label.orNull}"
   }
+
 }
 
 /**
