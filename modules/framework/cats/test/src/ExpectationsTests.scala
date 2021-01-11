@@ -2,6 +2,8 @@ package weaver
 package framework
 package test
 
+import cats.kernel.Eq
+
 object ExpectationsTests extends SimpleIOSuite {
 
   pureTest("and") {
@@ -36,4 +38,15 @@ object ExpectationsTests extends SimpleIOSuite {
   pureTest("forall (failure)") {
     not(forEach(List(true, false))(value => expect(value == true)))
   }
+
+  pureTest("equality check") {
+    expect.same("foo", "foo") and
+      not(expect.same("bar", "foo"))
+  }
+
+  pureTest("expect.same respects cats.kernel.Eq") {
+    implicit val eqInt: Eq[Int] = Eq.allEqual
+    expect.same(0, 1)
+  }
+
 }

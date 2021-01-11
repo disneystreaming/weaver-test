@@ -22,6 +22,10 @@ object MySuite2 extends SimpleIOSuite {
     expect.all(1 + 1 == 2, 2 + 2 == 4, 4 * 2 == 8)
   }
 
+  pureTest("Pretty string diffs") {
+    expect.same("foo", "bar")
+  }
+
   pureTest("Foldable operations") {
     val list = List(1,2,3)
     import cats.instances.list._
