@@ -14,6 +14,9 @@ private[weaver] trait CECompat {
   private[weaver] type Ref[F[_], A] = cats.effect.concurrent.Ref[F, A]
   private[weaver] val Ref = cats.effect.concurrent.Ref
 
+  private[weaver] type Deferred[F[_], A] = cats.effect.concurrent.Deferred[F, A]
+  private[weaver] val Deferred = cats.effect.concurrent.Deferred
+
   private[weaver] type Semaphore[F[_]] = cats.effect.concurrent.Semaphore[F]
   private[weaver] val Semaphore = cats.effect.concurrent.Semaphore
 

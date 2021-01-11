@@ -2,7 +2,7 @@ package weaver
 package framework
 package test
 
-import cats.effect.concurrent.Ref
+import CECompat.Ref
 import cats.effect._
 import cats.syntax.all._
 
