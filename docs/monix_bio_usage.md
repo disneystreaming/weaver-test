@@ -41,7 +41,7 @@ object MySuite extends SimpleIOSuite {
 
   val randomUUID = Task(java.util.UUID.randomUUID())  // Use of `Task` instead of `IO`
 
-  simpleTest("hello side-effects") {
+  test("hello side-effects") {
     for {
       x <- randomUUID
       y <- randomUUID

@@ -44,7 +44,7 @@ object MySuite extends SimpleIOSuite {
   val randomUUID = IO(java.util.UUID.randomUUID())
 
   // A test for side-effecting functions
-  simpleTest("hello side-effects") {
+  test("hello side-effects") {
     for {
       x <- randomUUID
       y <- randomUUID
