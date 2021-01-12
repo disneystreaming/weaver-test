@@ -49,7 +49,7 @@ object CodecsTest extends SimpleIOSuite {
       outcomes.map(TestData.fromTestOutcome) ++
       List(SuiteEnds("foo"))
 
-  simpleTest(
+  test(
     "golden test: previously serialised payload is still deserialisable") {
     for {
       inputStream <- IO(getClass.getResourceAsStream("/golden.json"))

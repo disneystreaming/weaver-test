@@ -49,8 +49,6 @@ trait EffectSuite[F[_]] extends Suite[F] with EffectSuiteAux with SourceLocation
   final def run(args : List[String])(report : TestOutcome => F[Unit]) : F[Unit] =
     spec(args).evalMap(report).compile.drain.adaptErr(adaptRunError)
 
-  implicit def expectationsConversion(e: Expectations): F[Expectations] =
-    effectCompat.effect.pure(e)
 }
 
 trait RunnableSuite[F[_]] extends EffectSuite[F] {
@@ -74,7 +72,6 @@ trait MutableFSuite[F[_]] extends EffectSuite[F]  {
     }
 
   def pureTest(name: TestName)(run : => Expectations) :  Unit = registerTest(name)(_ => Test(name.name, effectCompat.effect.delay(run)))
-  def simpleTest(name:  TestName)(run: => F[Expectations]) : Unit = registerTest(name)(_ => Test(name.name, effectCompat.effect.defer(run)))
   def loggedTest(name: TestName)(run: Log[F] => F[Expectations]) : Unit = registerTest(name)(_ => Test(name.name, log => run(log)))
   def test(name: TestName) : PartiallyAppliedTest = new PartiallyAppliedTest(name)
 

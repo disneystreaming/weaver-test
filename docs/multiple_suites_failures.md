@@ -12,7 +12,7 @@ import cats.effect._
 object MySuite extends SimpleIOSuite {
   val randomUUID = IO(java.util.UUID.randomUUID())
 
-  simpleTest("failing test 1") {
+  pureTest("failing test 1") {
     expect(1 >= 2)
   }
 }
@@ -22,7 +22,7 @@ object MyAnotherSuite extends SimpleIOSuite {
 
   val randomString = IO(alphanumeric.take(10).mkString(""))
 
-  simpleTest("failing test 2") {
+  test("failing test 2") {
     for {
       x <- randomString
     } yield check(x).traced(here)

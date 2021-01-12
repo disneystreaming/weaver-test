@@ -20,19 +20,19 @@ object Meta {
       SetTimeUnsafeRun
     implicit val sourceLocation: SourceLocation = TimeCop.sourceLocation
 
-    simpleTest("lots\nof\nmultiline\n(success)") {
+    pureTest("lots\nof\nmultiline\n(success)") {
       expect(1 == 1)
     }
 
-    simpleTest("lots\nof\nmultiline\n(failure)") {
+    pureTest("lots\nof\nmultiline\n(failure)") {
       expect(1 == 2)
     }
 
-    simpleTest("lots\nof\nmultiline\n(ignored)") {
+    test("lots\nof\nmultiline\n(ignored)") {
       ignore("Ignore me")
     }
 
-    simpleTest("lots\nof\nmultiline\n(cancelled)") {
+    test("lots\nof\nmultiline\n(cancelled)") {
       cancel("I was cancelled :(")
     }
   }
@@ -42,15 +42,15 @@ object Meta {
       SetTimeUnsafeRun
     implicit val sourceLocation: SourceLocation = TimeCop.sourceLocation
 
-    simpleTest("I succeeded") {
+    pureTest("I succeeded") {
       success
     }
 
-    simpleTest("I failed") {
+    pureTest("I failed") {
       failure(":(")
     }
 
-    simpleTest("I succeeded again") {
+    pureTest("I succeeded again") {
       success
     }
   }

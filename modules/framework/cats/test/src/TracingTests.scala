@@ -19,7 +19,7 @@ object TracingTests extends SimpleIOSuite {
 
   val thisFile = "/modules/framework/cats/test/src/TracingTests.scala"
 
-  test("Traces work as expected") {
+  pureTest("Traces work as expected") {
     val result = isOdd(2)
       .traced(here)
       .traced(here)

@@ -12,7 +12,7 @@ import cats.syntax.all._
 
 object MySuite extends SimpleIOSuite {
 
-  simpleTest("Only on CI") {
+  test("Only on CI") {
     for {
       onCI <- IO(sys.env.get("CI").isDefined)
       _    <- ignore("not on CI").unlessA(onCI)
@@ -21,7 +21,7 @@ object MySuite extends SimpleIOSuite {
     } yield expect(x == y)
   }
 
-  simpleTest("Another on CI") {
+  test("Another on CI") {
     for {
       onCI <- IO(sys.env.get("CI").isDefined)
       _    <- cancel("not on CI").unlessA(onCI)

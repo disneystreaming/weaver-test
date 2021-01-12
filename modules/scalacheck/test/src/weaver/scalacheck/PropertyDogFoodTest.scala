@@ -58,7 +58,7 @@ object Meta {
       super.checkConfig
         .copy(perPropertyParallelism = 100, minimumSuccessful = 100)
 
-    simpleTest("sleeping forall") {
+    test("sleeping forall") {
       forall { (x: Int, y: Int) =>
         IO.sleep(1.second) *> IO(expect(x + y == y + x))
       }
@@ -70,7 +70,7 @@ object Meta {
     override def checkConfig: CheckConfig =
       super.checkConfig.copy(perPropertyParallelism = 1, initialSeed = Some(5L))
 
-    simpleTest("foobar") {
+    test("foobar") {
       forall { (x: Int) =>
         expect(x > 0)
       }

@@ -102,9 +102,9 @@ trait Checkers {
   /** ScalaCheck test parameters instance. */
   val numbers = fs2.Stream.iterate(1)(_ + 1)
 
-  def forall[A: Show](gen: Gen[A])(f: A => F[Expectations])(
+  def forall[A: Show, B: PropF](gen: Gen[A])(f: A => B)(
       implicit loc: SourceLocation): F[Expectations] =
-    Ref[F].of(Status.start[A]).flatMap(forall_(gen, f))
+    Ref[F].of(Status.start[A]).flatMap(forall_(gen, liftProp(f)))
 
   private def forall_[A: Show](gen: Gen[A], f: A => F[Expectations])(
       state: Ref[F, Status[A]])(

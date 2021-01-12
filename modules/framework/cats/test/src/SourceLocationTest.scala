@@ -7,7 +7,7 @@ object SourceLocationTest extends SimpleIOSuite {
   // DO NOT MOVE THIS
   val sourceLocation = implicitly[SourceLocation]
 
-  test("implicit capture of source location is relativised") {
+  pureTest("implicit capture of source location is relativised") {
     val name    = sourceLocation.fileName
     val relPath = sourceLocation.fileRelativePath
     val line    = sourceLocation.line

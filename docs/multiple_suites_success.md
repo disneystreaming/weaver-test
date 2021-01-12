@@ -16,7 +16,7 @@ object MySuite extends SimpleIOSuite {
 
   val randomUUID = IO(java.util.UUID.randomUUID())
 
-  simpleTest("hello side-effects") {
+  test("hello side-effects") {
     for {
       x <- randomUUID
       y <- randomUUID
@@ -30,7 +30,7 @@ object MyAnotherSuite extends SimpleIOSuite {
 
   val randomString = IO(alphanumeric.take(10).mkString(""))
 
-  simpleTest("double reversing is identity") {
+  test("double reversing is identity") {
     for {
       x <- randomString
     } yield expect(x == x.reverse.reverse)
