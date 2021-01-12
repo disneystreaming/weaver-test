@@ -33,4 +33,21 @@ object MemoisedResourceTests extends SimpleIOSuite {
     } yield expect.all(initCount == 3, finCount == 3, useCount == 12)
   }
 
+  object Boom extends Exception("Boom")
+
+  test("""|Memoised resources reset when allocation fails""".stripMargin) {
+    for {
+      fail <- Ref[IO].of(true)
+      allocate = fail.modify[IO[String]] {
+        case true  => (false, IO.raiseError(Boom))
+        case false => (false, IO.pure("hello"))
+      }.flatten
+      resource = Resource.liftF(allocate)
+      res <- MemoisedResource(resource)
+      use = res.use(r => IO.pure(r))
+      firstResult  <- use.attempt
+      secondResult <- use
+    } yield expect.all(firstResult == Left(Boom), secondResult == "hello")
+  }
+
 }

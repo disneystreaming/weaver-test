@@ -37,6 +37,7 @@ private class MemoisedResource[F[_]: Concurrent, A] {
               case Left(e) => for {
                   _ <- valuePromise.complete(Left(e))
                   _ <- finaliserPromise.complete(Concurrent[F].unit)
+                  _ <- ref.set(Uninitialised) // reset state
                   a <- Concurrent[F].raiseError[A](e)
                 } yield a
             }
