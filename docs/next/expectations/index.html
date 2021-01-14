@@ -70,6 +70,10 @@
     expect.all(<span class="hljs-number">1</span> + <span class="hljs-number">1</span> == <span class="hljs-number">2</span>, <span class="hljs-number">2</span> + <span class="hljs-number">2</span> == <span class="hljs-number">4</span>, <span class="hljs-number">4</span> * <span class="hljs-number">2</span> == <span class="hljs-number">8</span>)
   }
 
+  pureTest(<span class="hljs-string">"Pretty string diffs"</span>) {
+    expect.same(<span class="hljs-string">"foo"</span>, <span class="hljs-string">"bar"</span>)
+  }
+
   pureTest(<span class="hljs-string">"Foldable operations"</span>) {
     <span class="hljs-keyword">val</span> list = <span class="hljs-type">List</span>(<span class="hljs-number">1</span>,<span class="hljs-number">2</span>,<span class="hljs-number">3</span>)
     <span class="hljs-keyword">import</span> cats.instances.list._
@@ -82,7 +86,7 @@
     <span class="hljs-keyword">if</span> (condition) success <span class="hljs-keyword">else</span> failure(<span class="hljs-string">"Condition failed"</span>)
   }
 
-  simpleTest(<span class="hljs-string">"Failing fast expectations"</span>) {
+  test(<span class="hljs-string">"Failing fast expectations"</span>) {
     <span class="hljs-keyword">for</span> {
       h &lt;- <span class="hljs-type">IO</span>.pure(<span class="hljs-string">"hello"</span>)
       _ &lt;- expect(h.nonEmpty).failFast

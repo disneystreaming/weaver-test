@@ -61,7 +61,7 @@
 
 <span class="hljs-class"><span class="hljs-keyword">object</span> <span class="hljs-title">MySuite</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">SimpleIOSuite</span> </span>{
 
-  simpleTest(<span class="hljs-string">"Only on CI"</span>) {
+  test(<span class="hljs-string">"Only on CI"</span>) {
     <span class="hljs-keyword">for</span> {
       onCI &lt;- <span class="hljs-type">IO</span>(sys.env.get(<span class="hljs-string">"CI"</span>).isDefined)
       _    &lt;- ignore(<span class="hljs-string">"not on CI"</span>).unlessA(onCI)
@@ -70,7 +70,7 @@
     } <span class="hljs-keyword">yield</span> expect(x == y)
   }
 
-  simpleTest(<span class="hljs-string">"Another on CI"</span>) {
+  test(<span class="hljs-string">"Another on CI"</span>) {
     <span class="hljs-keyword">for</span> {
       onCI &lt;- <span class="hljs-type">IO</span>(sys.env.get(<span class="hljs-string">"CI"</span>).isDefined)
       _    &lt;- cancel(<span class="hljs-string">"not on CI"</span>).unlessA(onCI)
