@@ -5,6 +5,8 @@ package test
 import cats.effect.{ IO, Resource }
 import cats.syntax.all._
 
+import sbt.testing.Status
+
 object DogFoodTestsJVM extends IOSuite {
 
   type Res = DogFood[IO]
@@ -40,6 +42,40 @@ object DogFoodTestsJVM extends IOSuite {
           expect(errorCount == 1) && expect(!file.exists())
         }
     }
+  }
+
+  test("global lazy resources (parallel)") { dogfood =>
+    import dogfood._
+    runSuites(
+      globalInit(MetaJVM.LazyGlobal),
+      sharingSuite[MetaJVM.LazyAccessParallel],
+      sharingSuite[MetaJVM.LazyAccessParallel],
+      sharingSuite[MetaJVM.LazyAccessParallel]
+    ).map {
+      case (_, events) =>
+        val successCount = events.toList.map(_.status()).count {
+          case Status.Success => true; case _ => false
+        }
+        expect(successCount == 3)
+    }
+
+  }
+
+  test("global lazy resources (sequential)") { dogfood =>
+    import dogfood._
+    runSuites(
+      globalInit(MetaJVM.LazyGlobal),
+      sharingSuite[MetaJVM.LazyAccessSequential0],
+      sharingSuite[MetaJVM.LazyAccessSequential1],
+      sharingSuite[MetaJVM.LazyAccessSequential2]
+    ).map {
+      case (_, events) =>
+        val successCount = events.toList.map(_.status()).count {
+          case Status.Success => true; case _ => false
+        }
+        expect(successCount == 3)
+    }
+
   }
 
 }

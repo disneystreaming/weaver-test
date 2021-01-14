@@ -15,6 +15,9 @@ private[weaver] trait CECompat {
   private[weaver] type Ref[F[_], A] = cats.effect.kernel.Ref[F, A]
   private[weaver] val Ref = cats.effect.kernel.Ref
 
+  private[weaver] type Deferred[F[_], A] = cats.effect.kernel.Deferred[F, A]
+  private[weaver] val Deferred = cats.effect.kernel.Deferred
+
   private[weaver] type Semaphore[F[_]] = cats.effect.std.Semaphore[F]
   private[weaver] val Semaphore = cats.effect.std.Semaphore
 
