@@ -3,24 +3,25 @@ id: installation
 title: Installation
 ---
 
-All of the artifacts from the table below are:
+All of the artifacts below are available for both **JVM and Scala.js**.
 
-1. Available for **Scala 2.12 and 2.13**
-2. Available for **JVM and Scala.js**
+Note, that artifacts that use Cats Effect 3 are published under a different version to those published for Cats Effect 2 (minor version bump), because they're binary incompatible.
 
 ```scala mdoc:passthrough
 import weaver.docs._
 
-val effects = Table
-    .create("Effect types", BuildMatrix.effects)
-    .render(BuildMatrix.catsEffect3Version)
-    
-val integrations = Table
-    .create("Integrations", BuildMatrix.integrations)
-    .render(BuildMatrix.catsEffect3Version)
+import BuildMatrix._
 
-println(effects)
-println(integrations)
+val effectsTable = Table
+    .create("Effect types", effects)
+    .render(catsEffect3Version, artifactsCE2Version, artifactsCE3Version)
+
+val integrationsTable = Table
+    .create("Integrations", integrations)
+    .render(catsEffect3Version, artifactsCE2Version, artifactsCE3Version)
+
+println(effectsTable)
+println(integrationsTable)
 ```
 
 Weaver offers effect-type specific test frameworks. The Build setup depends on
@@ -28,7 +29,7 @@ the effect-type library you've elected to use (or test against).
 
 Refer yourself to the library specific pages to get the correct configuration.
 
-* [cats](cats_effect_usage.md)
-* [monix](monix_usage.md)
-* [monix-bio](monix_bio_usage.md)
-* [zio](zio_usage.md)
+- [cats](cats_effect_usage.md)
+- [monix](monix_usage.md)
+- [monix-bio](monix_bio_usage.md)
+- [zio](zio_usage.md)

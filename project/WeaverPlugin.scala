@@ -16,6 +16,9 @@ import org.scalajs.sbtplugin.ScalaJSPlugin
 import scala.collection.immutable.Nil
 import java.util.regex.MatchResult
 import lmcoursier.definitions.Reconciliation.SemVer
+import sbt.VirtualAxis.ScalaVersionAxis
+import _root_.scalafix.sbt.ScalafixPlugin
+import org.scalafmt.sbt.ScalafmtPlugin
 
 case class CatsEffectAxis(idSuffix: String, directorySuffix: String)
     extends VirtualAxis.WeakAxis
@@ -28,48 +31,80 @@ object WeaverPlugin extends AutoPlugin {
   val CatsEffect2Axis = CatsEffectAxis("_CE2", "ce2")
   val CatsEffect3Axis = CatsEffectAxis("_CE3", "ce3")
 
-  val defaults = Seq[VirtualAxis](
-    CatsEffect2Axis,
-    VirtualAxis.jvm,
-    VirtualAxis.scalaVersionAxis(WeaverPlugin.scala213, "2.13"))
-
   implicit final class ProjectMatrixOps(pmx: ProjectMatrix) {
-    def onlyCatsEffect2(withJs: Boolean = true) = {
-      val tmp = pmx.defaultAxes(defaults: _*)
-        .customRow(
-          scalaVersions = WeaverPlugin.supportedScalaVersions,
-          axisValues = Seq(CatsEffect2Axis, VirtualAxis.jvm),
-          Seq()
+    type ConfigureX = ProjectMatrix => ProjectMatrix
+    type Configure  = Project => Project
+
+    val defaults = Seq[VirtualAxis](
+      CatsEffect2Axis,
+      VirtualAxis.jvm,
+      VirtualAxis.scalaVersionAxis(WeaverPlugin.scala213, "2.13"))
+
+    def addOne(
+        scalaVersion: String,
+        platform: VirtualAxis.PlatformAxis,
+        catsEffectAxis: CatsEffectAxis): ConfigureX = {
+      projectMatrix =>
+        val addScalafix: Configure =
+          if (scalaVersion == scala213)
+            (_: Project).enablePlugins(ScalafixPlugin)
+          else (_: Project).disablePlugins(ScalafixPlugin)
+
+        val addScalafmt: Configure =
+          if (scalaVersion == scala213)
+            (_: Project).enablePlugins(ScalafmtPlugin)
+          else (_: Project).disablePlugins(ScalafmtPlugin)
+
+        val scalaJSSettings: Configure =
+          if (platform == VirtualAxis.js) configureScalaJSProject else identity
+
+        val ce3VersionOverride: Configure =
+          if (catsEffectAxis == CatsEffect3Axis)
+            _.settings(versionOverrideForCE3)
+          else identity
+
+        val configureProject =
+          addScalafix andThen addScalafmt andThen scalaJSSettings andThen ce3VersionOverride
+
+        projectMatrix.defaultAxes(defaults: _*).customRow(
+          scalaVersions = List(scalaVersion),
+          axisValues = Seq(catsEffectAxis, platform),
+          configureProject
         )
-      if (withJs)
-        tmp.customRow(
-          scalaVersions = WeaverPlugin.supportedScalaVersions,
-          axisValues = Seq(CatsEffect2Axis, VirtualAxis.js),
-          configureScalaJSProject(_)
-        )
-      else tmp
     }
 
-    def crossCatsEffect = {
-      pmx.defaultAxes(defaults: _*)
-        .customRow(
-          scalaVersions = WeaverPlugin.supportedScalaVersions,
-          axisValues = Seq(CatsEffect2Axis, VirtualAxis.jvm),
-          Seq()
-        ).customRow(
-          scalaVersions = WeaverPlugin.supportedScalaVersions,
-          axisValues = Seq(CatsEffect3Axis, VirtualAxis.jvm),
-          versionOverrideForCE3
-        ).customRow(
-          scalaVersions = WeaverPlugin.supportedScalaVersions,
-          axisValues = Seq(CatsEffect2Axis, VirtualAxis.js),
-          configureScalaJSProject(_)
-        ).customRow(
-          scalaVersions = WeaverPlugin.supportedScalaVersions,
-          axisValues = Seq(CatsEffect3Axis, VirtualAxis.js),
-          configureScalaJSProject(_).settings(versionOverrideForCE3)
-        )
+    def add(
+        scalaVersions: Iterable[String],
+        platform: VirtualAxis.PlatformAxis,
+        catsEffectAxis: CatsEffectAxis): ConfigureX = {
+      scalaVersions.map(addOne(_, platform, catsEffectAxis)).reduce(_ andThen _)
     }
+    def full = sparse(true, true, true)
+
+    def sparse(
+        withCE3: Boolean,
+        withJS: Boolean,
+        withScala3: Boolean
+    ): ProjectMatrix = {
+      val defaultScalaVersions = supportedScala2Versions
+      val defaultPlatform      = List(VirtualAxis.jvm)
+      val defaultCE            = List(CatsEffect2Axis)
+
+      val addJs     = if (withJS) List(VirtualAxis.js) else Nil
+      val addScala3 = if (withScala3) List(scala3) else Nil
+      val addCE3    = if (withCE3) List(CatsEffect3Axis) else Nil
+
+      val configurators = for {
+        scalaVersion <- defaultScalaVersions ++ addScala3
+        platform     <- defaultPlatform ++ addJs
+        catsEffect   <- defaultCE ++ addCE3
+      } yield addOne(scalaVersion, platform, catsEffect)
+
+      val configure: ConfigureX = configurators.reduce(_ andThen _)
+
+      configure(pmx)
+    }
+
   }
 
   lazy val versionOverrideForCE3: Seq[Def.Setting[_]] = Seq(
@@ -118,40 +153,59 @@ object WeaverPlugin extends AutoPlugin {
 
   lazy val scala212               = "2.12.12"
   lazy val scala213               = "2.13.3"
-  lazy val supportedScalaVersions = List(scala212, scala213)
+  lazy val scala3                 = "3.0.0-M3"
+  lazy val supportedScalaVersions = List(scala212, scala213, scala3)
+
+  lazy val supportedScala2Versions = List(scala212, scala213)
 
   /** @see [[sbt.AutoPlugin]] */
   override val projectSettings = Seq(
     moduleName := s"weaver-${name.value}",
-    // crossScalaVersions := supportedScalaVersions,
     scalacOptions ++= compilerOptions(scalaVersion.value),
     Test / scalacOptions ~= (_ filterNot (_ == "-Xfatal-warnings")),
     // Turning off fatal warnings for ScalaDoc, otherwise we can't release.
     Compile / doc / scalacOptions ~= (_ filterNot (_ == "-Xfatal-warnings")),
     // ScalaDoc settings
     autoAPIMappings := true,
-    ThisBuild / scalacOptions ++= Seq(
-      // Note, this is used by the doc-source-url feature to determine the
-      // relative path of a given source file. If it's not a prefix of a the
-      // absolute path of the source file, the absolute path of that file
-      // will be put into the FILE_SOURCE variable, which is
-      // definitely not what we want.
-      "-sourcepath",
-      file(".").getAbsolutePath.replaceAll("[.]$", "")
-    ),
+    ThisBuild / scalacOptions ++= {
+      if (!(ThisBuild / scalacOptions).value.contains("-sourcepath"))
+        Seq(
+          // Note, this is used by the doc-source-url feature to determine the
+          // relative path of a given source file. If it's not a prefix of a the
+          // absolute path of the source file, the absolute path of that file
+          // will be put into the FILE_SOURCE variable, which is
+          // definitely not what we want.
+          "-sourcepath",
+          file(".").getAbsolutePath.replaceAll("[.]$", "")
+        )
+      else Seq.empty
+    },
     // https://github.com/sbt/sbt/issues/2654
     incOptions := incOptions.value.withLogRecompileOnMacro(false),
     // https://scalacenter.github.io/scalafix/docs/users/installation.html
-    semanticdbEnabled := true,
+    semanticdbEnabled := !scalaVersion.value.startsWith("3.0"),
     semanticdbVersion := scalafixSemanticdb.revision,
-    addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1"),
-    addCompilerPlugin(
-      "org.typelevel" %% "kind-projector" % "0.11.2" cross CrossVersion.full
-    )
+    libraryDependencies ++= {
+      if (scalaVersion.value.startsWith("3.")) Seq.empty
+      else Seq(
+        compilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1"),
+        compilerPlugin(
+          "org.typelevel" %% "kind-projector" % "0.11.3" cross CrossVersion.full
+        )
+      )
+    }
   ) ++ coverageSettings ++ publishSettings
 
   def compilerOptions(scalaVersion: String) = {
-    commonCompilerOptions ++ {
+    val allowed =
+      if (scalaVersion.startsWith("3."))
+        commonCompilerOptions.filterNot(flg =>
+          flg.contains("explaintypes") || flg.contains(
+            "-Xlint") || flg.contains(
+            "-Ywarn-") || flg.contains("-Xcheckinit"))
+      else commonCompilerOptions
+
+    allowed ++ {
       if (priorTo2_13(scalaVersion)) compilerOptions2_12_Only
       else Seq.empty
     }
@@ -244,6 +298,7 @@ object WeaverPlugin extends AutoPlugin {
       case "coverage" => pr
       case _          => pr.disablePlugins(scoverage.ScoverageSbtPlugin)
     }
+
     withCoverage
   }
 
@@ -268,6 +323,9 @@ object WeaverPlugin extends AutoPlugin {
       case VirtualAxis.jvm => List("", "-jvm")
       case CatsEffect3Axis => List("", "-ce3")
       case CatsEffect2Axis => List("", "-ce2")
+      case ScalaVersionAxis(ver, _) =>
+        if (ver.startsWith("3.")) List("", "-scala-3")
+        else List("", "-scala-2")
     }.toList
 
     def sequence[A](ll: List[List[A]]): List[List[A]] =

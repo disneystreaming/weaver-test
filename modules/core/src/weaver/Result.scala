@@ -17,7 +17,7 @@ object Result {
         Result.Failure(ex.message, Some(ex), ex.locations.toList)))
   }
 
-  final case object Success extends Result {
+  case object Success extends Result {
     def formatted: Option[String] = None
   }
 

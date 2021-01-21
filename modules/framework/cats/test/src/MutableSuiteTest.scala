@@ -6,11 +6,11 @@ import scala.concurrent.duration._
 
 abstract class MutableSuiteTest extends SimpleIOSuite {
 
-  test("23 is odd") {
+  pureTest("23 is odd") {
     expect(23 % 2 == 1)
   }
 
-  simpleTest("sleeping") {
+  test("sleeping") {
     for {
       before <- CatsUnsafeRun.realTimeMillis
       _      <- CatsUnsafeRun.sleep(1.seconds)
@@ -18,7 +18,7 @@ abstract class MutableSuiteTest extends SimpleIOSuite {
     } yield expect(after - before >= 1000)
   }
 
-  test("23 is odd") {
+  pureTest("23 is odd") {
     expect(23 % 2 == 1)
   }
 

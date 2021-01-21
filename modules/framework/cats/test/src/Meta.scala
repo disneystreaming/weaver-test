@@ -18,39 +18,57 @@ object Meta {
   object Rendering extends SimpleIOSuite {
     override implicit protected def effectCompat: UnsafeRun[IO] =
       SetTimeUnsafeRun
-    implicit val sourceLocation = TimeCop.sourceLocation
+    implicit val sourceLocation: SourceLocation = TimeCop.sourceLocation
 
-    simpleTest("lots\nof\nmultiline\n(success)") {
+    pureTest("lots\nof\nmultiline\n(success)") {
       expect(1 == 1)
     }
 
-    simpleTest("lots\nof\nmultiline\n(failure)") {
+    pureTest("lots\nof\nmultiline\n(failure)") {
       expect(1 == 2)
     }
 
-    simpleTest("lots\nof\nmultiline\n(ignored)") {
+    test("lots\nof\nmultiline\n(ignored)") {
       ignore("Ignore me")
     }
 
-    simpleTest("lots\nof\nmultiline\n(cancelled)") {
+    test("lots\nof\nmultiline\n(cancelled)") {
       cancel("I was cancelled :(")
+    }
+
+    pureTest("(cats.Show)") {
+      import cats.Show
+      case class Foo(s: String, i: Int)
+      object Foo {
+        implicit val show: Show[Foo] = Show.show[Foo] {
+          case Foo(s, i) =>
+            s"""
+          |Foo {
+          |  s: ${Show[String].show(s)}
+          |  i: ${Show[Int].show(i)}
+          |}
+          """.stripMargin.trim()
+        }
+      }
+
+      expect.same(Foo("foo", 1), Foo("foo", 2))
     }
   }
 
   object FailingTestStatusReporting extends SimpleIOSuite {
     override implicit protected def effectCompat: UnsafeRun[IO] =
       SetTimeUnsafeRun
-    implicit val sourceLocation = TimeCop.sourceLocation
+    implicit val sourceLocation: SourceLocation = TimeCop.sourceLocation
 
-    simpleTest("I succeeded") {
+    pureTest("I succeeded") {
       success
     }
 
-    simpleTest("I failed") {
+    pureTest("I failed") {
       failure(":(")
     }
 
-    simpleTest("I succeeded again") {
+    pureTest("I succeeded again") {
       success
     }
   }
@@ -58,7 +76,7 @@ object Meta {
   object FailingSuiteWithlogs extends SimpleIOSuite {
     override implicit protected def effectCompat: UnsafeRun[IO] =
       SetTimeUnsafeRun
-    implicit val sourceLocation = TimeCop.sourceLocation
+    implicit val sourceLocation: SourceLocation = TimeCop.sourceLocation
 
     loggedTest("failure") { log =>
       val context = Map(

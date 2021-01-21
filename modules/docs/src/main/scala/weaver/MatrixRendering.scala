@@ -14,8 +14,8 @@ case class Artifact(
 )
 
 case class Cell(
-    jvm: Boolean,
-    js: Boolean,
+    jvm: Seq[String],
+    js: Seq[String],
     version: String
 )
 
@@ -39,16 +39,33 @@ case class Table(
   def _cell(c: Option[Cell]): String = {
     c match {
       case Some(c) =>
-        if (c.jvm && c.js) {
-          s"✅ `${c.version}`"
-        } else "❌" // TODO: do we always assume platform-complete artifacts?
+        val allVersions = (c.jvm.toSet ++ c.js.toSet).map {
+          case ver if ver.startsWith("2.") =>
+            ver.split("\\.").take(2).mkString(".")
+          case other => other
+        }.toList.sorted
+
+        if (c.jvm.nonEmpty && c.js.nonEmpty)
+          s"✅ Scala ${allVersions.mkString(", ")}"
+        else
+          "❌"
       case None => "❌"
     }
   }
 
-  def render(catsEffect3Version: String) = {
+  def render(
+      catsEffect3Version: String,
+      ce2ArtifactsVersion: String,
+      ce3ArtifactsVersion: String) = {
     val sb = new StringBuilder
-    sb.append(_row(Seq(name, "Cats Effect 2", s"Cats Effect $catsEffect3Version"), header = true))
+    sb.append(_row(
+      Seq(
+        name,
+        s"Cats Effect 2 <br/><br/> Weaver version: `$ce2ArtifactsVersion`",
+        s"Cats Effect $catsEffect3Version <br/><br/> Weaver version: `$ce3ArtifactsVersion`"
+      ),
+      header = true
+    ))
 
     rows.map { case Row(name, ce2, ce3) =>
       sb.append(_row(Seq(name, _cell(ce2), _cell(ce3))))
@@ -70,12 +87,12 @@ object Table {
 
   def artifactsToCell(artifacts: List[Artifact]): Option[Cell] = {
     artifacts.map(_.version).distinct.headOption.map { version =>
-      val hasJVM = artifacts.exists(_.jvm)
-      val hasJS  = artifacts.exists(_.js)
+      val jvmVersions = artifacts.filter(_.jvm).map(_.scalaVersion)
+      val jsVersions  = artifacts.filter(_.js).map(_.scalaVersion)
 
       Cell(
-        jvm = hasJVM,
-        js = hasJS,
+        jvm = jvmVersions,
+        js = jsVersions,
         version = version
       )
     }

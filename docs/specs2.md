@@ -49,19 +49,19 @@ object MatchersSpec extends SimpleIOSuite with IOMatchers {
     1 === 1
   }
 
-  simpleTest("simpleTest { 1 must beEqualTo(1) }") {
+  pureTest("pureTest { 1 must beEqualTo(1) }") {
     1 must beEqualTo(1)
   }
 
-  simpleTest("simpleTest { 1 must be_==(1) }") {
+  pureTest("pureTest { 1 must be_==(1) }") {
     1 must be_==(1)
   }
 
-  simpleTest("simpleTest { 1 mustEqual 1 }") {
+  pureTest("pureTest { 1 mustEqual 1 }") {
     1 mustEqual 1
   }
 
-  simpleTest("simpleTest { 1 === 1 }") {
+  pureTest("pureTest { 1 === 1 }") {
     1 === 1
   }
 }

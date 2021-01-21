@@ -6,7 +6,7 @@ import cats.data.Chain
 import cats.effect.{ IO, Resource }
 import cats.syntax.all._
 
-import sbt.testing.Status
+import sbt.testing.Status.Error
 
 object DogFoodTests extends IOSuite {
 
@@ -17,7 +17,7 @@ object DogFoodTests extends IOSuite {
   test("test suite reports successes events") { dogfood =>
     import dogfood._
     runSuite(Meta.MutableSuiteTest).map {
-      case (_, events) => forall(events)(isSuccess)
+      case (_, events) => forEach(events)(isSuccess)
     }
   }
 
@@ -33,7 +33,7 @@ object DogFoodTests extends IOSuite {
           val name = event.fullyQualifiedName()
           expect.all(
             name == "weaver.framework.test.Meta$CrashingSuite",
-            event.status() == Status.Error
+            event.status() == Error
           )
         } and exists(errorLogs) { log =>
           expect.all(
@@ -58,7 +58,7 @@ object DogFoodTests extends IOSuite {
         |
         """.stripMargin.trim
 
-        expectEqual(statusReport, expected)
+        expect.same(statusReport, expected)
     }
   }
 
@@ -81,7 +81,7 @@ object DogFoodTests extends IOSuite {
         exists(extractLogEventAfterFailures(logs) {
           case LoggedEvent.Error(msg) => msg
         }) { actual =>
-          expectEqual(actual, expected)
+          expect.same(actual, expected)
         }
     }
   }
@@ -117,7 +117,7 @@ object DogFoodTests extends IOSuite {
           |
           |""".stripMargin.trim
 
-        expectEqual(actual, expected)
+        expect.same(actual, expected)
     }
   }
 
@@ -128,18 +128,22 @@ object DogFoodTests extends IOSuite {
           case LoggedEvent.Error(msg) => msg
         }.get
 
-        val expected = """
+        // HONESTLY.
+        val (location, capturedExpression) =
+          if (Platform.isScala3) (27, "1 == 2") else (28, "expect(1 == 2)")
+
+        val expected = s"""
         |- lots 0ms
         |  of
         |  multiline
         |  (failure)
-        |  assertion failed (modules/framework/cats/test/src/Meta.scala:28)
+        |  assertion failed (modules/framework/cats/test/src/Meta.scala:$location)
         |
-        |  expect(1 == 2)
+        |  $capturedExpression
         |
         """.stripMargin.trim
 
-        expectEqual(actual, expected)
+        expect.same(actual, expected)
     }
   }
 
@@ -158,7 +162,7 @@ object DogFoodTests extends IOSuite {
         |  (success)
         """.stripMargin.trim
 
-        expectEqual(actual, expected)
+        expect.same(actual, expected)
     }
   }
 
@@ -178,7 +182,7 @@ object DogFoodTests extends IOSuite {
         |  Ignore me (src/main/DogFoodTests.scala:5)
         """.stripMargin.trim
 
-        expectEqual(actual, expected)
+        expect.same(actual, expected)
     }
   }
 
@@ -199,48 +203,31 @@ object DogFoodTests extends IOSuite {
         |  I was cancelled :( (src/main/DogFoodTests.scala:5)
         """.stripMargin.trim
 
-        expectEqual(actual, expected)
+        expect.same(actual, expected)
     }
   }
 
-  private def multiLineComparisonReport(expectedS: String, actual: String) = {
-    val expectedLines = expectedS.split("\n").map(Option.apply).toVector
-    val actualLines   = actual.split("\n").map(Option.apply).toVector
+  test(
+    "expect.same delegates to show when an insteance is found") {
+    _.runSuite(Meta.Rendering).map {
+      case (logs, _) =>
+        val actual =
+          extractLogEventAfterFailures(logs) {
+            case LoggedEvent.Error(msg) if msg.contains("(cats.Show)") => msg
+          }.get
 
-    val lines = expectedLines.size max actualLines.size
-    val maxExpectedLineLength = "<missing>".length max expectedLines
-      .map(_.map(_.length + 2).getOrElse(0))
-      .max
-    def padStr(s: String, l: Int) = s + (" " * (l - s.length))
+        val expected = """
+        |- (cats.Show) 0ms
+        |  Values not equal: (src/main/DogFoodTests.scala:5)
+        |
+        |  Foo {     |  Foo {
+        |    s: foo  |    s: foo
+        |    i: [1]  |    i: [2]
+        |  }         |  }
+        """.stripMargin.trim
 
-    (expectedLines
-      .padTo(lines, None))
-      .zip(actualLines.padTo(lines, None))
-      .map {
-        case (None, Some(actualLine)) =>
-          padStr("<missing>", maxExpectedLineLength) + " != " + s"'$actualLine'"
-        case (Some(expectedLine), Some(actualLine)) =>
-          val op = if (expectedLine == actualLine) "==" else "!="
-          padStr(s"'$expectedLine'",
-                 maxExpectedLineLength) + s" $op " + s"'$actualLine'"
-        case (Some(expectedLine), None) =>
-          padStr(s"'$expectedLine'",
-                 maxExpectedLineLength) + " != " + s"<missing>"
-        case (None, None) => "something impossible happened"
-      }
-      .mkString("\n")
-  }
-
-  private def expectEqual(
-      expected: String,
-      actual: String)(implicit loc: SourceLocation): Expectations = {
-    if (expected.trim != actual.trim) {
-      val report = multiLineComparisonReport(expected.trim, actual.trim)
-
-      failure(
-        s"Output is not as expected (line-by-line-comparison below): \n\n$report")
-    } else
-      Expectations.Helpers.success
+        expect.same(actual, expected)
+    }
   }
 
   private def outputBeforeFailures(logs: Chain[LoggedEvent]): Chain[String] = {

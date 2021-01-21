@@ -22,10 +22,14 @@ object MySuite2 extends SimpleIOSuite {
     expect.all(1 + 1 == 2, 2 + 2 == 4, 4 * 2 == 8)
   }
 
+  pureTest("Pretty string diffs") {
+    expect.same("foo", "bar")
+  }
+
   pureTest("Foldable operations") {
     val list = List(1,2,3)
     import cats.instances.list._
-    forall(list)(i => expect(i > 0)) and
+    forEach(list)(i => expect(i > 0)) and
     exists(list)(i => expect(i == 3))
   }
 
@@ -34,7 +38,7 @@ object MySuite2 extends SimpleIOSuite {
     if (condition) success else failure("Condition failed")
   }
 
-  simpleTest("Failing fast expectations") {
+  test("Failing fast expectations") {
     for {
       h <- IO.pure("hello")
       _ <- expect(h.nonEmpty).failFast

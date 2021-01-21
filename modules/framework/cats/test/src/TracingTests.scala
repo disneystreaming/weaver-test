@@ -19,7 +19,7 @@ object TracingTests extends SimpleIOSuite {
 
   val thisFile = "/modules/framework/cats/test/src/TracingTests.scala"
 
-  test("Traces work as expected") {
+  pureTest("Traces work as expected") {
     val result = isOdd(2)
       .traced(here)
       .traced(here)
@@ -28,7 +28,7 @@ object TracingTests extends SimpleIOSuite {
       case Invalid(e) =>
         val locations = e.head.locations.toList
         val paths     = locations.map(_.fileRelativePath).map(standardise)
-        forall(paths)(p => expect(p == thisFile)) &&
+        forEach(paths)(p => expect(p == thisFile)) &&
         expect(locations.map(_.line).distinct.size == 4)
       case Valid(_) => failure("Should have been invalid")
     }

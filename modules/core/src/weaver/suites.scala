@@ -17,9 +17,16 @@ trait Suite[F[_]] extends BaseSuiteClass {
   def spec(args: List[String]): Stream[F, TestOutcome]
 }
 
-// format: off
-trait EffectSuite[F[_]] extends Suite[F] with SourceLocation.Here { self =>
+// A version of EffectSuite that has a type member instead of a type parameter.
+protected[weaver] trait EffectSuiteAux {
+  type EffectType[A]
+  implicit protected def effect: CECompat.Effect[EffectType]
+}
 
+// format: off
+trait EffectSuite[F[_]] extends Suite[F] with EffectSuiteAux with SourceLocation.Here { self =>
+
+  final type EffectType[A] = F[A]
   implicit protected def effectCompat: EffectCompat[F]
   implicit final protected def effect: CECompat.Effect[F] = effectCompat.effect
 
@@ -42,8 +49,6 @@ trait EffectSuite[F[_]] extends Suite[F] with SourceLocation.Here { self =>
   final def run(args : List[String])(report : TestOutcome => F[Unit]) : F[Unit] =
     spec(args).evalMap(report).compile.drain.adaptErr(adaptRunError)
 
-  implicit def expectationsConversion(e: Expectations): F[Expectations] =
-    effectCompat.effect.pure(e)
 }
 
 trait RunnableSuite[F[_]] extends EffectSuite[F] {
@@ -67,7 +72,6 @@ trait MutableFSuite[F[_]] extends EffectSuite[F]  {
     }
 
   def pureTest(name: TestName)(run : => Expectations) :  Unit = registerTest(name)(_ => Test(name.name, effectCompat.effect.delay(run)))
-  def simpleTest(name:  TestName)(run: => F[Expectations]) : Unit = registerTest(name)(_ => Test(name.name, effectCompat.effect.defer(run)))
   def loggedTest(name: TestName)(run: Log[F] => F[Expectations]) : Unit = registerTest(name)(_ => Test(name.name, log => run(log)))
   def test(name: TestName) : PartiallyAppliedTest = new PartiallyAppliedTest(name)
 

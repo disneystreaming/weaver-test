@@ -55,9 +55,8 @@ object TestErrorFormatter {
     elements.map(el => el -> exclusion(el)).foreach {
       case (el, exclusion) =>
         (latest, exclusion) match {
-          case (Some(Snip(pack)), Some(excl)) if pack == excl => ()
-          case (Some(Snip(pack)), Some(excl)) if pack != excl =>
-            append(Snip(excl))
+          case (Some(Snip(pack)), Some(excl)) =>
+            if (pack != excl) append(Snip(excl))
           case (_, None) =>
             append(Element(el))
           case (None, Some(excl)) =>

@@ -116,7 +116,7 @@ object Expectations {
      * Checks that an assertion is true for all elements in a foldable.
      * Succeeds if the foldable is empty.
      */
-    def forall[L[_], A](la: L[A])(f: A => Expectations)(
+    def forEach[L[_], A](la: L[A])(f: A => Expectations)(
         implicit L: Foldable[L]): Expectations = la.foldMap(f)
 
     /**
@@ -132,7 +132,7 @@ object Expectations {
      * Alias to forall
      */
     def inEach[L[_], A](la: L[A])(f: A => Expectations)(
-        implicit L: Foldable[L]): Expectations = forall(la)(f)
+        implicit L: Foldable[L]): Expectations = forEach(la)(f)
 
     def verify(condition: Boolean, hint: String)(
         implicit pos: SourceLocation): Expectations =

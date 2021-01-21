@@ -84,7 +84,7 @@ object MySuite extends SimpleIOSuite {
 
   private val random = IO(java.util.UUID.randomUUID())
 
-  simpleTest("test with side-effects") {
+  test("test with side-effects") {
     for {
       x <- random
       y <- random
@@ -200,7 +200,7 @@ import weaver.scalacheck._
 // Notice the IOCheckers mix-in
 object ForallExamples extends SimpleIOSuite with IOCheckers {
 
-  simpleTest("Gen form") {
+  test("Gen form") {
     // Takes an explicit "Gen" instance. There is only a single
     // version of this overload. If you want to pass several Gen instances
     // at once, just compose them monadically.
@@ -209,7 +209,7 @@ object ForallExamples extends SimpleIOSuite with IOCheckers {
     }
   }
 
-  simpleTest("Arbitrary form") {
+  test("Arbitrary form") {
     // Takes a number of implicit "Arbitrary" instances. There are 6 overloads
     // to pass 1 to 6 parameters.
     forall { (a1: Int, a2: Int, a3: Int) =>
