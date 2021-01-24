@@ -75,6 +75,33 @@ object ZIOSuiteTest extends ZIOSuite[KVStore with DogFoodz] {
     }
   }
 
+  test("logs contain only the logs from each test") {
+    FiberRefLogTest.spec(List.empty)
+      .map(outcome =>
+        expect(!outcome.status.isFailed) and expect(outcome.log.size == 1))
+      .compile
+      .foldMonoid
+  }
+
+  object FiberRefLogTest extends SimpleZIOSuite {
+    override def maxParallelism: Int = 1
+    test("debug log") {
+      (log.debug("a log") *> LogModule.logs).map(logs => expect(logs.size == 1))
+    }
+
+    test("error log") {
+      (log.error("a log") *> LogModule.logs).map(logs => expect(logs.size == 1))
+    }
+
+    test("warning log") {
+      (log.info("a log") *> LogModule.logs).map(logs => expect(logs.size == 1))
+    }
+
+    test("warning log") {
+      (log.warn("a log") *> LogModule.logs).map(logs => expect(logs.size == 1))
+    }
+  }
+
   object TestWithExceptionInTest extends SimpleZIOSuite {
     test("example test") {
       Task.fail(new RuntimeException("oh no"))
