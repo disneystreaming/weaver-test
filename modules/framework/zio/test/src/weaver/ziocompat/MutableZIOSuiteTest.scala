@@ -1,8 +1,8 @@
 package weaver.ziocompat
 
+import weaver.Log
 import weaver.framework.DogFood
 import weaver.ziocompat.modules._
-import weaver.Log
 
 import sbt.testing.Status
 import zio._
