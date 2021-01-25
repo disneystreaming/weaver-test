@@ -86,11 +86,12 @@ object ZIOSuiteTest extends ZIOSuite[KVStore with DogFoodz] {
 
   test("logs can use adapter to give logs from app") {
     LogAdapterTest.spec(List.empty).map(outcome =>
-      expect(outcome.log.map(_.msg) == cats.data.Chain(
-        "one",
-        "two",
-        "three",
-        "four"))).compile.foldMonoid
+      expect(!outcome.status.isFailed) and
+        expect(outcome.log.map(_.msg) == cats.data.Chain(
+          "one",
+          "two",
+          "three",
+          "four"))).compile.foldMonoid
   }
 
   object LogAdapterTest extends ZIOSuite[Has[SomeApp.Service]] {
@@ -117,7 +118,7 @@ object ZIOSuiteTest extends ZIOSuite[KVStore with DogFoodz] {
       for {
         _    <- SomeApp.run()
         logs <- LogModule.logs
-      } yield expect(logs.size == 2)
+      } yield expect(logs.size == 4)
     }
 
   }
