@@ -12,7 +12,7 @@ trait BaseTaskSuite extends RunnableSuite[Task] {
   final implicit protected def scheduler: Scheduler = effectCompat.scheduler
 }
 
-trait PureTaskSuite
+abstract class PureTaskSuite
     extends EffectSuite[Task]
     with BaseTaskSuite
     with Expectations.Helpers {
@@ -27,7 +27,7 @@ trait PureTaskSuite
 
 }
 
-trait MutableTaskSuite
+abstract class MutableTaskSuite
     extends MutableFSuite[Task]
     with BaseTaskSuite
     with Expectations.Helpers

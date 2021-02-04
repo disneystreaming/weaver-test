@@ -7,7 +7,7 @@ import fs2._
 import zio._
 import zio.interop.catz._
 
-trait BaseZIOSuite extends RunnableSuite[T] {
+abstract class BaseZIOSuite extends EffectSuite[T] with RunnableSuite[T] {
   val effectCompat: UnsafeRun[T] = ZIOUnsafeRun
 }
 

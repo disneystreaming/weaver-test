@@ -40,7 +40,7 @@ object Test {
     apply(name, (_: Log[Task]) => f)
 }
 
-trait MutableIOSuite
+abstract class MutableIOSuite
     extends MutableFSuite[Task]
     with BaseIOSuite
     with Expectations.Helpers {
@@ -58,7 +58,7 @@ trait MutableIOSuite
   }
 }
 
-trait SimpleMutableIOSuite extends MutableIOSuite {
+abstract class SimpleMutableIOSuite extends MutableIOSuite {
   type Res = Unit
   def sharedResource: Resource[Task, Unit] = Resource.pure[Task, Unit](())
 }

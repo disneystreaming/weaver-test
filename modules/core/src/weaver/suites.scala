@@ -1,9 +1,8 @@
 package weaver
 
 import cats.effect.Resource
-import cats.effect.implicits._
-import cats.syntax.applicative._
-import cats.syntax.applicativeError._
+import cats.syntax.all._
+import org.junit.runner.RunWith
 
 import fs2.Stream
 import org.portablescala.reflect.annotation.EnableReflectiveInstantiation
@@ -51,14 +50,29 @@ trait EffectSuite[F[_]] extends Suite[F] with EffectSuiteAux with SourceLocation
 
 }
 
-trait RunnableSuite[F[_]] extends EffectSuite[F] {
+sealed trait TestEvent
+case class TestStarted(testName: TestName) extends TestEvent
+case class TestEnded(outcome: TestOutcome) extends TestEvent
+
+@RunWith(classOf[weaver.junit.WeaverRunner])
+abstract class RunnableSuite[F[_]] extends EffectSuite[F] {
   implicit protected def effectCompat: UnsafeRun[F]
 
-  private[weaver] def runUnsafe(args: List[String])(report: TestOutcome => Unit) : Unit =
-    effectCompat.sync(run(args)(outcome => effectCompat.effect.delay(report(outcome))))
+  def plan: List[TestName]
+
+  def spec(args: List[String], onStart : TestName => F[Unit]): Stream[F,TestOutcome]
+
+  final override def spec(args: List[String]) : Stream[F, TestOutcome] = this.spec(args, _ => effect.unit)
+
+  final def runE(args : List[String])(report : TestEvent => F[Unit]) : F[Unit] =
+    spec(args, name => report(TestStarted(name))).map(TestEnded(_)).evalMap(report).compile.drain.adaptErr(adaptRunError)
+
+  protected[weaver] def runUnsafe(args: List[String])(report: TestEvent => Unit) : Unit =
+    effectCompat.sync(runE(args)(outcome => effectCompat.effect.delay(report(outcome))))
 }
 
-trait MutableFSuite[F[_]] extends EffectSuite[F]  {
+
+abstract class MutableFSuite[F[_]] extends RunnableSuite[F]  {
 
   type Res
   def sharedResource : Resource[F, Res]
@@ -81,11 +95,13 @@ trait MutableFSuite[F[_]] extends EffectSuite[F]  {
     def apply(run : (Res, Log[F]) => F[Expectations]) : Unit = registerTest(name)(res => Test(name.name, log => run(res, log)))
   }
 
-  override def spec(args: List[String]) : Stream[F, TestOutcome] =
+  override def spec(args: List[String], onStart : TestName => F[Unit]) : Stream[F, TestOutcome] =
     synchronized {
       if (!isInitialized) isInitialized = true
       val argsFilter = Filters.filterTests(this.name)(args)
-      val filteredTests = testSeq.collect { case (name, test) if argsFilter(name) => test }
+      val filteredTests = testSeq.collect {
+        case (name, test) if argsFilter(name) => (res : Res) => onStart(name) *> test(res)
+      }
       val parallism = math.max(1, maxParallelism)
       if (filteredTests.isEmpty) Stream.empty // no need to allocate resources
       else for {
@@ -98,6 +114,9 @@ trait MutableFSuite[F[_]] extends EffectSuite[F]  {
     }
 
   private[this] var testSeq = Seq.empty[(TestName, Res => F[TestOutcome])]
+
+  def plan: List[TestName] = testSeq.map(_._1).toList
+
   private[this] var isInitialized = false
 
   private[this] def initError() =
@@ -106,4 +125,5 @@ trait MutableFSuite[F[_]] extends EffectSuite[F]  {
     )
 
 }
+
 

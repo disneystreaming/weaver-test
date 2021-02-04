@@ -1,5 +1,7 @@
 import WeaverPlugin._
 
+ThisBuild / version := "0.0.0-foobar"
+
 ThisBuild / commands += Command.command("ci") { state =>
   "versionDump" ::
     "scalafmtCheckAll" ::
@@ -84,7 +86,8 @@ lazy val core = projectMatrix
       if (virtualAxes.value.contains(VirtualAxis.jvm))
         Seq(
           ("org.scala-js" %%% "scalajs-stubs" % "1.0.0" % "provided").withDottyCompat(
-            scalaVersion.value)
+            scalaVersion.value),
+          "junit" % "junit" % "4.13"
         )
       else {
         Seq(

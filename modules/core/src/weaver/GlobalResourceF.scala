@@ -15,13 +15,13 @@ import CECompat.Ref
  * Top-level instances of this trait are detected by the framework and used to manage
  * the lifecycle of shared resources.
  *
- * The [[weaver.GlobalResources.Write]] store is a channel that lets you store
+ * The [[weaver.GlobalResourceF.Write]] store is a channel that lets you store
  * resources (http/database clients) using some type-specific tags. We provide [[scala.reflect.ClassTag]]
  * based implementation that works for that aren't subject to type-erasure (ie when a Scala type is
  * equivalent to a JVM class)
  *
  * Stored resources can be retrieved in test suites, by having your suite sport a constructor
- * that takes a [[GlobalResource]] instance.
+ * that takes a [[GlobalResourceF]] instance.
  */
 @EnableReflectiveInstantiation
 trait GlobalResourceBase
