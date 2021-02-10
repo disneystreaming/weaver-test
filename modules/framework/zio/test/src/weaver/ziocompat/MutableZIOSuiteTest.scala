@@ -1,5 +1,6 @@
 package weaver.ziocompat
 
+import weaver.Log
 import weaver.framework.DogFood
 import weaver.ziocompat.modules._
 
@@ -72,6 +73,100 @@ object ZIOSuiteTest extends ZIOSuite[KVStore with DogFoodz] {
       val maybeEvent  = events.headOption
       val maybeStatus = maybeEvent.map(_.status())
       expect(maybeStatus.contains(Status.Failure))
+    }
+  }
+
+  test("logs contain only the logs from each test") {
+    FiberRefLogTest.spec(List.empty)
+      .map(outcome =>
+        expect(!outcome.status.isFailed) and expect(outcome.log.size == 1))
+      .compile
+      .foldMonoid
+  }
+
+  test("logs can use adapter to give logs from app") {
+    LogAdapterTest.spec(List.empty).map(outcome =>
+      expect(!outcome.status.isFailed) and
+        expect(outcome.log.map(_.msg) == cats.data.Chain(
+          "one",
+          "two",
+          "three",
+          "four"))).compile.foldMonoid
+  }
+
+  object LogAdapterTest extends ZIOSuite[Has[SomeApp.Service]] {
+
+    val loggingAdapterLayer: RLayer[LogModule, Has[SomeLogger.Service]] =
+      ZLayer.fromService[LogModule.Service, SomeLogger.Service] {
+        weaverLogger =>
+          new SomeLogger.Service {
+            override def log(msg: String): Task[Unit] =
+              weaverLogger.log(Log.Entry(
+                0L,
+                msg,
+                Map.empty,
+                Log.debug,
+                None,
+                weaver.SourceLocation("", "", 0)))
+          }
+      }
+
+    val sharedLayer: ZLayer[ZEnv with LogModule, Throwable, Has[SomeApp.Service]] =
+      loggingAdapterLayer >>> SomeApp.program
+
+    test("can run and log") {
+      for {
+        _    <- SomeApp.run()
+        logs <- LogModule.logs
+      } yield expect(logs.size == 4)
+    }
+
+  }
+
+  object SomeLogger {
+    trait Service {
+      def log(msg: String): Task[Unit]
+    }
+    def log(msg: String): RIO[Has[Service], Unit] =
+      ZIO.accessM[Has[Service]](_.get.log(msg))
+  }
+
+  object SomeApp {
+    class Program(logger: SomeLogger.Service) extends SomeApp.Service {
+      def run(): Task[Unit] = for {
+        _ <- logger.log("one")
+        _ <- logger.log("two")
+        _ <- logger.log("three")
+        _ <- logger.log("four")
+      } yield ()
+    }
+
+    val program: URLayer[Has[SomeLogger.Service], Has[SomeApp.Service]] =
+      ZLayer.fromService[SomeLogger.Service, SomeApp.Service](new Program(_))
+
+    trait Service {
+      def run(): Task[Unit]
+    }
+    def run(): RIO[Has[Service], Unit] =
+      ZIO.accessM[Has[Service]](_.get.run())
+  }
+
+  object FiberRefLogTest extends SimpleZIOSuite {
+    override def maxParallelism: Int = 1
+    test("debug log") {
+      (log.debug("a log") *> LogModule.logs).map(logs => expect(logs.size == 1))
+    }
+
+    test("error log") {
+      (log.error("a log") *> LogModule.logs).map(logs => expect(logs.size == 1))
+    }
+
+    test("warning log") {
+      (log.info("a log") *> LogModule.logs).map(logs => expect(logs.size == 1))
+    }
+
+    test("warning log") {
+      (log.warn("a log") *> LogModule.logs).map(logs => expect(logs.size == 1))
     }
   }
 

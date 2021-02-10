@@ -1,13 +1,26 @@
 package weaver
 
+import java.util.concurrent.TimeUnit
+
+import cats.data.Chain
+
 import zio._
+import zio.clock.Clock
+import zio.interop.catz._
 
 package object ziocompat {
 
-  type T[A]                    = RIO[ZEnv, A]
-  type Env[R <: Has[_]]        = ZEnv with R
-  type LogModule               = Has[Log[UIO]]
-  type PerTestEnv[R <: Has[_]] = Env[R] with LogModule
+  object LogModule {
+    abstract class Service(clock: Clock.Service)
+        extends Log[UIO](clock.currentTime(TimeUnit.MILLISECONDS)) {
+      def logs: UIO[Chain[Log.Entry]]
+    }
+    def logs: URIO[LogModule, Chain[Log.Entry]] = ZIO.accessM(_.get.logs)
+  }
+  type LogModule = Has[LogModule.Service]
+
+  type T[A]             = RIO[ZEnv, A]
+  type Env[R <: Has[_]] = ZEnv with R with LogModule
 
   val unitTag = implicitly[Tag[Unit]]
   type ZIOSuite[R <: Has[_]] = MutableZIOSuite[R]
