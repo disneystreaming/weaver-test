@@ -287,7 +287,7 @@ lazy val coreZio = projectMatrix
   .settings(
     name := "zio-core",
     libraryDependencies ++= Seq(
-      "dev.zio" %%% "zio-interop-cats" % "2.2.0.1"
+      "dev.zio" %%% "zio-interop-cats" % "2.3.1.0"
     )
   )
 
