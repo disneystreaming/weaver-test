@@ -5,7 +5,7 @@ val ScalaJSVersion =
 addSbtPlugin("ch.epfl.scala"        % "sbt-scalafix"                  % "0.9.25")
 addSbtPlugin("org.scala-js"         % "sbt-scalajs"                   % ScalaJSVersion)
 addSbtPlugin("com.eed3si9n"         % "sbt-projectmatrix"             % "0.7.0")
-addSbtPlugin("com.jsuereth"         % "sbt-pgp"                       % "2.1.1")
+addSbtPlugin("com.github.sbt"         % "sbt-pgp"                       % "2.1.2")
 addSbtPlugin("com.dwijnand"         % "sbt-dynver"                    % "4.1.1")
 addSbtPlugin("org.xerial.sbt"       % "sbt-sonatype"                  % "3.9.5")
 addSbtPlugin("org.scalameta"        % "sbt-scalafmt"                  % "2.4.2")
