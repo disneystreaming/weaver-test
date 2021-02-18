@@ -77,7 +77,7 @@ lazy val core = projectMatrix
     libraryDependencies ++= Seq(
       "com.eed3si9n.expecty" %%% "expecty" % "0.15.1",
       // https://github.com/portable-scala/portable-scala-reflect/issues/23
-      ("org.portable-scala" %%% "portable-scala-reflect" % "1.0.0").withDottyCompat(
+      ("org.portable-scala" %%% "portable-scala-reflect" % "1.1.0").withDottyCompat(
         scalaVersion.value)
     ),
     libraryDependencies ++= {
@@ -91,6 +91,14 @@ lazy val core = projectMatrix
           "io.github.cquiroz" %%% "scala-java-time" % "2.1.0"
         )
       }
+    },
+    libraryDependencies ++= {
+      if (virtualAxes.value.contains(VirtualAxis.jvm)) {
+        if (scalaVersion.value.startsWith("3."))
+          Seq("org.scala-lang" % "scala-reflect" % scala213)
+        else
+          Seq("org.scala-lang" % "scala-reflect" % scalaVersion.value)
+      } else Seq.empty
     }
   )
 
