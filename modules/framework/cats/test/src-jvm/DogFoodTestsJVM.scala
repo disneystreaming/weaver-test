@@ -64,10 +64,13 @@ object DogFoodTestsJVM extends IOSuite {
   test("global lazy resources (sequential)") { dogfood =>
     import dogfood._
     runSuites(
-      globalInit(MetaJVM.LazyGlobal),
-      sharingSuite[MetaJVM.LazyAccessSequential0],
-      sharingSuite[MetaJVM.LazyAccessSequential1],
-      sharingSuite[MetaJVM.LazyAccessSequential2]
+      Seq(
+        globalInit(MetaJVM.LazyGlobal),
+        sharingSuite[MetaJVM.LazyAccessSequential0],
+        sharingSuite[MetaJVM.LazyAccessSequential1],
+        sharingSuite[MetaJVM.LazyAccessSequential2]
+      ),
+      maxParallelism = 1
     ).map {
       case (_, events) =>
         val successCount = events.toList.map(_.status()).count {
