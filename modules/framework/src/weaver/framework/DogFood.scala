@@ -32,13 +32,14 @@ abstract class DogFood[F[_]](
     case JVM => none
   }
 
-  // // Method used to run test-suites
-  def runSuites(suites: Fingerprinted*): F[State] =
+  def runSuites(
+      suites: Seq[Fingerprinted],
+      maxParallelism: Int = 512): F[State] =
     for {
       eventHandler <- effect.delay(new MemoryEventHandler())
       logger       <- effect.delay(new MemoryLogger())
       _ <- getTasks(suites, logger).use { case (runner, tasks) =>
-        runTasks(runner, eventHandler, logger)(tasks.toList)
+        runTasks(runner, eventHandler, logger, maxParallelism)(tasks.toList)
       }
       _      <- patience.fold(effect.unit)(framework.unsafeRun.sleep)
       logs   <- logger.get
@@ -46,6 +47,10 @@ abstract class DogFood[F[_]](
     } yield {
       (logs, events)
     }
+
+  // // Method used to run test-suites
+  def runSuites(suites: Fingerprinted*): F[State] =
+    runSuites(suites)
 
   // Method used to run a test-suite
   def runSuite(suiteName: String): F[State] =
@@ -92,9 +97,10 @@ abstract class DogFood[F[_]](
   private def runTasks(
       runner: WeaverRunner[F],
       eventHandler: EventHandler,
-      logger: Logger)(
+      logger: Logger,
+      maxParallelism: Int)(
       tasks: List[sbt.testing.Task]): F[Unit] =
-    runTasksCompat(runner, eventHandler, logger)(tasks)
+    runTasksCompat(runner, eventHandler, logger, maxParallelism)(tasks)
 
   def globalInit(g: GlobalResourceF[F]): Fingerprinted =
     Fingerprinted.GlobalInit(g.getClass.getName.dropRight(1))

@@ -12,7 +12,8 @@ private[weaver] trait DogFoodCompat[F[_]] { self: DogFood[F] =>
   def runTasksCompat(
       runner: WeaverRunner[F],
       eventHandler: sbt.testing.EventHandler,
-      logger: sbt.testing.Logger)(tasks: List[sbt.testing.Task]): F[Unit] = {
+      logger: sbt.testing.Logger,
+      maxParallelism: Int)(tasks: List[sbt.testing.Task]): F[Unit] = {
     tasks.traverse { task =>
       self.framework.unsafeRun.async {
         (cb: (Either[Throwable, Unit] => Unit)) =>

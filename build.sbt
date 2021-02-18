@@ -48,19 +48,19 @@ lazy val allModules = Seq(
   effectFrameworks
 ).flatten
 
-lazy val catsEffect3Version = "3.0.0-RC1"
+lazy val catsEffect3Version = "3.0.0-RC2"
 
 def catsEffectDependencies(proj: Project): Project = {
   proj.settings(
     libraryDependencies ++= {
       if (virtualAxes.value.contains(CatsEffect2Axis))
         Seq(
-          "co.fs2"        %%% "fs2-core"    % "2.5.0",
-          "org.typelevel" %%% "cats-effect" % "2.3.1"
+          "co.fs2"        %%% "fs2-core"    % "2.5.1",
+          "org.typelevel" %%% "cats-effect" % "2.3.3"
         )
       else
         Seq(
-          "co.fs2"        %%% "fs2-core"    % "3.0.0-M8",
+          "co.fs2"        %%% "fs2-core"    % "3.0.0-M9",
           "org.typelevel" %%% "cats-effect" % catsEffect3Version
         )
     }
@@ -219,7 +219,7 @@ lazy val scalacheck = projectMatrix
   .settings(
     testFrameworks := Seq(new TestFramework("weaver.framework.CatsEffect")),
     libraryDependencies ++= Seq(
-      "org.scalacheck" %%% "scalacheck" % "1.15.2"
+      "org.scalacheck" %%% "scalacheck" % "1.15.3"
     )
   )
 
