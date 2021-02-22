@@ -88,7 +88,7 @@ lazy val core = projectMatrix
         )
       else {
         Seq(
-          "io.github.cquiroz" %%% "scala-java-time" % "2.1.0"
+          "io.github.cquiroz" %%% "scala-java-time" % "2.2.0"
         )
       }
     },
