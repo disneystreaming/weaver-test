@@ -41,6 +41,8 @@ libraryDependencies +=  "com.disneystreaming" %% "weaver-scalacheck" % "x.y.z" %
 // optionally (for specs2 interop)
 libraryDependencies +=  "com.disneystreaming" %% "weaver-specs2" % "x.y.z" % Test
 
+// optionally (for scalatest interop)
+libraryDependencies +=  "com.disneystreaming" %% "weaver-scalatest" % "x.y.z" % Test
 ```
 
 ## Motivation

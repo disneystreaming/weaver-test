@@ -43,6 +43,7 @@ lazy val allModules = Seq(
   framework.projectRefs,
   scalacheck.projectRefs,
   specs2.projectRefs,
+  scalatest.projectRefs,
   intellijRunner.projectRefs,
   effectCores,
   effectFrameworks
@@ -106,7 +107,8 @@ val allEffectCoresFilter: ScopeFilter =
 
 val allIntegrationsCoresFilter: ScopeFilter =
   ScopeFilter(
-    inProjects((scalacheck.projectRefs ++ specs2.projectRefs): _*),
+    inProjects(
+      (scalacheck.projectRefs ++ specs2.projectRefs ++ scalatest.projectRefs): _*),
     inConfigurations(Compile)
   )
 
@@ -114,7 +116,7 @@ lazy val docs = projectMatrix
   .in(file("modules/docs"))
   .jvmPlatform(WeaverPlugin.supportedScala2Versions)
   .enablePlugins(DocusaurusPlugin, MdocPlugin)
-  .dependsOn(core, scalacheck, cats, zio, monix, monixBio, specs2)
+  .dependsOn(core, scalacheck, cats, zio, monix, monixBio, specs2, scalatest)
   .settings(
     moduleName := "docs",
     watchSources += (ThisBuild / baseDirectory).value / "docs",
@@ -233,6 +235,21 @@ lazy val specs2 = projectMatrix
     testFrameworks := Seq(new TestFramework("weaver.framework.CatsEffect")),
     libraryDependencies ++= Seq(
       "org.specs2" %%% "specs2-matcher" % "4.10.6"
+    )
+  )
+  .settings(WeaverPlugin.simpleLayout)
+
+lazy val scalatest = projectMatrix
+  .in(file("modules/scalatest"))
+  .sparse(withCE3 = true, withJS = true, withScala3 = false)
+  .dependsOn(core, cats % "test->compile")
+  .configure(WeaverPlugin.profile)
+  .settings(
+    name := "scalatest",
+    testFrameworks := Seq(new TestFramework("weaver.framework.CatsEffect")),
+    libraryDependencies ++= Seq(
+      "org.scalatest" %%% "scalatest-shouldmatchers" % "3.2.5",
+      "org.scalatest" %%% "scalatest-mustmatchers"   % "3.2.5"
     )
   )
   .settings(WeaverPlugin.simpleLayout)

@@ -18,6 +18,7 @@
       "tagging",
       "scalacheck",
       "specs2",
+      "scalatest",
       "parallelism"
     ],
     "Sample reports": [
