@@ -124,7 +124,7 @@ lazy val docs = projectMatrix
   .in(file("modules/docs"))
   .jvmPlatform(WeaverPlugin.supportedScala2Versions)
   .enablePlugins(DocusaurusPlugin, MdocPlugin)
-  .dependsOn(core, scalacheck, cats, zio, monix, monixBio, specs2)
+  .dependsOn(core, scalacheck, cats, zio, monix, monixBio, specs2, discipline)
   .settings(
     moduleName := "docs",
     watchSources += (ThisBuild / baseDirectory).value / "docs",
@@ -132,10 +132,11 @@ lazy val docs = projectMatrix
       "VERSION" -> version.value
     ),
     libraryDependencies ++= Seq(
-      "org.http4s"  %% "http4s-dsl"          % "0.21.0",
-      "org.http4s"  %% "http4s-blaze-server" % "0.21.0",
-      "org.http4s"  %% "http4s-blaze-client" % "0.21.0",
-      "com.lihaoyi" %% "fansi"               % "0.2.7"
+      "org.http4s"    %% "http4s-dsl"          % "0.21.0",
+      "org.http4s"    %% "http4s-blaze-server" % "0.21.0",
+      "org.http4s"    %% "http4s-blaze-client" % "0.21.0",
+      "com.lihaoyi"   %% "fansi"               % "0.2.7",
+      "org.typelevel" %% "cats-kernel-laws"    % "2.4.2"
     ),
     sourceGenerators in Compile += Def.taskDyn {
       val filePath =
@@ -257,7 +258,7 @@ lazy val discipline = projectMatrix
     testFrameworks := Seq(new TestFramework("weaver.framework.CatsEffect")),
     libraryDependencies ++= Seq(
       "org.typelevel" %%% "discipline-core" % "1.1.4",
-      "org.typelevel" %%% "cats-laws" % "2.4.2" % Test
+      "org.typelevel" %%% "cats-laws"       % "2.4.2" % Test
     )
   )
   .settings(WeaverPlugin.simpleLayout)
