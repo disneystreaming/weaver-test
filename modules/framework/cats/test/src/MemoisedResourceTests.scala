@@ -42,7 +42,7 @@ object MemoisedResourceTests extends SimpleIOSuite {
         case true  => (false, IO.raiseError(Boom))
         case false => (false, IO.pure("hello"))
       }.flatten
-      resource = Resource.liftF(allocate)
+      resource = Resource.eval(allocate)
       res <- MemoisedResource(resource)
       use = res.use(r => IO.pure(r))
       firstResult  <- use.attempt

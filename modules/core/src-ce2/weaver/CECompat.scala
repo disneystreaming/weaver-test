@@ -40,7 +40,7 @@ private[weaver] trait CECompat {
     fa.background.use(f)
 
   private[weaver] def resourceLift[F[_]: Applicative, A](
-      fa: F[A]): Resource[F, A] = Resource.liftF(fa)
+      fa: F[A]): Resource[F, A] = Resource.eval(fa)
 
   private[weaver] trait Queue[F[_], A] {
     protected def fs2Queue: fs2.concurrent.Queue[F, A]
