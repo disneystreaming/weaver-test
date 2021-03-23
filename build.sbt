@@ -43,6 +43,7 @@ lazy val allModules = Seq(
   framework.projectRefs,
   scalacheck.projectRefs,
   specs2.projectRefs,
+  discipline.projectRefs,
   intellijRunner.projectRefs,
   effectCores,
   effectFrameworks
@@ -114,7 +115,8 @@ val allEffectCoresFilter: ScopeFilter =
 
 val allIntegrationsCoresFilter: ScopeFilter =
   ScopeFilter(
-    inProjects((scalacheck.projectRefs ++ specs2.projectRefs): _*),
+    inProjects(
+      (scalacheck.projectRefs ++ specs2.projectRefs ++ discipline.projectRefs): _*),
     inConfigurations(Compile)
   )
 
@@ -245,6 +247,20 @@ lazy val specs2 = projectMatrix
   )
   .settings(WeaverPlugin.simpleLayout)
 
+lazy val discipline = projectMatrix
+  .in(file("modules/discipline"))
+  .sparse(withCE3 = true, withJS = true, withScala3 = true)
+  .dependsOn(core, cats)
+  .configure(WeaverPlugin.profile)
+  .settings(
+    name := "discipline",
+    testFrameworks := Seq(new TestFramework("weaver.framework.CatsEffect")),
+    libraryDependencies ++= Seq(
+      "org.typelevel" %%% "discipline-core" % "1.1.4",
+      "org.typelevel" %%% "cats-laws" % "2.4.2" % Test
+    )
+  )
+  .settings(WeaverPlugin.simpleLayout)
 // #################################################################################################
 // Effect-specific cores
 // #################################################################################################
