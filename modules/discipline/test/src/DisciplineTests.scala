@@ -31,12 +31,29 @@ object IntegrationTest extends SimpleIOSuite {
     }
   }
 
-  object MetaSuccess extends Discipline {
+  test("Captures exceptions correctly") {
+    import RickRoll._
+    MetaException.spec(Nil).compile.toList.map { outcomes =>
+      expect.all(
+        outcomes.forall(_.cause.isDefined),
+        outcomes.flatMap(_.cause).collect {
+          case `oops` | `oops2` => true
+          case _                => false
+        }.size == 2
+      )
+    }
+  }
+
+  object MetaSuccess extends SimpleIOSuite with Discipline {
     checkAll("Int", RickrollTests[Int].all)
   }
 
-  object MetaFailure extends Discipline {
+  object MetaFailure extends SimpleIOSuite with Discipline {
     checkAll("Boolean", RickrollTests[Boolean].all)
+  }
+
+  object MetaException extends SimpleIOSuite with Discipline {
+    checkAll("String", RickrollTests[String].all)
   }
 }
 
@@ -46,6 +63,8 @@ trait RickRoll[A] {
 }
 
 object RickRoll {
+  case object oops  extends Exception
+  case object oops2 extends Exception
   // Int is a well behaving rickroll type
   implicit val rr: RickRoll[Int] = new RickRoll[Int] {
     def rick(a: Int): Int = a
@@ -58,6 +77,13 @@ object RickRoll {
     def rick(a: Boolean): Boolean = !a // stop! in the name of Law
 
     def roll(a: Boolean): Option[Boolean] = Some(a)
+  }
+
+  // String is an unlawful rickroll type
+  implicit val rrS: RickRoll[String] = new RickRoll[String] {
+    def rick(a: String): String = throw oops
+
+    def roll(a: String): Option[String] = throw oops2
   }
 }
 
@@ -87,4 +113,3 @@ object RickrollTests {
   def apply[A](implicit rr: RickRoll[A]): RickrollTests[A] =
     new RickrollTests[A] { override implicit def R = rr }
 }
-
