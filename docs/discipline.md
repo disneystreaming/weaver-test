@@ -37,7 +37,7 @@ object DisciplineTests extends SimpleIOSuite with Discipline {
   override def maxParallelism = 1
 
   checkAll("Int", EqTests[Int].eqv)
-  checkAll("Boolean", EqTests[Int].eqv)
+  checkAll("Boolean", EqTests[Boolean].eqv)
 }
 ```
 

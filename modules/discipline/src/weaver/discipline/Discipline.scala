@@ -1,14 +1,14 @@
 package weaver
 package discipline
 
-import org.scalacheck.Test
 import org.typelevel.discipline.Laws
 import org.scalacheck.Prop.Arg
 import org.scalacheck.util.Pretty
+import org.scalacheck.Test
+import org.scalacheck.Test.{ Passed, Proved, Exhausted, Failed, PropException }
 
 import scala.util.control.NoStackTrace
 
-import org.scalacheck.Test.{ Passed, Proved, Exhausted, Failed, PropException }
 
 trait Discipline { self: EffectSuiteAux =>
 
