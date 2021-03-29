@@ -25,6 +25,67 @@ ThisBuild / commands += Command.command("release") { state =>
     "sonatypeBundleRelease" :: state
 }
 
+ThisBuild / commands ++= {
+  /* val */
+  type CEVer    = String
+  type ScalaVer = String
+  type Platform = String
+
+  val scala3Suffix   = VirtualAxis.scalaABIVersion(scala3).idSuffix
+  val scala213Suffix = VirtualAxis.scalaABIVersion(scala213).idSuffix
+  val scala212Suffix = VirtualAxis.scalaABIVersion(scala212).idSuffix
+  val jsSuffix       = VirtualAxis.js.idSuffix
+  val ce3Suffix      = CatsEffect3Axis.idSuffix
+  val ce2Suffix      = CatsEffect2Axis.idSuffix
+  val all = {
+    val buckets = List.newBuilder[((CEVer, ScalaVer, Platform), String)]
+    allModules.collect {
+      case lp: LocalProject =>
+        var projectId = lp.project
+
+        val scalaAxis =
+          if (projectId.endsWith(scala3Suffix)) {
+            projectId = projectId.dropRight(scala3Suffix.length)
+            scala3Suffix
+          } else if (projectId.endsWith(scala212Suffix)) {
+            projectId = projectId.dropRight(scala212Suffix.length)
+            "2_12"
+          } else
+            "2_13"
+
+        val platformAxis =
+          if (projectId.endsWith(jsSuffix)) {
+            projectId = projectId.dropRight(jsSuffix.length)
+
+            "js"
+          } else "jvm"
+
+        val ceAxis =
+          if (projectId.endsWith(ce3Suffix)) {
+            projectId = projectId.dropRight(ce3Suffix.length)
+            "CE3"
+          } else "CE2"
+
+        buckets += (ceAxis, scalaAxis, platformAxis) -> lp.project
+    }
+    buckets.result().groupBy(_._1).mapValues(_.map(_._2)).toList
+  }
+
+  val desiredCommands = List("test", "compile")
+
+  val cmds = all.flatMap {
+    case ((cever, scalaver, platform), projects) =>
+      desiredCommands.map { cmd =>
+        Command.command(s"${cmd}_${cever}_${scalaver}_${platform}") { state =>
+          projects.foldLeft(state) { case (st, proj) =>
+            s"$proj/$cmd" :: st
+          }
+        }
+      }
+  }
+  cmds
+}
+
 ThisBuild / scalaVersion := WeaverPlugin.scala213
 
 ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.4.4"
@@ -47,6 +108,21 @@ lazy val allModules = Seq(
   effectCores,
   effectFrameworks
 ).flatten
+
+lazy val allMatrices = Seq(
+  core.matrix,
+  framework.matrix,
+  scalacheck.matrix,
+  specs2.matrix
+)
+
+lazy val newRoot = projectMatrix.aggregate(allMatrices: _*)
+
+val allProjects = ScopeFilter(
+  inProjects(allModules: _*)
+)
+
+// val taskWt
 
 lazy val catsEffect3Version = "3.0.0-RC3"
 

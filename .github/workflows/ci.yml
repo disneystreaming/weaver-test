@@ -19,6 +19,9 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         java: [adopt@1.8, adopt@1.11]
+        scalaVersion: ["2_12", "2_13", "3_0_0_RC1"]
+        scalaPlatform: ["jvm", "js"]
+        ceVersion: ["CE2", "CE3"]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout current branch (full)
@@ -35,7 +38,7 @@ jobs:
         uses: coursier/cache-action@v3
 
       - name: Run checks
-        run: sbt ci
+        run: sbt test_${{ matrix.ceVersion }}_${{matrix.scalaVersion}}_${matrix.scalaPlatform}
 
       - name: Check documentation
         run: sbt docs/mdoc
