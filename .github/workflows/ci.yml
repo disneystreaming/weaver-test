@@ -38,7 +38,7 @@ jobs:
         uses: coursier/cache-action@v3
 
       - name: Run checks
-        run: sbt test_${{ matrix.ceVersion }}_${{matrix.scalaVersion}}_${matrix.scalaPlatform}
+        run: sbt test_${{matrix.ceVersion}}_${{matrix.scalaVersion}}_${{matrix.scalaPlatform}}
 
       - name: Check documentation
         run: sbt docs/mdoc
