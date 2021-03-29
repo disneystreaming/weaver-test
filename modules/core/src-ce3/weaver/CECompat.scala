@@ -2,7 +2,7 @@ package weaver
 
 import cats.Applicative
 import cats.effect.kernel.GenConcurrent
-import cats.effect.kernel.Resource.ExitCase.{Canceled, Errored, Succeeded}
+import cats.effect.kernel.Resource.ExitCase.{ Canceled, Errored, Succeeded }
 import cats.effect.syntax.all._
 import cats.effect.{ Async, Resource }
 import cats.syntax.all._
