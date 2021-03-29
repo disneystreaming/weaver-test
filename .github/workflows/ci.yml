@@ -60,7 +60,7 @@ jobs:
   publish:
     name: Publish
     needs: [quality, build]
-    if: github.event_name != 'pull_request' && (startsWith(github.ref, 'refs/tags/v')
+    if: github.event_name != 'pull_request' && (startsWith(github.ref, 'refs/tags/v'))
     runs-on: ubuntu-latest
     steps:
       - name: Checkout current branch (full)
