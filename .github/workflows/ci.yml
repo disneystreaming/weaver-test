@@ -1,4 +1,4 @@
-name: Continuous Integration
+name: CI
 
 on:
   pull_request:
@@ -9,10 +9,12 @@ on:
 
 env:
   SBT_OPTS: "-XX:+UseG1GC -XX:MaxMetaspaceSize=2g -Xms1g -Xmx7g -Xss2M -XX:+CMSClassUnloadingEnabled"
+  JAVA_OPTS: "-XX:+UseG1GC -XX:MaxMetaspaceSize=2g -Xms1g -Xmx7g -Xss2M -XX:+CMSClassUnloadingEnabled"
+  JVM_OPTS: "-XX:+UseG1GC -XX:MaxMetaspaceSize=2g -Xms1g -Xmx7g -Xss2M -XX:+CMSClassUnloadingEnabled"
 
 jobs:
   build:
-    name: Build and Test
+    name: Test
     strategy:
       matrix:
         os: [ubuntu-latest]
