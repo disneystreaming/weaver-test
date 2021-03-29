@@ -98,8 +98,10 @@ object DogFoodTestsJVM extends IOSuite {
     }
 
     val resource =
-      for ((fr, getDump) <- framework; dogfood <- DogFood.make(fr))
-        yield (getDump, dogfood)
+      for {
+        getDumpAndFr <- framework
+        dogfood      <- DogFood.make(getDumpAndFr._1)
+      } yield (getDumpAndFr._2, dogfood)
 
     resource.use {
       case (getDump, dogfood) =>
