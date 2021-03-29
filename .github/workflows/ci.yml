@@ -41,7 +41,6 @@ jobs:
 
   quality:
     name: Code quality
-    needs: [build]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout current branch (full)
@@ -56,35 +55,34 @@ jobs:
           java-version: adopt@1.8
 
       - name: Code quality
-        run: sbt "scalafmtCheckAll; scalafix --check; Test/scalafix --check"
+        run: sbt "scalafmtCheckAll; scalafix --check; Test/scalafix --check; docs/mdoc"
 
-      - name: Documentation
-        run: sbt mdoc
-  # publish:
-  #   name: Publish Artifacts
-  #   needs: [build]
-  #   if: github.event_name != 'pull_request' && (startsWith(github.ref, 'refs/tags/v')   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout current branch (full)
-  #       uses: actions/checkout@v2
-  #       with:
-  #         fetch-depth: 0
+  publish:
+    name: Publish
+    needs: [quality, build]
+    if: github.event_name != 'pull_request' && (startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout current branch (full)
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
 
-  #     - name: Setup Java and Scala
-  #       uses: olafurpg/setup-scala@v10
-  #       with:
-  #         java-version: adopt@1.8
+      - name: Setup Java and Scala
+        uses: olafurpg/setup-scala@v10
+        with:
+          java-version: adopt@1.8
 
-  #     - name: Cache
-  #       uses: coursier/cache-action@v3
+      - name: Cache
+        uses: coursier/cache-action@v6
 
-  #     - name: Publish ${{ github.ref }}
-  #       run: sbt release
-  #       env:
-  #         PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
-  #         PGP_SECRET: ${{ secrets.PGP_SECRET }}
-  #         SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
-  #         SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+      - name: Publish ${{ github.ref }}
+        run: sbt version # release //TODO
+        # env:
+        #   PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
+        #   PGP_SECRET: ${{ secrets.PGP_SECRET }}
+        #   SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+        #   SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
 
   # site:
   #   name: Publish Site
