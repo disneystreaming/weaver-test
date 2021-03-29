@@ -3,7 +3,7 @@ package weaver
 import cats.Applicative
 import cats.effect.ExitCase.{ Canceled, Completed }
 import cats.effect.syntax.all._
-import cats.effect.{ Concurrent, Resource }
+import cats.effect.{Concurrent, ExitCase, Resource}
 import cats.syntax.all._
 
 private[weaver] object CECompat extends CECompat
@@ -34,6 +34,14 @@ private[weaver] trait CECompat {
   private[weaver] def guarantee[F[_]: Concurrent, A](
       fa: F[A])(fin: F[Unit]): F[A] =
     Concurrent[F].guarantee(fa)(fin)
+
+  private[weaver] def onErrorEnsure[F[_]: Concurrent, A](r: Resource[F, A])(
+      f: Throwable => F[Unit]): Resource[F, A] =
+    r.onFinalizeCase {
+      case Canceled          => Concurrent[F].unit
+      case Completed         => Concurrent[F].unit
+      case ExitCase.Error(e) => f(e)
+    }
 
   private[weaver] def background[F[_]: Concurrent, A, B](fa: F[A], default: A)(
       f: F[A] => F[B]): F[B] =

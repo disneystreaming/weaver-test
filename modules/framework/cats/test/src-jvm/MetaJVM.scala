@@ -12,6 +12,7 @@ import cats.effect._
 // that contain failing tests, to allow for testing the framework without failing the build
 // because the framework will have ran the tests on its own.
 object MetaJVM {
+
   object MutableSuiteTest extends MutableSuiteTest
 
   object GlobalStub extends GlobalResource {
@@ -22,6 +23,11 @@ object MetaJVM {
 
     val makeTmpFile                    = IO(java.io.File.createTempFile("hello", ".tmp"))
     def deleteFile(file: java.io.File) = IO(file.delete()).void
+  }
+
+  object FailedGlobalStub extends GlobalResource {
+    def sharedResources(store: GlobalWrite): Resource[IO, Unit] =
+      Resource.eval(IO.raiseError(new Exception("Global Boom")))
   }
 
   class TmpFileSuite(global: GlobalRead) extends IOSuite {
