@@ -26,6 +26,7 @@ ThisBuild / commands += Command.command("release") { state =>
 }
 
 ThisBuild / commands ++= {
+  case class Triplet(ce: String, scala: String, platform: String)
   /* val */
   type CEVer    = String
   type ScalaVer = String
@@ -38,7 +39,7 @@ ThisBuild / commands ++= {
   val ce3Suffix      = CatsEffect3Axis.idSuffix
   val ce2Suffix      = CatsEffect2Axis.idSuffix
   val all = {
-    val buckets = List.newBuilder[((CEVer, ScalaVer, Platform), String)]
+    val buckets = List.newBuilder[(Triplet, String)]
     allModules.collect {
       case lp: LocalProject =>
         var projectId = lp.project
@@ -66,20 +67,31 @@ ThisBuild / commands ++= {
             "CE3"
           } else "CE2"
 
-        buckets += (ceAxis, scalaAxis, platformAxis) -> lp.project
+        buckets += Triplet(ceAxis, scalaAxis, platformAxis) -> lp.project
     }
     buckets.result().groupBy(_._1).mapValues(_.map(_._2)).toList
   }
 
-  val desiredCommands = List("test", "compile")
+  val any     = (t: Triplet) => true
+  val jvm2_13 = (t: Triplet) => t.scala == "2_13" && t.platform == "jvm"
+
+  val desiredCommands: Map[String, (String, Triplet => Boolean)] = Map(
+    "test"          -> ("test", any),
+    "compile"       -> ("compile", any),
+    "scalafix"      -> ("scalafix --check", jvm2_13),
+    "scalafixTests" -> ("Test/scalafix --check", jvm2_13),
+    "scalafmt"      -> ("scalafmtCheckAll", jvm2_13)
+  )
 
   val cmds = all.flatMap {
-    case ((cever, scalaver, platform), projects) =>
-      desiredCommands.map { cmd =>
-        Command.command(s"${cmd}_${cever}_${scalaver}_${platform}") { state =>
-          projects.foldLeft(state) { case (st, proj) =>
-            s"$proj/$cmd" :: st
-          }
+    case (triplet, projects) =>
+      desiredCommands.filter(_._2._2(triplet)).map { case (name, cmd) =>
+        Command.command(
+          s"${name}_${triplet.ce}_${triplet.scala}_${triplet.platform}") {
+          state =>
+            projects.foldLeft(state) { case (st, proj) =>
+              s"$proj/$cmd" :: st
+            }
         }
       }
   }
