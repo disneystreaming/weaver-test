@@ -1,10 +1,10 @@
 package weaver
 package monixcompat
 
-import cats.effect.{ ContextShift, Timer }
 
 import monix.eval.Task
 import monix.execution.{ Cancelable, Scheduler }
+import cats.effect.Temporal
 
 object MonixUnsafeRun extends UnsafeRun[Task] {
 
@@ -14,7 +14,7 @@ object MonixUnsafeRun extends UnsafeRun[Task] {
 
   override implicit val contextShift: ContextShift[Task] =
     Task.contextShift(scheduler)
-  override implicit val timer: Timer[Task] =
+  override implicit val timer: Temporal[Task] =
     Task.timer(scheduler)
 
   override implicit val effect   = Task.catsEffect(scheduler)

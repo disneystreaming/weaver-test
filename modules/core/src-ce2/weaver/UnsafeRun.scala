@@ -5,12 +5,13 @@ import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.FiniteDuration
 
 import cats.Parallel
-import cats.effect.{ Async, Concurrent, ContextShift, Timer }
+import cats.effect.{ Async, Concurrent }
+import cats.effect.Temporal
 
 trait EffectCompat[F[_]] extends PlatformEffectCompat[F] {
   implicit def parallel: Parallel[F]
   implicit def effect: Concurrent[F]
-  implicit def timer: Timer[F]
+  implicit def timer: Temporal[F]
   implicit def contextShift: ContextShift[F]
 
   def realTimeMillis: F[Long]                  = timer.clock.realTime(TimeUnit.MILLISECONDS)
@@ -18,7 +19,7 @@ trait EffectCompat[F[_]] extends PlatformEffectCompat[F] {
   def fromFuture[A](thunk: => scala.concurrent.Future[A]): F[A] =
     Async.fromFuture(effect.delay(thunk))
   def async[A](cb: (Either[Throwable, A] => Unit) => Unit): F[A] =
-    effect.async(cb)
+    effect.async_(cb)
 }
 
 /**

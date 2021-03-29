@@ -11,14 +11,14 @@ private[weaver] object CECompat extends CECompat
 private[weaver] trait CECompat {
 
   private[weaver] type Effect[F[_]] = Concurrent[F]
-  private[weaver] type Ref[F[_], A] = cats.effect.concurrent.Ref[F, A]
-  private[weaver] val Ref = cats.effect.concurrent.Ref
+  private[weaver] type Ref[F[_], A] = _root_.cats.effect.Ref[F, A]
+  private[weaver] val Ref = _root_.cats.effect.Ref
 
-  private[weaver] type Deferred[F[_], A] = cats.effect.concurrent.Deferred[F, A]
-  private[weaver] val Deferred = cats.effect.concurrent.Deferred
+  private[weaver] type Deferred[F[_], A] = _root_.cats.effect.Deferred[F, A]
+  private[weaver] val Deferred = _root_.cats.effect.Deferred
 
-  private[weaver] type Semaphore[F[_]] = cats.effect.concurrent.Semaphore[F]
-  private[weaver] val Semaphore = cats.effect.concurrent.Semaphore
+  private[weaver] type Semaphore[F[_]] = cats.effect.std.Semaphore[F]
+  private[weaver] val Semaphore = cats.effect.std.Semaphore
 
   private[weaver] def guaranteeCase[F[_]: Concurrent, A](
       fa: F[A])(
@@ -33,7 +33,7 @@ private[weaver] trait CECompat {
 
   private[weaver] def guarantee[F[_]: Concurrent, A](
       fa: F[A])(fin: F[Unit]): F[A] =
-    Concurrent[F].guarantee(fa)(fin)
+    Concurrent[F].guarantee(fa, fin)
 
   private[weaver] def background[F[_]: Concurrent, A, B](fa: F[A], default: A)(
       f: F[A] => F[B]): F[B] =

@@ -5,10 +5,10 @@ import scala.concurrent.duration.{ MILLISECONDS, _ }
 
 import cats.data.Chain
 import cats.effect.{ Resource }
-import cats.effect.concurrent.Ref
 
 import monix.bio.{ IO, Task }
 import monix.execution.Scheduler
+import cats.effect.Ref
 
 trait BaseIOSuite extends RunnableSuite[Task] {
   implicit protected def effectCompat               = MonixBIOUnsafeRun

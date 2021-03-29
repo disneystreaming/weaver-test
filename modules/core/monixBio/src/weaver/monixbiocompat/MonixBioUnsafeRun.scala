@@ -2,10 +2,10 @@ package weaver
 package monixbiocompat
 
 import cats.Parallel
-import cats.effect.{ ContextShift, Timer }
 
 import monix.bio.IO
 import monix.execution.{ Cancelable, Scheduler }
+import cats.effect.Temporal
 
 object MonixBIOUnsafeRun extends UnsafeRun[monix.bio.Task] {
   type CancelToken = Cancelable
@@ -15,7 +15,7 @@ object MonixBIOUnsafeRun extends UnsafeRun[monix.bio.Task] {
   implicit val parallel: Parallel[monix.bio.Task] = IO.catsParallel
   implicit val contextShift: ContextShift[monix.bio.Task] =
     IO.contextShift(scheduler)
-  implicit val timer: Timer[monix.bio.Task] = IO.timer(scheduler)
+  implicit val timer: Temporal[monix.bio.Task] = IO.timer(scheduler)
   def background(task: monix.bio.Task[Unit]): CancelToken = {
     task.runAsync { _ => () }(scheduler)
   }

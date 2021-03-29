@@ -2,10 +2,11 @@ package weaver
 package ziocompat
 
 import cats.Parallel
-import cats.effect.{ ConcurrentEffect, ContextShift, Timer }
+import cats.effect.ConcurrentEffect
 
 import zio._
 import zio.interop.catz
+import cats.effect.Temporal
 
 object ZIOUnsafeRun extends UnsafeRun[T] {
 
@@ -13,7 +14,7 @@ object ZIOUnsafeRun extends UnsafeRun[T] {
 
   implicit val runtime = Runtime.default
 
-  implicit def timer: Timer[T]             = catz.zioTimer[ZEnv, Throwable]
+  implicit def timer: Temporal[T]             = catz.zioTimer[ZEnv, Throwable]
   implicit def effect: ConcurrentEffect[T] = catz.taskEffectInstance[ZEnv]
 
   implicit def parallel: Parallel[T] =
