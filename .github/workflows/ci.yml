@@ -62,7 +62,7 @@ jobs:
         with:
           java-version: adopt@1.8
 
-      - name: Code quality
+      - name: Run mdoc
         run: sbt "docs/mdoc"
 
   publish:
