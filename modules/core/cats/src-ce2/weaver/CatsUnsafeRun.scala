@@ -19,10 +19,7 @@ trait CatsUnsafeRun extends UnsafeRun[IO] {
   override implicit val parallel = IO.ioParallel(contextShift)
 
   def background(task: IO[Unit]): CancelToken =
-    task.unsafeRunCancelable {
-      case Left(error) => error.printStackTrace
-      case Right(_)    => ()
-    }
+    task.unsafeRunCancelable { _ => () }
 
   def cancel(token: CancelToken): Unit = sync(token)
 

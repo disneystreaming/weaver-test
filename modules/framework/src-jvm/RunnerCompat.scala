@@ -1,6 +1,7 @@
 package weaver
 package framework
 
+import java.io.PrintStream
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.atomic.{ AtomicBoolean, AtomicInteger }
 
@@ -20,6 +21,7 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
 
   protected val suiteLoader: SuiteLoader[F]
   protected val unsafeRun: UnsafeRun[F]
+  protected val errorStream: PrintStream
   import unsafeRun._
 
   private type MakeSuite = GlobalResourceF.Read[F] => F[EffectSuite[F]]
@@ -119,8 +121,15 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
   private def run(
       globalResources: List[GlobalResourceF[F]],
       tasks: List[IOTask]): F[Unit] = {
-    import cats.syntax.all._
-    resourceMap(globalResources).use { read =>
+
+    def preventDeadlock[A](resource: Resource[F, A]) =
+      CECompat.onErrorEnsure(resource) {
+        error =>
+          effect.delay(isDone.set(true)) *>
+            effect.delay(error.printStackTrace(errorStream))
+      }
+
+    preventDeadlock(resourceMap(globalResources)).use { read =>
       for {
         ref <- Ref.of[F, Chain[(SuiteName, TestOutcome)]](Chain.empty)
         sem <- Semaphore[F](0L)
@@ -137,6 +146,7 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
         _ <- tasks.parTraverse(_.run(read, ref, maybePublish))
       } yield ()
     }
+
   }
 
   private def resourceMap(
@@ -186,7 +196,9 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
             .update(_.append(SuiteName(fqn) -> outcome))
             .productR(broker.send(TestFinished(outcome))))(finalizer)
         }
-      )
+      ).handleErrorWith { case scala.util.control.NonFatal(_) =>
+        effect.unit // avoid non-fatal errors propagating up
+      }
     }
   }
 
