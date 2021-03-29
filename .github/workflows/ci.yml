@@ -42,8 +42,7 @@ jobs:
       - name: Run checks
         if: matrix.scalaVersion == '2_13' && matrix.scalaPlatform == 'jvm'
         run: |
-          sbt test_${{matrix.ceVersion}}_${{matrix.scalaVersion}}_${{matrix.scalaPlatform}} \
-              scalafix_${{matrix.ceVersion}}_${{matrix.scalaVersion}}_${{matrix.scalaPlatform}} \
+          sbt scalafix_${{matrix.ceVersion}}_${{matrix.scalaVersion}}_${{matrix.scalaPlatform}} \
               scalafixTests_${{matrix.ceVersion}}_${{matrix.scalaVersion}}_${{matrix.scalaPlatform}} \
               scalafmt_${{matrix.ceVersion}}_${{matrix.scalaVersion}}_${{matrix.scalaPlatform}}
 
