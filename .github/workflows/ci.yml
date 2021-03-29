@@ -17,31 +17,48 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        java: [adopt@1.8, adopt@1.11]
+        java: [adopt@1.8]
         scalaVersion: ["2_12", "2_13", "3_0_0_RC1"]
         scalaPlatform: ["jvm", "js"]
         ceVersion: ["CE2", "CE3"]
     runs-on: ${{ matrix.os }}
     steps:
-      - name: Checkout current branch (full)
+      - name: Checkout current branch
         uses: actions/checkout@v2
+
+      - name: Cache
+        uses: coursier/cache-action@v6
         with:
-          fetch-depth: 0
+          extraKey: ${{matrix.ceVersion}}_${{matrix.scalaVersion}}_${{matrix.scalaPlatform}}
 
       - name: Setup Java and Scala
         uses: olafurpg/setup-scala@v10
         with:
           java-version: ${{ matrix.java }}
 
-      - name: Cache
-        uses: coursier/cache-action@v3
-
-      - name: Run checks
+      - name: Run tests
         run: sbt test_${{matrix.ceVersion}}_${{matrix.scalaVersion}}_${{matrix.scalaPlatform}}
 
-      - name: Check documentation
-        run: sbt docs/mdoc
+  quality:
+    name: Code quality
+    needs: [build]
+    steps:
+      - name: Checkout current branch (full)
+        uses: actions/checkout@v2
 
+      - name: Cache
+        uses: coursier/cache-action@v6
+
+      - name: Setup Java and Scala
+        uses: olafurpg/setup-scala@v10
+        with:
+          java-version: adopt@1.8
+
+      - name: Code quality
+        run: sbt "scalafmtCheckAll; scalafix --check; Test/scalafix --check"
+
+      - name: Documentation
+        run: sbt mdoc
   # publish:
   #   name: Publish Artifacts
   #   needs: [build]
