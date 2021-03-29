@@ -6,6 +6,8 @@ import cats.Defer
 import cats.data.Chain
 import cats.syntax.all._
 
+import scala.util.{ Try, Success, Failure }
+
 import CECompat.Ref
 
 object Test {
@@ -24,6 +26,18 @@ object Test {
       end  <- F.realTimeMillis
       logs <- ref.get
     } yield TestOutcome(name, (end - start).millis, res, logs)
+  }
+
+  def pure(name: String)(ex: () => Expectations): TestOutcome = {
+    val start               = System.currentTimeMillis()
+    val (attempt, duration) = Try(ex()) -> (System.currentTimeMillis() - start)
+
+    val res = attempt match {
+      case Success(assertions) => Result.fromAssertion(assertions)
+      case Failure(ex)         => Result.from(ex)
+    }
+
+    TestOutcome(name, duration.millis, res, Chain.empty)
   }
 
   def apply[F[_]](name: String, f: F[Expectations])(

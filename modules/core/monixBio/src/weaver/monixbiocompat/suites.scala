@@ -62,3 +62,5 @@ trait SimpleMutableIOSuite extends MutableIOSuite {
   type Res = Unit
   def sharedResource: Resource[Task, Unit] = Resource.pure[Task, Unit](())
 }
+
+trait FunIOSuite extends BaseIOSuite with FunSuiteAux[Task]

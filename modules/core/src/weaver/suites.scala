@@ -24,10 +24,11 @@ protected[weaver] trait EffectSuiteAux {
 }
 
 // format: off
-trait EffectSuite[F[_]] extends Suite[F] with EffectSuiteAux with SourceLocation.Here { self =>
+trait EffectSuite[F[_]] extends Suite[F] with RunnableSuite[F] with EffectSuiteAux with SourceLocation.Here { self =>
 
   final type EffectType[A] = F[A]
   implicit protected def effectCompat: EffectCompat[F]
+  private[weaver] def unsafeRun: UnsafeRun[EffectType]
   implicit final protected def effect: CECompat.Effect[F] = effectCompat.effect
 
   /**
@@ -49,13 +50,12 @@ trait EffectSuite[F[_]] extends Suite[F] with EffectSuiteAux with SourceLocation
   final def run(args : List[String])(report : TestOutcome => F[Unit]) : F[Unit] =
     spec(args).evalMap(report).compile.drain.adaptErr(adaptRunError)
 
+  private[weaver] def runUnsafe(args: List[String])(report: TestOutcome => Unit) : Unit =
+    unsafeRun.sync(run(args)(outcome => effect.delay(report(outcome))))
 }
 
-trait RunnableSuite[F[_]] extends EffectSuite[F] {
-  implicit protected def effectCompat: UnsafeRun[F]
-
-  private[weaver] def runUnsafe(args: List[String])(report: TestOutcome => Unit) : Unit =
-    effectCompat.sync(run(args)(outcome => effectCompat.effect.delay(report(outcome))))
+trait RunnableSuite[F[_]] {
+  private[weaver] def runUnsafe(args: List[String])(report: TestOutcome => Unit) : Unit
 }
 
 trait MutableFSuite[F[_]] extends EffectSuite[F]  {
@@ -106,4 +106,30 @@ trait MutableFSuite[F[_]] extends EffectSuite[F]  {
     )
 
 }
+
+trait FunSuiteAux[F[_]] extends RunnableSuite[F] with Suite[F] with EffectSuiteAux with SourceLocation.Here { self =>
+  override type EffectType[A] = F[A]
+
+  def test(name: TestName)(run: => Expectations): Unit = synchronized {
+    if(isInitialized) throw initError
+    testSeq = testSeq :+ (name -> (() => Test.pure(name.name)(() => run)))
+  }
+
+  override def name : String = self.getClass.getName.replace("$", "")
+  override def spec(args: List[String]) = synchronized {
+    if(!isInitialized) isInitialized = true
+      val argsFilter = Filters.filterTests(this.name)(args)
+      val filteredTests = testSeq.collect { case (name, test) if argsFilter(name) => test }
+
+      fs2.Stream.eval(effect.delay(filteredTests.map(_()))).flatMap(s => fs2.Stream.emits(s))
+  }
+
+  private[this] var testSeq = Seq.empty[(TestName, () => TestOutcome)]
+
+  private[this] var isInitialized = false
+}
+
+private[weaver] object initError extends AssertionError(
+      "Cannot define new tests after TestSuite was initialized"
+    )
 

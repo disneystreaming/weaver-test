@@ -25,3 +25,5 @@ trait SimpleMutableIOSuite extends MutableIOSuite {
   type Res = Unit
   def sharedResource: Resource[IO, Unit] = Resource.pure[IO, Unit](())
 }
+
+trait FunSuiteIO extends FunSuiteAux[IO] with Expectations.Helpers

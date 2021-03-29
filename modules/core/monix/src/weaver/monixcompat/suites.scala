@@ -36,3 +36,5 @@ trait SimpleMutableTaskSuite extends MutableTaskSuite {
   type Res = Unit
   def sharedResource: Resource[Task, Unit] = Resource.pure[Task, Unit](())
 }
+
+trait FunTaskSuite extends BaseTaskSuite with FunSuiteAux[Task]
