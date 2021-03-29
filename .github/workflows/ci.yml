@@ -1,0 +1,90 @@
+name: Continuous Integration
+
+on:
+  pull_request:
+    branches: ["*"]
+  push:
+    branches: ["*"]
+    tags: [v*]
+
+environment:
+  SBT_OPTS: "-XX:+UseG1GC -XX:MaxMetaspaceSize=2g -Xms1g -Xmx7g -Xss2M -XX:+CMSClassUnloadingEnabled"
+
+jobs:
+  build:
+    name: Build and Test
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        java: [adopt@1.8, adopt@1.11]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout current branch (full)
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java and Scala
+        uses: olafurpg/setup-scala@v10
+        with:
+          java-version: ${{ matrix.java }}
+
+      - name: Cache
+        uses: coursier/cache-action@v3
+
+      - name: Run checks
+        run: sbt ci
+
+      - name: Check documentation
+        run: sbt docs/mdoc
+
+  # publish:
+  #   name: Publish Artifacts
+  #   needs: [build]
+  #   if: github.event_name != 'pull_request' && (startsWith(github.ref, 'refs/tags/v')   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout current branch (full)
+  #       uses: actions/checkout@v2
+  #       with:
+  #         fetch-depth: 0
+
+  #     - name: Setup Java and Scala
+  #       uses: olafurpg/setup-scala@v10
+  #       with:
+  #         java-version: adopt@1.8
+
+  #     - name: Cache
+  #       uses: coursier/cache-action@v3
+
+  #     - name: Publish ${{ github.ref }}
+  #       run: sbt release
+  #       env:
+  #         PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
+  #         PGP_SECRET: ${{ secrets.PGP_SECRET }}
+  #         SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+  #         SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+
+  # site:
+  #   name: Publish Site
+  #   needs: [build, publish]
+  #   if: startsWith(github.ref, 'refs/tags/v')
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout current branch (full)
+  #       uses: actions/checkout@v2
+  #       with:
+  #         fetch-depth: 0
+
+  #     - name: Setup Java and Scala
+  #       uses: olafurpg/setup-scala@v10
+  #       with:
+  #         java-version: adopt@1.8
+
+  #     - name: Cache
+  #       uses: coursier/cache-action@v3
+
+  #     - name: Run mdoc
+  #       run: sbt mdoc
+
+  #     - name: Release site
+  #       run: amm scripts/releaseSite.sc
