@@ -42,6 +42,7 @@ jobs:
   quality:
     name: Code quality
     needs: [build]
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout current branch (full)
         uses: actions/checkout@v2
