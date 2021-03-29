@@ -85,7 +85,7 @@ ThisBuild / commands ++= {
 
   val cmds = all.flatMap {
     case (triplet, projects) =>
-      desiredCommands.filter(_._2._2(triplet)).map { case (name, cmd) =>
+      desiredCommands.filter(_._2._2(triplet)).map { case (name, (cmd, _)) =>
         Command.command(
           s"${name}_${triplet.ce}_${triplet.scala}_${triplet.platform}") {
           state =>
