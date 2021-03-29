@@ -7,7 +7,7 @@ on:
     branches: ["*"]
     tags: [v*]
 
-environment:
+env:
   SBT_OPTS: "-XX:+UseG1GC -XX:MaxMetaspaceSize=2g -Xms1g -Xmx7g -Xss2M -XX:+CMSClassUnloadingEnabled"
 
 jobs:
