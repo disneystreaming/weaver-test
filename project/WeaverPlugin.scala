@@ -351,9 +351,10 @@ object WeaverPlugin extends AutoPlugin {
 
   lazy val publishSettings = Seq(
     organization := "com.disneystreaming",
-    version := sys.env
-      .getOrElse("DRONE_TAG", version.value)
-      .dropWhile(_ == 'v'),
+    version := sys.env.get("GITHUB_REF")
+      .filter(_.startsWith("refs/tags/v"))
+      .map(_.drop("refs/tags/v".length))
+      .getOrElse(version.value),
     publishTo := sonatypePublishToBundle.value,
     publishMavenStyle := true,
     licenses := Seq(
