@@ -56,7 +56,7 @@ def catsEffectDependencies(proj: Project): Project = {
       if (virtualAxes.value.contains(CatsEffect2Axis))
         Seq(
           "co.fs2"        %%% "fs2-core"    % "2.5.3",
-          "org.typelevel" %%% "cats-effect" % "2.4.0"
+          "org.typelevel" %%% "cats-effect" % "2.4.1"
         )
       else
         Seq(
