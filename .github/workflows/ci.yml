@@ -7,10 +7,6 @@ on:
     branches: ["master"]
     tags: ["v*"]
 
-# env:
-#   JAVA_OPTS: "-XX:+UseG1GC -XX:MaxMetaspaceSize=2g -Xms1g -Xmx7g -Xss2M -XX:+CMSClassUnloadingEnabled"
-#   JVM_OPTS: "-XX:+UseG1GC -XX:MaxMetaspaceSize=2g -Xms1g -Xmx7g -Xss2M -XX:+CMSClassUnloadingEnabled"
-
 jobs:
   build:
     name: Test ${{matrix.ceVersion}} ${{matrix.scalaVersion}} (${{matrix.scalaPlatform}})
