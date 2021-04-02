@@ -107,7 +107,6 @@ object Meta {
     }
   }
 
-
   case class CustomException(
       str: String,
       causedBy: Exception = null,
