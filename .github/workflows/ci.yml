@@ -5,11 +5,11 @@ on:
     branches: ["*"]
   push:
     branches: ["master"]
-    tags: [v*]
+    tags: ["v*"]
 
-env:
-  JAVA_OPTS: "-XX:+UseG1GC -XX:MaxMetaspaceSize=2g -Xms1g -Xmx7g -Xss2M -XX:+CMSClassUnloadingEnabled"
-  JVM_OPTS: "-XX:+UseG1GC -XX:MaxMetaspaceSize=2g -Xms1g -Xmx7g -Xss2M -XX:+CMSClassUnloadingEnabled"
+# env:
+#   JAVA_OPTS: "-XX:+UseG1GC -XX:MaxMetaspaceSize=2g -Xms1g -Xmx7g -Xss2M -XX:+CMSClassUnloadingEnabled"
+#   JVM_OPTS: "-XX:+UseG1GC -XX:MaxMetaspaceSize=2g -Xms1g -Xmx7g -Xss2M -XX:+CMSClassUnloadingEnabled"
 
 jobs:
   build:
@@ -104,10 +104,10 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup Java and Scala
-        uses: olafurpg/setup-scala@v10
+      - uses: laughedelic/coursier-setup@v1
         with:
-          java-version: adopt@1.8
+          jvm: adopt:8
+          apps: ammonite sbt
 
       - name: Cache
         uses: coursier/cache-action@v3
@@ -116,6 +116,7 @@ jobs:
         run: |
           mkdir -p $HOME/.ssh
           ssh-keyscan -t rsa github.com >> $HOME/.ssh/known_hosts
+          sbt docs/docusaurusCreateSite
           amm scripts/releaseSite.sc
         env:
-          GITHUB_DEPLOY_KEY: ${{ secrets.GITHUB_DEPLOY_KEY }}
+          GITHUB_DEPLOY_KEY: ${{ secrets.GIT_DEPLOY_KEY }}

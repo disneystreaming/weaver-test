@@ -29,7 +29,10 @@ def main(): Unit = {
   website.yarn("install")
   // Freezing version
 
-  val version     = sys.env("DRONE_TAG").dropWhile(_ == 'v')
+  val version = sys.env.get("GITHUB_REF")
+      .filter(_.startsWith("refs/tags/v"))
+      .map(_.drop("refs/tags/v".length))
+      .getOrElse(throw new Exception("GITHUB REF doesn't contain a tag!"))
   val siteConfig  = ujson.read(os.read(website / "siteConfig.json"))
   val orgName     = siteConfig("organizationName").str
   val projectName = siteConfig("projectName").str
@@ -158,8 +161,9 @@ val installSSHScript: String =
 
 def doInstallSSH() =  {
   val tmp = os.temp(contents = installSSHScript,
+                    dir = os.pwd,
                     prefix = "docusaurus",
-                    suffix = "install_ssh.sh",
-                    perms = Set(OWNER_EXECUTE).asJava)
-  os.proc(tmp).call(cwd = os.pwd)
+                    suffix = "install_ssh.sh")
+  os.proc.apply(Seq("chmod", "+x", tmp.toString))
+  os.proc.apply(Seq("bash", tmp.toString)).call(cwd = os.pwd)
 }
