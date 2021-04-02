@@ -1,12 +1,11 @@
 package weaver
 
 import scala.concurrent.duration._
+import scala.util.{ Failure, Success, Try }
 
 import cats.Defer
 import cats.data.Chain
 import cats.syntax.all._
-
-import scala.util.{ Try, Success, Failure }
 
 import CECompat.Ref
 

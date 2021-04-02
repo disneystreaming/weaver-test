@@ -7,4 +7,4 @@ class CatsEffect
     extends WeaverFramework("cats-effect", CatsFingerprints, CatsUnsafeRun)
 
 object CatsFingerprints
-    extends WeaverFingerprints.Mixin[IO, BaseIOSuite, IOGlobalResource]
+    extends WeaverFingerprints.Mixin[IO, BaseCatsSuite, IOGlobalResource]

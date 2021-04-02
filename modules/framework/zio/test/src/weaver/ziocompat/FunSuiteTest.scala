@@ -1,4 +1,4 @@
-package weaver
+package weaver.ziocompat
 
 object FunSuiteTest extends FunSuite {
 

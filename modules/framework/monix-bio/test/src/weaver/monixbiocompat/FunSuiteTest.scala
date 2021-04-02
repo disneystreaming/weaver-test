@@ -1,4 +1,4 @@
-package weaver
+package weaver.monixbiocompat
 
 object FunSuiteTest extends FunSuite {
 

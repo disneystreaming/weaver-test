@@ -1,4 +1,5 @@
 package weaver
+package monixcompat
 
 object FunSuiteTest extends FunSuite {
 
