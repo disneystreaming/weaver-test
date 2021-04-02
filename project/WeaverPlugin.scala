@@ -351,9 +351,10 @@ object WeaverPlugin extends AutoPlugin {
 
   lazy val publishSettings = Seq(
     organization := "com.disneystreaming",
-    version := sys.env
-      .getOrElse("DRONE_TAG", version.value)
-      .dropWhile(_ == 'v'),
+    version := sys.env.get("GITHUB_REF")
+      .filter(_.startsWith("refs/tags/v"))
+      .map(_.drop("refs/tags/v".length))
+      .getOrElse(version.value),
     publishTo := sonatypePublishToBundle.value,
     publishMavenStyle := true,
     licenses := Seq(
@@ -394,5 +395,75 @@ object WeaverPlugin extends AutoPlugin {
         }
         .toSeq
   )
+
+  def createBuildCommands(projects: Seq[ProjectReference]) = {
+    case class Triplet(ce: String, scala: String, platform: String)
+
+    val scala3Suffix   = VirtualAxis.scalaABIVersion(scala3).idSuffix
+    val scala213Suffix = VirtualAxis.scalaABIVersion(scala213).idSuffix
+    val scala212Suffix = VirtualAxis.scalaABIVersion(scala212).idSuffix
+    val jsSuffix       = VirtualAxis.js.idSuffix
+    val ce3Suffix      = CatsEffect3Axis.idSuffix
+    val ce2Suffix      = CatsEffect2Axis.idSuffix
+
+    val all: List[(Triplet, Seq[String])] =
+      projects.collect {
+        case lp: LocalProject =>
+          var projectId = lp.project
+
+          val scalaAxis =
+            if (projectId.endsWith(scala3Suffix)) {
+              projectId = projectId.dropRight(scala3Suffix.length)
+              scala3Suffix
+            } else if (projectId.endsWith(scala212Suffix)) {
+              projectId = projectId.dropRight(scala212Suffix.length)
+              "2_12"
+            } else
+              "2_13"
+
+          val platformAxis =
+            if (projectId.endsWith(jsSuffix)) {
+              projectId = projectId.dropRight(jsSuffix.length)
+
+              "js"
+            } else "jvm"
+
+          val ceAxis =
+            if (projectId.endsWith(ce3Suffix)) {
+              projectId = projectId.dropRight(ce3Suffix.length)
+              "CE3"
+            } else "CE2"
+
+          Triplet(ceAxis, scalaAxis, platformAxis) -> lp.project
+      }.groupBy(_._1).mapValues(_.map(_._2)).toList
+
+    // some commands, like test and compile, are setup for all modules
+    val any = (t: Triplet) => true
+    // things like scalafix and scalafmt are only enabled on jvm 2.13 projects
+    val jvm2_13 = (t: Triplet) => t.scala == "2_13" && t.platform == "jvm"
+
+    val desiredCommands: Map[String, (String, Triplet => Boolean)] = Map(
+      "test"          -> ("test", any),
+      "compile"       -> ("compile", any),
+      "scalafix"      -> ("scalafix --check", jvm2_13),
+      "scalafixTests" -> ("Test/scalafix --check", jvm2_13),
+      "scalafmt"      -> ("scalafmtCheckAll", jvm2_13)
+    )
+
+    val cmds = all.flatMap {
+      case (triplet, projects) =>
+        desiredCommands.filter(_._2._2(triplet)).map { case (name, (cmd, _)) =>
+          Command.command(
+            s"${name}_${triplet.ce}_${triplet.scala}_${triplet.platform}") {
+            state =>
+              projects.foldLeft(state) { case (st, proj) =>
+                s"$proj/$cmd" :: st
+              }
+          }
+        }
+    }
+
+    cmds
+  }
 
 }

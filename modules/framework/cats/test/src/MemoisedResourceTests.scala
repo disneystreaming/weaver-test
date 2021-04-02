@@ -23,7 +23,7 @@ object MemoisedResourceTests extends SimpleIOSuite {
       resource =
         Resource.make(initialised.update(_ + 1))(_ => finalised.update(_ + 1))
       use <- MemoisedResource(resource).map(r =>
-        r.use(_ => IO.sleep(100.millis) *> used.update(_ + 1)))
+        r.use(_ => IO.sleep(250.millis) *> used.update(_ + 1)))
       _         <- use
       _         <- List.fill(10)(use).parSequence
       _         <- use

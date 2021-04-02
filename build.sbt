@@ -25,6 +25,8 @@ ThisBuild / commands += Command.command("release") { state =>
     "sonatypeBundleRelease" :: state
 }
 
+ThisBuild / commands ++= createBuildCommands(allModules)
+
 ThisBuild / scalaVersion := WeaverPlugin.scala213
 
 ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.4.4"
