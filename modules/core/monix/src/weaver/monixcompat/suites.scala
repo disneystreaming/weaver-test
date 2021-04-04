@@ -24,7 +24,7 @@ abstract class PureTaskSuite
 }
 
 abstract class MutableTaskSuite
-    extends RunnableSuite[Task]
+    extends MutableFSuite[Task]
     with BaseTaskSuite
     with Expectations.Helpers {
 

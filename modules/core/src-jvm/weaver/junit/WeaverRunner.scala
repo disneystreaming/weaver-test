@@ -1,9 +1,10 @@
 package weaver
 package junit
 
+import weaver.TestStatus._
+
 import org.junit.runner.Description
 import org.junit.runner.notification.RunNotifier
-import weaver.TestStatus._
 
 class WeaverRunner(cls: Class[_], dummy: Boolean)
     extends org.junit.runner.Runner {

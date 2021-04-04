@@ -87,7 +87,7 @@ lazy val core = projectMatrix
         Seq(
           ("org.scala-js" %%% "scalajs-stubs" % "1.0.0" % "provided").withDottyCompat(
             scalaVersion.value),
-          "junit" % "junit" % "4.13"
+          "junit" % "junit" % "4.13" % Optional
         )
       else {
         Seq(

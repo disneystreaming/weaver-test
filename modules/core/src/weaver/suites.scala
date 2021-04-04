@@ -2,9 +2,9 @@ package weaver
 
 import cats.effect.Resource
 import cats.syntax.all._
-import org.junit.runner.RunWith
 
 import fs2.Stream
+import org.junit.runner.RunWith
 import org.portablescala.reflect.annotation.EnableReflectiveInstantiation
 
 // Just a non-parameterized marker trait to help SBT's test detection logic.
