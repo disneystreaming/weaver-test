@@ -242,7 +242,7 @@ object DogFoodTests extends IOSuite {
         case LoggedEvent.Warn(s)  => s
         case LoggedEvent.Error(s) => s
       }
-      .map(TestConsole.removeASCIIColors)
+      .map(Colours.removeASCIIColors)
       .map(_.trim)
   }
 
@@ -254,7 +254,7 @@ object DogFoodTests extends IOSuite {
         case _                                             => true
       }
       .collectFirst(pf)
-      .map(TestConsole.removeASCIIColors)
+      .map(Colours.removeASCIIColors)
       .map(_.trim)
   }
 
@@ -266,7 +266,7 @@ object DogFoodTests extends IOSuite {
         case _                                             => true
       }
       .collectFirst(pf)
-      .map(TestConsole.removeASCIIColors)
+      .map(Colours.removeASCIIColors)
       .map(_.trim)
   }
 }

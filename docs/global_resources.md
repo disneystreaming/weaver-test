@@ -99,7 +99,7 @@ object MyResources extends GlobalResource {
   // Provides a fallback to support running individual tests via testOnly
   def sharedResourceOrFallback(read: GlobalRead): Resource[IO, String] =
     read.getR[String]().flatMap {
-      case Some(value) => Resource.liftF(IO(value))
+      case Some(value) => Resource.eval(IO(value))
       case None        => baseResources
     }
 }

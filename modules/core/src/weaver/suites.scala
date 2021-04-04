@@ -47,7 +47,6 @@ trait EffectSuite[F[_]] extends Suite[F] with EffectSuiteAux with SourceLocation
 
   final def run(args : List[String])(report : TestOutcome => F[Unit]) : F[Unit] =
     spec(args).evalMap(report).compile.drain.adaptErr(adaptRunError)
-
 }
 
 sealed trait TestEvent
@@ -56,21 +55,11 @@ case class TestEnded(outcome: TestOutcome) extends TestEvent
 
 @RunWith(classOf[weaver.junit.WeaverRunner])
 abstract class RunnableSuite[F[_]] extends EffectSuite[F] {
-  implicit protected def effectCompat: UnsafeRun[F]
-
-  def plan: List[TestName]
-
-  def spec(args: List[String], onStart : TestName => F[Unit]): Stream[F,TestOutcome]
-
-  final override def spec(args: List[String]) : Stream[F, TestOutcome] = this.spec(args, _ => effect.unit)
-
-  final def runE(args : List[String])(report : TestEvent => F[Unit]) : F[Unit] =
-    spec(args, name => report(TestStarted(name))).map(TestEnded(_)).evalMap(report).compile.drain.adaptErr(adaptRunError)
-
-  protected[weaver] def runUnsafe(args: List[String])(report: TestEvent => Unit) : Unit =
-    effectCompat.sync(runE(args)(outcome => effectCompat.effect.delay(report(outcome))))
+  implicit protected def effectCompat: UnsafeRun[EffectType]
+  def plan : List[TestName]
+  private[weaver] def runUnsafe(args: List[String])(report: TestOutcome => Unit) : Unit =
+    effectCompat.sync(run(args)(outcome => effectCompat.effect.delay(report(outcome))))
 }
-
 
 abstract class MutableFSuite[F[_]] extends RunnableSuite[F]  {
 
@@ -95,12 +84,14 @@ abstract class MutableFSuite[F[_]] extends RunnableSuite[F]  {
     def apply(run : (Res, Log[F]) => F[Expectations]) : Unit = registerTest(name)(res => Test(name.name, log => run(res, log)))
   }
 
-  override def spec(args: List[String], onStart : TestName => F[Unit]) : Stream[F, TestOutcome] =
+  override def spec(args: List[String]) : Stream[F, TestOutcome] =
     synchronized {
       if (!isInitialized) isInitialized = true
       val argsFilter = Filters.filterTests(this.name)(args)
-      val filteredTests = testSeq.collect {
-        case (name, test) if argsFilter(name) => (res : Res) => onStart(name) *> test(res)
+      val filteredTests = if (testSeq.exists(_._1.tags("only"))){
+        testSeq.filter(_._1.tags("only")).map { case (_, test) => (res: Res) => test(res)}
+      } else testSeq.collect {
+        case (name, test) if argsFilter(name) => (res : Res) => test(res)
       }
       val parallism = math.max(1, maxParallelism)
       if (filteredTests.isEmpty) Stream.empty // no need to allocate resources
@@ -126,4 +117,33 @@ abstract class MutableFSuite[F[_]] extends RunnableSuite[F]  {
 
 }
 
+abstract class FunSuiteAux[F[_]] extends RunnableSuite[F] { self =>
+  def test(name: TestName)(run: => Expectations): Unit = synchronized {
+    if(isInitialized) throw initError
+    testSeq = testSeq :+ (name -> (() => Test.pure(name.name)(() => run)))
+  }
+
+  override def name : String = self.getClass.getName.replace("$", "")
+  private def pureSpec(args: List[String]) = synchronized {
+    if(!isInitialized) isInitialized = true
+      val argsFilter = Filters.filterTests(this.name)(args)
+      val filteredTests = testSeq.collect { case (name, test) if argsFilter(name) => test }
+      fs2.Stream.emits(filteredTests.map(execute => execute()))
+  }
+
+  override def spec(args: List[String]) = pureSpec(args).covary[F]
+
+  override def runUnsafe(args: List[String])(report: TestOutcome => Unit) =
+    pureSpec(args).compile.toVector.foreach(report)
+
+
+  private[this] var testSeq = Seq.empty[(TestName, () => TestOutcome)]
+  def plan: List[TestName] = testSeq.map(_._1).toList
+
+  private[this] var isInitialized = false
+}
+
+private[weaver] object initError extends AssertionError(
+      "Cannot define new tests after TestSuite was initialized"
+    )
 

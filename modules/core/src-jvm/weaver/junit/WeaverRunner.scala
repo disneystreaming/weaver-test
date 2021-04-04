@@ -37,23 +37,23 @@ class WeaverRunner(cls: Class[_], dummy: Boolean)
     notifier.fireTestSuiteFinished(desc)
   }
 
-  def notifiying(notifier: RunNotifier): TestEvent => Unit = event => {
-    event match {
-      case TestStarted(_) =>
-      // notifier.fireTestStarted(testDescriptions(name.name))
-      case Ended(Success, outcome) =>
-        notifier.fireTestStarted(testDescriptions(outcome.name))
-        notifier.fireTestFinished(desc(outcome))
-      case Ended(Cancelled, outcome) =>
-        notifier.fireTestIgnored(desc(outcome))
-      case Ended(Ignored, outcome) =>
-        notifier.fireTestIgnored(desc(outcome))
-      case Ended(Failure, outcome) =>
-        notifier.fireTestStarted(testDescriptions(outcome.name))
-        notifier.fireTestAssumptionFailed(failure(outcome))
-      case Ended(weaver.TestStatus.Exception, outcome) =>
-        notifier.fireTestStarted(testDescriptions(outcome.name))
+  def notifiying(notifier: RunNotifier): TestOutcome => Unit = outcome => {
+    val description = desc(outcome)
+    outcome.status match {
+      case Success =>
+        notifier.fireTestStarted(description)
+        notifier.fireTestFinished(description)
+      case Failure =>
+        notifier.fireTestStarted(description)
+        notifier.fireTestFailure(assertionFailed(outcome))
+        notifier.fireTestFinished(description)
+      case weaver.TestStatus.Exception =>
+        notifier.fireTestStarted(description)
         notifier.fireTestFailure(failure(outcome))
+      case Cancelled =>
+        notifier.fireTestIgnored(description)
+      case Ignored =>
+        notifier.fireTestIgnored(description)
     }
   }
 
@@ -61,22 +61,22 @@ class WeaverRunner(cls: Class[_], dummy: Boolean)
     testDescriptions(outcome.name)
 
   private def failure(outcome: TestOutcome) = {
-
     val summary = outcome.cause.getOrElse {
-      new Exception(outcome.formatted(TestOutcome.Verbose))
+      new Exception(
+        Colours.removeASCIIColors(outcome.formatted(TestOutcome.Verbose)))
         with scala.util.control.NoStackTrace
     }
 
     new org.junit.runner.notification.Failure(desc(outcome), summary)
-
   }
 
-  private object Ended {
-    def unapply(event: TestEvent): Option[(TestStatus, TestOutcome)] =
-      event match {
-        case TestStarted(_)            => None
-        case TestEnded(t: TestOutcome) => Some(t.status -> t)
-      }
+  private def assertionFailed(outcome: TestOutcome) = {
+    val summary =
+      new org.junit.AssumptionViolatedException(
+        Colours.removeASCIIColors(outcome.formatted(TestOutcome.Verbose)))
+        with scala.util.control.NoStackTrace
+
+    new org.junit.runner.notification.Failure(desc(outcome), summary)
   }
 
 }

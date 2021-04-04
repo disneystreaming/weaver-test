@@ -19,4 +19,8 @@ private[weaver] object Colours {
 
   val whitebold = colored(Console.WHITE + Console.BOLD) _
 
+  val ansiColorRgx = "\u001b\\[([;\\d]*)m".r
+
+  def removeASCIIColors(str: String) =
+    ansiColorRgx.replaceAllIn(str, "")
 }

@@ -3,18 +3,21 @@ package ziocompat
 
 import scala.util.Try
 
+import cats.data.Chain
+
 import fs2._
 import zio._
+import zio.clock.Clock
 import zio.interop.catz._
 
-abstract class BaseZIOSuite extends EffectSuite[T] with RunnableSuite[T] {
-  val effectCompat: UnsafeRun[T] = ZIOUnsafeRun
-}
+trait BaseZIOSuite extends EffectSuite[T]
 
 abstract class BaseMutableZIOSuite[Res <: Has[_]](implicit tag: Tag[Res])
     extends BaseZIOSuite {
 
-  val sharedLayer: ZLayer[ZEnv, Throwable, Res]
+  override implicit protected def effectCompat = ZIOUnsafeRun
+
+  val sharedLayer: ZLayer[ZEnv with LogModule, Throwable, Res]
 
   def maxParallelism: Int = 10000
 
@@ -30,7 +33,7 @@ abstract class BaseMutableZIOSuite[Res <: Has[_]](implicit tag: Tag[Res])
     registerTest(name)(Test(name.name, ZIO(run)))
 
   def test(name: TestName)(
-      run: => ZIO[PerTestEnv[Res], Throwable, Expectations]): Unit =
+      run: => ZIO[Env[Res], Throwable, Expectations]): Unit =
     registerTest(name)(Test(name.name, ZIO.fromTry(Try { run }).flatten))
 
   override def spec(args: List[String]): Stream[T, TestOutcome] =
@@ -42,8 +45,14 @@ abstract class BaseMutableZIOSuite[Res <: Has[_]](implicit tag: Tag[Res])
       }
       if (filteredTests.isEmpty) Stream.empty // no need to allocate resources
       else {
-        val suiteLayer = sharedLayer.passthrough
         for {
+          ref <-
+            Stream.eval(FiberRef.make(Chain.empty[Log.Entry]))
+          testLayer: RLayer[ZEnv, LogModule with ZEnv] =
+            ZEnv.any ++ ZLayer.fromService[Clock.Service, LogModule.Service](
+              FiberRefLog(ref, _))
+          suiteLayer =
+            (testLayer >+> sharedLayer).passthrough
           resource <- Stream.resource(suiteLayer.build.toResourceZIO)
           result <- Stream
             .emits(filteredTests)
@@ -73,4 +82,11 @@ abstract class MutableZIOSuite[Res <: Has[_]](implicit tag: Tag[Res])
 abstract class SimpleMutableZIOSuite extends MutableZIOSuite[Has[Unit]] {
   override val sharedLayer: zio.ZLayer[ZEnv, Throwable, Has[Unit]] =
     ZLayer.fromEffect(UIO.unit)
+}
+
+trait FunZIOSuite
+    extends FunSuiteAux[T]
+    with BaseZIOSuite
+    with Expectations.Helpers {
+  override implicit protected def effectCompat = ZIOUnsafeRun
 }

@@ -50,19 +50,19 @@ lazy val allModules = Seq(
   effectFrameworks
 ).flatten
 
-lazy val catsEffect3Version = "3.0.0-M5"
+lazy val catsEffect3Version = "3.0.0-RC3"
 
 def catsEffectDependencies(proj: Project): Project = {
   proj.settings(
     libraryDependencies ++= {
       if (virtualAxes.value.contains(CatsEffect2Axis))
         Seq(
-          "co.fs2"        %%% "fs2-core"    % "2.5.0",
-          "org.typelevel" %%% "cats-effect" % "2.3.1"
+          "co.fs2"        %%% "fs2-core"    % "2.5.3",
+          "org.typelevel" %%% "cats-effect" % "2.4.0"
         )
       else
         Seq(
-          "co.fs2"        %%% "fs2-core"    % "3.0.0-M7",
+          "co.fs2"        %%% "fs2-core"    % "3.0.0-M9",
           "org.typelevel" %%% "cats-effect" % catsEffect3Version
         )
     }
@@ -77,9 +77,9 @@ lazy val core = projectMatrix
   .configure(catsEffectDependencies)
   .settings(
     libraryDependencies ++= Seq(
-      "com.eed3si9n.expecty" %%% "expecty" % "0.15.0",
+      "com.eed3si9n.expecty" %%% "expecty" % "0.15.1",
       // https://github.com/portable-scala/portable-scala-reflect/issues/23
-      ("org.portable-scala" %%% "portable-scala-reflect" % "1.0.0").withDottyCompat(
+      ("org.portable-scala" %%% "portable-scala-reflect" % "1.1.1").withDottyCompat(
         scalaVersion.value)
     ),
     libraryDependencies ++= {
@@ -91,9 +91,17 @@ lazy val core = projectMatrix
         )
       else {
         Seq(
-          "io.github.cquiroz" %%% "scala-java-time" % "2.1.0"
+          "io.github.cquiroz" %%% "scala-java-time" % "2.2.0"
         )
       }
+    },
+    libraryDependencies ++= {
+      if (virtualAxes.value.contains(VirtualAxis.jvm)) {
+        if (scalaVersion.value.startsWith("3."))
+          Seq("org.scala-lang" % "scala-reflect" % scala213)
+        else
+          Seq("org.scala-lang" % "scala-reflect" % scalaVersion.value)
+      } else Seq.empty
     }
   )
 
@@ -206,7 +214,7 @@ lazy val framework = projectMatrix
         Seq(
           ("org.scala-js" %% "scalajs-test-interface" % scalaJSVersion).withDottyCompat(
             scalaVersion.value),
-          "io.github.cquiroz" %%% "scala-java-time-tzdb" % "2.1.0" % Test
+          "io.github.cquiroz" %%% "scala-java-time-tzdb" % "2.2.0" % Test
         )
     }
   )
@@ -222,7 +230,7 @@ lazy val scalacheck = projectMatrix
   .settings(
     testFrameworks := Seq(new TestFramework("weaver.framework.CatsEffect")),
     libraryDependencies ++= Seq(
-      "org.scalacheck" %%% "scalacheck" % "1.15.2"
+      "org.scalacheck" %%% "scalacheck" % "1.15.3"
     )
   )
 
@@ -235,7 +243,7 @@ lazy val specs2 = projectMatrix
     name := "specs2",
     testFrameworks := Seq(new TestFramework("weaver.framework.CatsEffect")),
     libraryDependencies ++= Seq(
-      "org.specs2" %%% "specs2-matcher" % "4.10.5"
+      "org.specs2" %%% "specs2-matcher" % "4.10.6"
     )
   )
   .settings(WeaverPlugin.simpleLayout)
@@ -290,7 +298,7 @@ lazy val coreZio = projectMatrix
   .settings(
     name := "zio-core",
     libraryDependencies ++= Seq(
-      "dev.zio" %%% "zio-interop-cats" % "2.2.0.1"
+      "dev.zio" %%% "zio-interop-cats" % "2.3.1.0"
     )
   )
 
@@ -315,7 +323,7 @@ lazy val cats = projectMatrix
     name := "cats",
     testFrameworks := Seq(new TestFramework("weaver.framework.CatsEffect")),
     libraryDependencies += {
-      "io.github.cquiroz" %%% "scala-java-time-tzdb" % "2.1.0" % Test
+      "io.github.cquiroz" %%% "scala-java-time-tzdb" % "2.2.0" % Test
     }
   )
 
