@@ -14,4 +14,4 @@ class CatsEffect(errorStream: PrintStream)
 }
 
 object CatsFingerprints
-    extends WeaverFingerprints.Mixin[IO, BaseIOSuite, IOGlobalResource]
+    extends WeaverFingerprints.Mixin[IO, BaseCatsSuite, IOGlobalResource]

@@ -6,11 +6,7 @@ import cats.effect.Resource
 import monix.eval.Task
 import monix.execution.Scheduler
 
-trait BaseTaskSuite extends RunnableSuite[Task] {
-  implicit protected def effectCompat = MonixUnsafeRun
-
-  final implicit protected def scheduler: Scheduler = effectCompat.scheduler
-}
+trait BaseTaskSuite extends EffectSuite[Task]
 
 trait PureTaskSuite
     extends EffectSuite[Task]
@@ -30,9 +26,24 @@ trait PureTaskSuite
 trait MutableTaskSuite
     extends MutableFSuite[Task]
     with BaseTaskSuite
-    with Expectations.Helpers
+    with RunnableSuite[Task]
+    with Expectations.Helpers {
+
+  implicit protected def effectCompat = MonixUnsafeRun
+
+  final implicit protected def scheduler: Scheduler = effectCompat.scheduler
+}
 
 trait SimpleMutableTaskSuite extends MutableTaskSuite {
   type Res = Unit
   def sharedResource: Resource[Task, Unit] = Resource.pure[Task, Unit](())
+}
+
+trait FunTaskSuite
+    extends BaseTaskSuite
+    with FunSuiteAux[Task]
+    with Expectations.Helpers {
+  implicit protected def effectCompat = MonixUnsafeRun
+
+  final implicit protected def scheduler: Scheduler = effectCompat.scheduler
 }

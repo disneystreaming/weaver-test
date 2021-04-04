@@ -48,13 +48,11 @@ trait EffectSuite[F[_]] extends Suite[F] with EffectSuiteAux with SourceLocation
 
   final def run(args : List[String])(report : TestOutcome => F[Unit]) : F[Unit] =
     spec(args).evalMap(report).compile.drain.adaptErr(adaptRunError)
-
 }
 
 trait RunnableSuite[F[_]] extends EffectSuite[F] {
-  implicit protected def effectCompat: UnsafeRun[F]
-
-  private[weaver] def runUnsafe(args: List[String])(report: TestOutcome => Unit) : Unit =
+  implicit protected def effectCompat: UnsafeRun[EffectType]
+  private[weaver] def runUnsafe(args: List[String])(report: TestOutcome => Unit) : Unit = 
     effectCompat.sync(run(args)(outcome => effectCompat.effect.delay(report(outcome))))
 }
 
@@ -106,4 +104,33 @@ trait MutableFSuite[F[_]] extends EffectSuite[F]  {
     )
 
 }
+
+trait FunSuiteAux[F[_]] extends RunnableSuite[F] { self =>
+  def test(name: TestName)(run: => Expectations): Unit = synchronized {
+    if(isInitialized) throw initError
+    testSeq = testSeq :+ (name -> (() => Test.pure(name.name)(() => run)))
+  }
+
+  override def name : String = self.getClass.getName.replace("$", "")
+  private def pureSpec(args: List[String]) = synchronized {
+    if(!isInitialized) isInitialized = true
+      val argsFilter = Filters.filterTests(this.name)(args)
+      val filteredTests = testSeq.collect { case (name, test) if argsFilter(name) => test }
+      fs2.Stream.emits(filteredTests.map(execute => execute()))
+  }
+
+  override def spec(args: List[String]) = pureSpec(args).covary[F]
+
+  override def runUnsafe(args: List[String])(report: TestOutcome => Unit) = 
+    pureSpec(args).compile.toVector.foreach(report)
+    
+
+  private[this] var testSeq = Seq.empty[(TestName, () => TestOutcome)]
+
+  private[this] var isInitialized = false
+}
+
+private[weaver] object initError extends AssertionError(
+      "Cannot define new tests after TestSuite was initialized"
+    )
 
