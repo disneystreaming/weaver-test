@@ -25,6 +25,8 @@ ThisBuild / commands += Command.command("release") { state =>
     "sonatypeBundleRelease" :: state
 }
 
+ThisBuild / commands ++= createBuildCommands(allModules)
+
 ThisBuild / scalaVersion := WeaverPlugin.scala213
 
 ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.4.4"
@@ -48,19 +50,19 @@ lazy val allModules = Seq(
   effectFrameworks
 ).flatten
 
-lazy val catsEffect3Version = "3.0.0-RC3"
+lazy val catsEffect3Version = "3.0.1"
 
 def catsEffectDependencies(proj: Project): Project = {
   proj.settings(
     libraryDependencies ++= {
       if (virtualAxes.value.contains(CatsEffect2Axis))
         Seq(
-          "co.fs2"        %%% "fs2-core"    % "2.5.3",
-          "org.typelevel" %%% "cats-effect" % "2.4.0"
+          "co.fs2"        %%% "fs2-core"    % "2.5.4",
+          "org.typelevel" %%% "cats-effect" % "2.4.1"
         )
       else
         Seq(
-          "co.fs2"        %%% "fs2-core"    % "3.0.0-M9",
+          "co.fs2"        %%% "fs2-core"    % "3.0.1",
           "org.typelevel" %%% "cats-effect" % catsEffect3Version
         )
     }
@@ -295,7 +297,7 @@ lazy val coreZio = projectMatrix
   .settings(
     name := "zio-core",
     libraryDependencies ++= Seq(
-      "dev.zio" %%% "zio-interop-cats" % "2.3.1.0"
+      "dev.zio" %%% "zio-interop-cats" % "2.4.0.0"
     )
   )
 
