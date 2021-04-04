@@ -9,14 +9,16 @@ import org.junit.runner.notification.RunNotifier
 class WeaverRunner(cls: Class[_], dummy: Boolean)
     extends org.junit.runner.Runner {
 
+  type F[A] = Any
+
   def this(cls: Class[_]) = this(cls, true)
 
-  lazy val suite: RunnableSuite[Any] = {
+  lazy val suite: RunnableSuite[F] = {
     val mirror =
       scala.reflect.runtime.universe.runtimeMirror(getClass().getClassLoader())
     val module = mirror.staticModule(cls.getName())
     val obj    = mirror.reflectModule(module)
-    obj.instance.asInstanceOf[RunnableSuite[Any]]
+    obj.instance.asInstanceOf[RunnableSuite[F]]
   }
 
   lazy val testDescriptions: Map[String, Description] = {
