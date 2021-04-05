@@ -90,7 +90,7 @@ lazy val core = projectMatrix
         )
       else {
         Seq(
-          "io.github.cquiroz" %%% "scala-java-time" % "2.2.0"
+          "io.github.cquiroz" %%% "scala-java-time" % "2.2.1"
         )
       }
     },
@@ -213,7 +213,7 @@ lazy val framework = projectMatrix
         Seq(
           ("org.scala-js" %% "scalajs-test-interface" % scalaJSVersion).withDottyCompat(
             scalaVersion.value),
-          "io.github.cquiroz" %%% "scala-java-time-tzdb" % "2.2.0" % Test
+          "io.github.cquiroz" %%% "scala-java-time-tzdb" % "2.2.1" % Test
         )
     }
   )
@@ -322,7 +322,7 @@ lazy val cats = projectMatrix
     name := "cats",
     testFrameworks := Seq(new TestFramework("weaver.framework.CatsEffect")),
     libraryDependencies += {
-      "io.github.cquiroz" %%% "scala-java-time-tzdb" % "2.2.0" % Test
+      "io.github.cquiroz" %%% "scala-java-time-tzdb" % "2.2.1" % Test
     }
   )
 
