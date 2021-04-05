@@ -152,8 +152,8 @@ object Expectations {
     implicit class StringOps(str: String) {
       def only(implicit loc: SourceLocation): TestName =
         new TestName(str, loc, Set.empty).only
-      def tagged(str: String)(implicit loc: SourceLocation): TestName =
-        new TestName(str, loc, Set.empty).tagged(str)
+      def tagged(tag: String)(implicit loc: SourceLocation): TestName =
+        new TestName(str, loc, Set.empty).tagged(tag)
     }
 
   }
