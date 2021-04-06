@@ -25,7 +25,7 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
   private[weaver] val failedTests = ListBuffer.empty[(SuiteName, TestOutcome)]
 
   def reportDone(out: TestOutcomeJS): Unit = {
-    val serialised = JSON.stringify(out)
+    val serialised = JSON.stringify(out, null)
     channel match {
       case Some(send) => send(serialised)
       case None       => failedTests.append(TestOutcomeJS.rehydrate(out))
