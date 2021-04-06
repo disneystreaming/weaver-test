@@ -414,7 +414,7 @@ object WeaverPlugin extends AutoPlugin {
           val scalaAxis =
             if (projectId.endsWith(scala3Suffix)) {
               projectId = projectId.dropRight(scala3Suffix.length)
-              scala3Suffix
+              "3_0"
             } else if (projectId.endsWith(scala212Suffix)) {
               projectId = projectId.dropRight(scala212Suffix.length)
               "2_12"
