@@ -11,10 +11,11 @@ jobs:
   build:
     name: Test ${{matrix.ceVersion}} ${{matrix.scalaVersion}} (${{matrix.scalaPlatform}})
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest]
         java: [adopt@1.8]
-        scalaVersion: ["2_12", "2_13", "3_0_0_RC1"]
+        scalaVersion: ["2_12", "2_13", "3_0"]
         scalaPlatform: ["jvm", "js"]
         ceVersion: ["CE2", "CE3"]
     runs-on: ${{ matrix.os }}
