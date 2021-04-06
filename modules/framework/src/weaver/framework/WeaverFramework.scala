@@ -1,6 +1,8 @@
 package weaver
 package framework
 
+import java.io.PrintStream
+
 import weaver.{ Platform, discard }
 
 import sbt.testing.{ Framework => BaseFramework, Runner => BaseRunner, _ }
@@ -8,7 +10,8 @@ import sbt.testing.{ Framework => BaseFramework, Runner => BaseRunner, _ }
 class WeaverFramework[F[_]](
     suffix: String,
     val fp: WeaverFingerprints[F],
-    val unsafeRun: UnsafeRun[F])
+    val unsafeRun: UnsafeRun[F],
+    val errorStream: PrintStream)
     extends BaseFramework {
 
   def name(): String = s"weaver-$suffix"
@@ -35,7 +38,8 @@ class WeaverFramework[F[_]](
       remoteArgs,
       fp.suiteLoader(testClassLoader),
       unsafeRun,
-      send)
+      send,
+      errorStream)
   }
 
   def runner(

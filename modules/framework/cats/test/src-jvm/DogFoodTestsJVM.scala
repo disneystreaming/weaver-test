@@ -81,4 +81,41 @@ object DogFoodTestsJVM extends IOSuite {
 
   }
 
+  test("failed global resource does not deadlock") {
+
+    val framework = Resource.eval {
+      import java.io.ByteArrayOutputStream
+      import java.io.PrintStream
+      import java.nio.charset.StandardCharsets
+
+      IO {
+        val baos      = new ByteArrayOutputStream()
+        val ps        = new PrintStream(baos, true, StandardCharsets.UTF_8.name())
+        val framework = new CatsEffect(ps)
+        val getDump   = IO(new String(baos.toByteArray()))
+        (framework, getDump)
+      }
+    }
+
+    val resource =
+      for {
+        getDumpAndFr <- framework
+        dogfood      <- DogFood.make(getDumpAndFr._1)
+      } yield (getDumpAndFr._2, dogfood)
+
+    resource.use {
+      case (getDump, dogfood) =>
+        dogfood.runSuites(
+          Seq(
+            dogfood.globalInit(MetaJVM.FailedGlobalStub),
+            dogfood.sharingSuite[MetaJVM.LazyAccessParallel]
+          ),
+          maxParallelism = 1
+        ).productR(getDump).map { dump =>
+          expect(dump.contains("Global Boom"))
+        }
+    }
+
+  }
+
 }

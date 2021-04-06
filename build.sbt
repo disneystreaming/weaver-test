@@ -27,6 +27,8 @@ ThisBuild / commands += Command.command("release") { state =>
     "sonatypeBundleRelease" :: state
 }
 
+ThisBuild / commands ++= createBuildCommands(allModules)
+
 ThisBuild / scalaVersion := WeaverPlugin.scala213
 
 ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.4.4"
@@ -50,19 +52,19 @@ lazy val allModules = Seq(
   effectFrameworks
 ).flatten
 
-lazy val catsEffect3Version = "3.0.0-RC3"
+lazy val catsEffect3Version = "3.0.1"
 
 def catsEffectDependencies(proj: Project): Project = {
   proj.settings(
     libraryDependencies ++= {
       if (virtualAxes.value.contains(CatsEffect2Axis))
         Seq(
-          "co.fs2"        %%% "fs2-core"    % "2.5.3",
-          "org.typelevel" %%% "cats-effect" % "2.4.0"
+          "co.fs2"        %%% "fs2-core"    % "2.5.4",
+          "org.typelevel" %%% "cats-effect" % "2.4.1"
         )
       else
         Seq(
-          "co.fs2"        %%% "fs2-core"    % "3.0.0-M9",
+          "co.fs2"        %%% "fs2-core"    % "3.0.1",
           "org.typelevel" %%% "cats-effect" % catsEffect3Version
         )
     }
@@ -79,19 +81,17 @@ lazy val core = projectMatrix
     libraryDependencies ++= Seq(
       "com.eed3si9n.expecty" %%% "expecty" % "0.15.1",
       // https://github.com/portable-scala/portable-scala-reflect/issues/23
-      ("org.portable-scala" %%% "portable-scala-reflect" % "1.1.1").withDottyCompat(
-        scalaVersion.value)
+      "org.portable-scala" %%% "portable-scala-reflect" % "1.1.1" cross CrossVersion.for3Use2_13
     ),
     libraryDependencies ++= {
       if (virtualAxes.value.contains(VirtualAxis.jvm))
         Seq(
-          ("org.scala-js" %%% "scalajs-stubs" % "1.0.0" % "provided").withDottyCompat(
-            scalaVersion.value),
-          "junit" % "junit" % "4.13" % Optional
+          "org.scala-js" %%% "scalajs-stubs" % "1.0.0" % "provided" cross CrossVersion.for3Use2_13,
+          "junit"          % "junit"         % "4.13"  % Optional
         )
       else {
         Seq(
-          "io.github.cquiroz" %%% "scala-java-time" % "2.2.0"
+          "io.github.cquiroz" %%% "scala-java-time" % "2.2.1"
         )
       }
     },
@@ -138,9 +138,9 @@ lazy val docs = projectMatrix
       "org.http4s"  %% "http4s-blaze-client" % "0.21.0",
       "com.lihaoyi" %% "fansi"               % "0.2.7"
     ),
-    sourceGenerators in Compile += Def.taskDyn {
+    Compile / sourceGenerators += Def.taskDyn {
       val filePath =
-        sourceManaged.in(Compile).value / "BuildMatrix.scala"
+        (Compile / sourceManaged).value / "BuildMatrix.scala"
 
       def q(s: String) = '"' + s + '"'
 
@@ -206,15 +206,13 @@ lazy val framework = projectMatrix
     libraryDependencies ++= {
       if (virtualAxes.value.contains(VirtualAxis.jvm))
         Seq(
-          "org.scala-sbt"   % "test-interface" % "1.0",
-          ("org.scala-js" %%% "scalajs-stubs"  % "1.0.0" % "provided").withDottyCompat(
-            scalaVersion.value)
+          "org.scala-sbt"  % "test-interface" % "1.0",
+          "org.scala-js" %%% "scalajs-stubs"  % "1.0.0" % "provided" cross CrossVersion.for3Use2_13
         )
       else
         Seq(
-          ("org.scala-js" %% "scalajs-test-interface" % scalaJSVersion).withDottyCompat(
-            scalaVersion.value),
-          "io.github.cquiroz" %%% "scala-java-time-tzdb" % "2.2.0" % Test
+          "org.scala-js"       %% "scalajs-test-interface" % scalaJSVersion cross CrossVersion.for3Use2_13,
+          "io.github.cquiroz" %%% "scala-java-time-tzdb"   % "2.2.1" % Test
         )
     } ++ Seq("junit" % "junit" % "4.13")
   )
@@ -298,7 +296,7 @@ lazy val coreZio = projectMatrix
   .settings(
     name := "zio-core",
     libraryDependencies ++= Seq(
-      "dev.zio" %%% "zio-interop-cats" % "2.3.1.0"
+      "dev.zio" %%% "zio-interop-cats" % "2.4.0.0"
     )
   )
 
@@ -323,7 +321,7 @@ lazy val cats = projectMatrix
     name := "cats",
     testFrameworks := Seq(new TestFramework("weaver.framework.CatsEffect")),
     libraryDependencies += {
-      "io.github.cquiroz" %%% "scala-java-time-tzdb" % "2.2.0" % Test
+      "io.github.cquiroz" %%% "scala-java-time-tzdb" % "2.2.1" % Test
     }
   )
 

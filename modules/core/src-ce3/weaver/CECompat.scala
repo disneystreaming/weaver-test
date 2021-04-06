@@ -2,6 +2,7 @@ package weaver
 
 import cats.Applicative
 import cats.effect.kernel.GenConcurrent
+import cats.effect.kernel.Resource.ExitCase.{ Canceled, Errored, Succeeded }
 import cats.effect.syntax.all._
 import cats.effect.{ Async, Resource }
 import cats.syntax.all._
@@ -31,6 +32,14 @@ private[weaver] trait CECompat {
   private[weaver] def guarantee[F[_]: Async, A](
       fa: F[A])(fin: F[Unit]): F[A] =
     Async[F].guarantee(fa, fin)
+
+  private[weaver] def onErrorEnsure[F[_]: Async, A](r: Resource[F, A])(
+      f: Throwable => F[Unit]): Resource[F, A] =
+    r.onFinalizeCase {
+      case Canceled   => Async[F].unit
+      case Succeeded  => Async[F].unit
+      case Errored(e) => f(e)
+    }
 
   private[weaver] def background[F[_]: Async, A, B](fa: F[A], default: A)(
       f: F[A] => F[B]): F[B] =
