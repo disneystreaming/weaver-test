@@ -25,17 +25,14 @@ object test extends Tests {
 
 ## Usage
 
-Add the `weaver.scalacheck.IOCheckers` mixin to use ScalaCheck within your test suite.
+Add the `weaver.discipline.Discipline` mixin to a `FunSuite` to use Discipline within your test suite.
 
 ```scala mdoc:silent
 import weaver._
 import weaver.discipline._
 import cats.kernel.laws.discipline.EqTests
 
-object DisciplineTests extends SimpleIOSuite with Discipline {
-  
-  override def maxParallelism = 1
-
+object DisciplineTests extends FunSuite with Discipline {
   checkAll("Int", EqTests[Int].eqv)
   checkAll("Boolean", EqTests[Boolean].eqv)
 }

@@ -20,8 +20,6 @@ trait Suite[F[_]] extends BaseSuiteClass {
 protected[weaver] trait EffectSuiteAux {
   type EffectType[A]
   implicit protected def effect: CECompat.Effect[EffectType]
-
-  def pureTest(name: TestName)(f: => Expectations): Unit
 }
 
 // format: off

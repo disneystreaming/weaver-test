@@ -10,7 +10,7 @@ import org.scalacheck.Test.{ Passed, Proved, Exhausted, Failed, PropException }
 import scala.util.control.NoStackTrace
 
 
-trait Discipline { self: EffectSuiteAux =>
+trait Discipline { self: FunSuiteAux =>
 
   import Expectations.Helpers._
   import Discipline._
@@ -18,7 +18,7 @@ trait Discipline { self: EffectSuiteAux =>
   def checkAll(name: String, ruleSet: Laws#RuleSet): Unit =
     ruleSet.all.properties.toList.foreach {
       case (id, prop) =>
-        pureTest(s"$name: $id") {
+        test(s"$name: $id") {
           Test.check(prop)(identity).status match {
             case Passed | Proved(_) => success
             case Exhausted          => failure("Property exhausted")

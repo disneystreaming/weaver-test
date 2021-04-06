@@ -19,7 +19,8 @@
       "scalacheck",
       "specs2",
       "discipline",
-      "parallelism"
+      "parallelism",
+      "funsuite"
     ],
     "Sample reports": [
       "multiple_suites_success",

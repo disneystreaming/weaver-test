@@ -44,15 +44,15 @@ object IntegrationTest extends SimpleIOSuite {
     }
   }
 
-  object MetaSuccess extends SimpleIOSuite with Discipline {
+  object MetaSuccess extends weaver.FunSuite with Discipline {
     checkAll("Int", RickrollTests[Int].all)
   }
 
-  object MetaFailure extends SimpleIOSuite with Discipline {
+  object MetaFailure extends weaver.FunSuite with Discipline {
     checkAll("Boolean", RickrollTests[Boolean].all)
   }
 
-  object MetaException extends SimpleIOSuite with Discipline {
+  object MetaException extends weaver.FunSuite with Discipline {
     checkAll("String", RickrollTests[String].all)
   }
 }
