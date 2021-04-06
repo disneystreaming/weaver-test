@@ -65,7 +65,7 @@ abstract class SimpleMutableIOSuite extends MutableIOSuite {
 }
 
 trait FunIOSuite
-    extends FunSuiteAux[Task]
+    extends FunSuiteF[Task]
     with BaseIOSuite
     with Expectations.Helpers {
   implicit protected def effectCompat               = MonixBIOUnsafeRun

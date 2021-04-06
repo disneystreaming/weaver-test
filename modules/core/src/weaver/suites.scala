@@ -117,8 +117,12 @@ abstract class MutableFSuite[F[_]] extends RunnableSuite[F]  {
 
 }
 
-abstract class FunSuiteAux[F[_]] extends RunnableSuite[F] { self =>
-  def test(name: TestName)(run: => Expectations): Unit = synchronized {
+trait FunSuiteAux {
+  def test(name: TestName)(run: => Expectations): Unit
+}
+
+abstract class FunSuiteF[F[_]] extends RunnableSuite[F] with FunSuiteAux { self =>
+  override def test(name: TestName)(run: => Expectations): Unit = synchronized {
     if(isInitialized) throw initError
     testSeq = testSeq :+ (name -> (() => Test.pure(name.name)(() => run)))
   }
