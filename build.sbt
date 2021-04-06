@@ -257,7 +257,7 @@ lazy val discipline = projectMatrix
     testFrameworks := Seq(new TestFramework("weaver.framework.CatsEffect")),
     libraryDependencies ++= Seq(
       "org.typelevel" %%% "discipline-core" % "1.1.4",
-      "org.typelevel" %%% "cats-laws"       % "2.4.2" % Test
+      "org.typelevel" %%% "cats-laws"       % "2.5.0" % Test
     )
   )
   .settings(WeaverPlugin.simpleLayout)
