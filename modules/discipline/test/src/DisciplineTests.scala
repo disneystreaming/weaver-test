@@ -59,11 +59,6 @@ object IntegrationTest extends SimpleIOSuite {
   }
 }
 
-object MetaException extends weaver.FunSuite with Discipline {
-  checkAll("String", RickrollTests[String].all)
-  checkAll("Boolean", RickrollTests[Boolean].all)
-}
-
 trait RickRoll[A] {
   def rick(a: A): A
   def roll(a: A): Option[A]
