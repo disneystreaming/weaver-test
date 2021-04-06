@@ -77,7 +77,7 @@ lazy val core = projectMatrix
   .configure(catsEffectDependencies)
   .settings(
     libraryDependencies ++= Seq(
-      "com.eed3si9n.expecty" %%% "expecty" % "0.15.1",
+      "com.eed3si9n.expecty" %%% "expecty" % "0.15.2",
       // https://github.com/portable-scala/portable-scala-reflect/issues/23
       "org.portable-scala" %%% "portable-scala-reflect" % "1.1.1" cross CrossVersion.for3Use2_13
     ),

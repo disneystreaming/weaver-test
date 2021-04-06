@@ -153,7 +153,7 @@ object WeaverPlugin extends AutoPlugin {
 
   lazy val scala212               = "2.12.13"
   lazy val scala213               = "2.13.5"
-  lazy val scala3                 = "3.0.0-RC1"
+  lazy val scala3                 = "3.0.0-RC2"
   lazy val supportedScalaVersions = List(scala212, scala213, scala3)
 
   lazy val supportedScala2Versions = List(scala212, scala213)
