@@ -28,6 +28,7 @@ package object ziocompat {
   type GlobalResource        = ZIOGlobalResource
   type GlobalRead            = GlobalResourceF.Read[T]
   type GlobalWrite           = ZIOGlobalResource.Write
+  type FunSuite              = FunZIOSuite
 
   implicit class GlobalReadExt(private val read: GlobalRead) extends AnyVal {
     def getManaged[A](label: Option[String] = None)(

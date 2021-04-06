@@ -2,6 +2,8 @@ package weaver
 
 import cats.effect.{ IO, Resource }
 
+trait BaseCatsSuite extends EffectSuite[IO]
+
 trait PureIOSuite
     extends EffectSuite[IO]
     with BaseIOSuite
@@ -25,3 +27,5 @@ trait SimpleMutableIOSuite extends MutableIOSuite {
   type Res = Unit
   def sharedResource: Resource[IO, Unit] = Resource.pure[IO, Unit](())
 }
+
+trait FunSuiteIO extends BaseFunIOSuite with Expectations.Helpers
