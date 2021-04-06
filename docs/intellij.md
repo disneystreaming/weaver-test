@@ -1,26 +1,19 @@
 ---
 id: intellij
-title: intellij plugin
+title: intellij integration
 ---
 
-Starting with version 0.5.0, weaver provides bespoke intellij support via  a plugin that allows to run suites and tests directly from the IDE
+Starting with version 0.6.0, weaver provides intellij integration by means of a JUnit runner that Intellij picks up automatically.
+
+## Note regarding the previous intellij integration
+
+We (the maintainers) had tried to build an IntelliJ plugin. It worked but its maintenance became problematic quickly for us. We have made the decision to deprecate that plugin, sacrificing a little bit of UX in favour of an approach that is more compatible with our time constraints.
 
 ## Installation
 
-In Intellij, go to `preferences > plugins`, click on the cog icon and select `manage plugin repositories`
-
-![](../img/intellij_repo.png)
-
-Add `https://disneystreaming.github.io/weaver-test/intellij.xml` to the list.
-
-You can now search for the `weaver-intellij` plugin in the marketplace view
-
-![](../img/intellij_install.png)
-
+Nothing is needed (as long as weaver is declared correctly in your build).
 
 ## Usage
-
-The plugin requires your project to be using version 0.5.0-RC1 of weaver (or newer). However, despite this requirement, the version of the plugin and the version of the test framework **DO NOT NEED TO MATCH**.
 
 ### Running suites
 
@@ -28,8 +21,27 @@ When test suites are open in Intellij, the plugin adds buttons to the left of th
 
 ![](../img/intellij_usage.png)
 
-### Running tests
+### Running individual tests
 
-The plugin also **attempts** to add buttons next on the same lines of tests, in a best-effort fashion, by detecting implicit conversions from `String` to `weaver.TestName`. When running tests this way, only tests matching the selected line will run.
+A `.only` extension method is provided on strings, and can be used when declaring tests. When at least one test is "tagged" as such in a suite, weaver will ignore all tests but the ones that have the "only" tag.
 
-![](../img/intellij_output.png)
+```scala mdoc  
+import weaver._
+import cats.effect.
+
+object MySuite extends SimpleIOSuite {
+
+  test("test this".only){
+    IO(succeed)
+  }
+
+  test("do not test this"){
+    IO.raiseError(new Throwable("Boom"))
+  }
+
+}
+```
+
+### Note regarding test durations
+
+Because of inherently modelling incompatiblities between weaver and Intellij, we had to implement the JUnit runner in a way that makes it impossible for durations to be reported correctly by the IDE. We apologise for the inconvenience.

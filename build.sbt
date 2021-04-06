@@ -216,7 +216,7 @@ lazy val framework = projectMatrix
             scalaVersion.value),
           "io.github.cquiroz" %%% "scala-java-time-tzdb" % "2.2.0" % Test
         )
-    }
+    } ++ Seq("junit" % "junit" % "4.13")
   )
   .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.simpleLayout)

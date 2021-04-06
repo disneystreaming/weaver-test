@@ -36,6 +36,7 @@ class WeaverRunner(cls: Class[_], dummy: Boolean)
     val desc = getDescription()
 
     notifier.fireTestSuiteStarted(desc)
+    notifyIgnored(notifier)
     suite.runUnsafe(List.empty)(notifiying(notifier))
     notifier.fireTestSuiteFinished(desc)
   }
@@ -57,6 +58,16 @@ class WeaverRunner(cls: Class[_], dummy: Boolean)
         notifier.fireTestIgnored(description)
       case Ignored =>
         notifier.fireTestIgnored(description)
+    }
+  }
+
+  private def notifyIgnored(notifier: RunNotifier): Unit = {
+    val (only, ignored) = suite.plan.partition(_.tags("only"))
+    if (only.nonEmpty) {
+      ignored
+        .map(_.name)
+        .map(testDescriptions)
+        .foreach(notifier.fireTestIgnored)
     }
   }
 
