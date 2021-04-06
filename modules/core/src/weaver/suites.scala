@@ -127,9 +127,13 @@ abstract class FunSuiteF[F[_]] extends RunnableSuite[F] with FunSuiteAux { self 
   override def name : String = self.getClass.getName.replace("$", "")
   private def pureSpec(args: List[String]) = synchronized {
     if(!isInitialized) isInitialized = true
-      val argsFilter = Filters.filterTests(this.name)(args)
-      val filteredTests = testSeq.collect { case (name, test) if argsFilter(name) => test }
-      fs2.Stream.emits(filteredTests.map(execute => execute()))
+    val argsFilter = Filters.filterTests(this.name)(args)
+    val filteredTests = if (testSeq.exists(_._1.tags(TestName.Tags.only))){
+        testSeq.filter(_._1.tags(TestName.Tags.only)).map { case (_, test) => test}
+      } else testSeq.collect {
+        case (name, test) if argsFilter(name) => test
+      }
+    fs2.Stream.emits(filteredTests.map(execute => execute()))
   }
 
   override def spec(args: List[String]) = pureSpec(args).covary[F]
