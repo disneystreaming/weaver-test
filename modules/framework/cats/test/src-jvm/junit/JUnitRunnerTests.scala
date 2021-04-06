@@ -147,7 +147,11 @@ object Meta {
 
   }
 
-  class Sharing(global: GlobalRead) extends SimpleIOSuite {
+  class Sharing(global: GlobalRead) extends IOSuite {
+
+    type Res = Unit
+    // Just checking the suite does not crash
+    def sharedResource: Resource[IO, Unit] = global.getR[Int]().map(_ => ())
 
     pureTest("foo") {
       success

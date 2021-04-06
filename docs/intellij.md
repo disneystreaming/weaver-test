@@ -17,7 +17,7 @@ Nothing is needed (as long as weaver is declared correctly in your build).
 
 ### Running suites
 
-When test suites are open in Intellij, the plugin adds buttons to the left of the editor (next to the line number of the suite declaration) , letting you run individual suites from the IDE.
+When test suites are open in Intellij, buttons appear to the left of the editor (next to the line number of the suite declaration), letting you run individual suites from the IDE.
 
 ![](../img/intellij_usage.png)
 
