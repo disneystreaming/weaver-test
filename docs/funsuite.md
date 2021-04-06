@@ -3,7 +3,7 @@ id: funsuite
 title: Pure tests
 ---
 
-If your tests don't perform and effects, you can use a simplified interface `FunSuite`,
+If your tests do not require any capability provided by effect-types, you can use a simplified interface `FunSuite`,
 which comes with a single `test` method and does not allow effectful tests.
 
 Tests in `FunSuite` are executed sequentially and without the performance overhead of effect
