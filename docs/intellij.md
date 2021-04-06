@@ -27,15 +27,15 @@ A `.only` extension method is provided on strings, and can be used when declarin
 
 ```scala mdoc  
 import weaver._
-import cats.effect.
+import cats.effect._
 
 object MySuite extends SimpleIOSuite {
 
-  test("test this".only){
-    IO(succeed)
+  test("test this") {
+    IO(success)
   }
 
-  test("do not test this"){
+  test("do not test this") {
     IO.raiseError(new Throwable("Boom"))
   }
 
