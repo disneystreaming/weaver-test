@@ -1,0 +1,34 @@
+{
+  "version-0.6.0-docs": {
+    "Overview": [
+      "version-0.6.0-installation",
+      "version-0.6.0-motivation"
+    ],
+    "Effect types": [
+      "version-0.6.0-cats",
+      "version-0.6.0-monix",
+      "version-0.6.0-monix_bio",
+      "version-0.6.0-zio"
+    ],
+    "Features": [
+      "version-0.6.0-expectations",
+      "version-0.6.0-resources",
+      "version-0.6.0-global_resources",
+      "version-0.6.0-logging",
+      "version-0.6.0-tagging",
+      "version-0.6.0-scalacheck",
+      "version-0.6.0-specs2",
+      "version-0.6.0-discipline",
+      "version-0.6.0-parallelism",
+      "version-0.6.0-funsuite"
+    ],
+    "Sample reports": [
+      "version-0.6.0-multiple_suites_success",
+      "version-0.6.0-multiple_suites_failures",
+      "version-0.6.0-multiple_suites_logging"
+    ],
+    "IDE integrations": [
+      "version-0.6.0-intellij"
+    ]
+  }
+}
