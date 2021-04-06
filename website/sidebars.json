@@ -18,7 +18,9 @@
       "tagging",
       "scalacheck",
       "specs2",
-      "parallelism"
+      "discipline",
+      "parallelism",
+      "funsuite"
     ],
     "Sample reports": [
       "multiple_suites_success",

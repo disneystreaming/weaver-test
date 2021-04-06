@@ -82,6 +82,7 @@ object Table {
     case "monix-bio"  => "Monix BIO"
     case "scalacheck" => "ScalaCheck"
     case "specs2"     => "Specs2 matchers"
+    case "discipline" => "Discipline law testing"
     case _            => throw new RuntimeException("Not another effect type!")
   }
 

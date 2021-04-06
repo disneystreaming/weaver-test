@@ -45,6 +45,7 @@ lazy val allModules = Seq(
   framework.projectRefs,
   scalacheck.projectRefs,
   specs2.projectRefs,
+  discipline.projectRefs,
   intellijRunner.projectRefs,
   effectCores,
   effectFrameworks
@@ -115,7 +116,8 @@ val allEffectCoresFilter: ScopeFilter =
 
 val allIntegrationsCoresFilter: ScopeFilter =
   ScopeFilter(
-    inProjects((scalacheck.projectRefs ++ specs2.projectRefs): _*),
+    inProjects(
+      (scalacheck.projectRefs ++ specs2.projectRefs ++ discipline.projectRefs): _*),
     inConfigurations(Compile)
   )
 
@@ -123,7 +125,7 @@ lazy val docs = projectMatrix
   .in(file("modules/docs"))
   .jvmPlatform(WeaverPlugin.supportedScala2Versions)
   .enablePlugins(DocusaurusPlugin, MdocPlugin)
-  .dependsOn(core, scalacheck, cats, zio, monix, monixBio, specs2)
+  .dependsOn(core, scalacheck, cats, zio, monix, monixBio, specs2, discipline)
   .settings(
     moduleName := "docs",
     watchSources += (ThisBuild / baseDirectory).value / "docs",
@@ -131,10 +133,11 @@ lazy val docs = projectMatrix
       "VERSION" -> version.value
     ),
     libraryDependencies ++= Seq(
-      "org.http4s"  %% "http4s-dsl"          % "0.21.0",
-      "org.http4s"  %% "http4s-blaze-server" % "0.21.0",
-      "org.http4s"  %% "http4s-blaze-client" % "0.21.0",
-      "com.lihaoyi" %% "fansi"               % "0.2.7"
+      "org.http4s"    %% "http4s-dsl"          % "0.21.0",
+      "org.http4s"    %% "http4s-blaze-server" % "0.21.0",
+      "org.http4s"    %% "http4s-blaze-client" % "0.21.0",
+      "com.lihaoyi"   %% "fansi"               % "0.2.7",
+      "org.typelevel" %% "cats-kernel-laws"    % "2.4.2"
     ),
     Compile / sourceGenerators += Def.taskDyn {
       val filePath =
@@ -240,6 +243,21 @@ lazy val specs2 = projectMatrix
     testFrameworks := Seq(new TestFramework("weaver.framework.CatsEffect")),
     libraryDependencies ++= Seq(
       "org.specs2" %%% "specs2-matcher" % "4.10.6"
+    )
+  )
+  .settings(WeaverPlugin.simpleLayout)
+
+lazy val discipline = projectMatrix
+  .in(file("modules/discipline"))
+  .sparse(withCE3 = true, withJS = true, withScala3 = true)
+  .dependsOn(core, cats)
+  .configure(WeaverPlugin.profile)
+  .settings(
+    name := "discipline",
+    testFrameworks := Seq(new TestFramework("weaver.framework.CatsEffect")),
+    libraryDependencies ++= Seq(
+      "org.typelevel" %%% "discipline-core" % "1.1.4",
+      "org.typelevel" %%% "cats-laws"       % "2.5.0" % Test
     )
   )
   .settings(WeaverPlugin.simpleLayout)
