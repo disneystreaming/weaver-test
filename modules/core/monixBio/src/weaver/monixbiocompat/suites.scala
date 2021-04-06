@@ -37,7 +37,7 @@ object Test {
     apply(name, (_: Log[Task]) => f)
 }
 
-trait MutableIOSuite
+abstract class MutableIOSuite
     extends MutableFSuite[Task]
     with BaseIOSuite
     with Expectations.Helpers {
@@ -59,14 +59,14 @@ trait MutableIOSuite
   }
 }
 
-trait SimpleMutableIOSuite extends MutableIOSuite {
+abstract class SimpleMutableIOSuite extends MutableIOSuite {
   type Res = Unit
   def sharedResource: Resource[Task, Unit] = Resource.pure[Task, Unit](())
 }
 
 trait FunIOSuite
-    extends BaseIOSuite
-    with FunSuiteAux[Task]
+    extends FunSuiteF[Task]
+    with BaseIOSuite
     with Expectations.Helpers {
   implicit protected def effectCompat               = MonixBIOUnsafeRun
   final implicit protected def scheduler: Scheduler = effectCompat.scheduler

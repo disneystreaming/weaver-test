@@ -8,7 +8,7 @@ import monix.execution.Scheduler
 
 trait BaseTaskSuite extends EffectSuite[Task]
 
-trait PureTaskSuite
+abstract class PureTaskSuite
     extends EffectSuite[Task]
     with BaseTaskSuite
     with Expectations.Helpers {
@@ -23,10 +23,9 @@ trait PureTaskSuite
 
 }
 
-trait MutableTaskSuite
+abstract class MutableTaskSuite
     extends MutableFSuite[Task]
     with BaseTaskSuite
-    with RunnableSuite[Task]
     with Expectations.Helpers {
 
   implicit protected def effectCompat = MonixUnsafeRun
@@ -40,8 +39,8 @@ trait SimpleMutableTaskSuite extends MutableTaskSuite {
 }
 
 trait FunTaskSuite
-    extends BaseTaskSuite
-    with FunSuiteAux[Task]
+    extends FunSuiteF[Task]
+    with BaseTaskSuite
     with Expectations.Helpers {
   implicit protected def effectCompat = MonixUnsafeRun
 

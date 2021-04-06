@@ -85,8 +85,8 @@ abstract class SimpleMutableZIOSuite extends MutableZIOSuite[Has[Unit]] {
 }
 
 trait FunZIOSuite
-    extends BaseZIOSuite
-    with FunSuiteAux[T]
+    extends FunSuiteF[T]
+    with BaseZIOSuite
     with Expectations.Helpers {
   override implicit protected def effectCompat = ZIOUnsafeRun
 }

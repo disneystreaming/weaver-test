@@ -84,7 +84,9 @@ lazy val core = projectMatrix
     libraryDependencies ++= {
       if (virtualAxes.value.contains(VirtualAxis.jvm))
         Seq(
-          "org.scala-js" %%% "scalajs-stubs" % "1.0.0" % "provided" cross CrossVersion.for3Use2_13)
+          "org.scala-js" %%% "scalajs-stubs" % "1.0.0" % "provided" cross CrossVersion.for3Use2_13,
+          "junit"          % "junit"         % "4.13"  % Optional
+        )
       else {
         Seq(
           "io.github.cquiroz" %%% "scala-java-time" % "2.2.1"
@@ -210,7 +212,7 @@ lazy val framework = projectMatrix
           "org.scala-js"       %% "scalajs-test-interface" % scalaJSVersion cross CrossVersion.for3Use2_13,
           "io.github.cquiroz" %%% "scala-java-time-tzdb"   % "2.2.1" % Test
         )
-    }
+    } ++ Seq("junit" % "junit" % "4.13")
   )
   .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.simpleLayout)

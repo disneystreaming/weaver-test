@@ -1,11 +1,10 @@
 package weaver
 
 import cats.effect.Resource
-import cats.effect.implicits._
-import cats.syntax.applicative._
-import cats.syntax.applicativeError._
+import cats.syntax.all._
 
 import fs2.Stream
+import org.junit.runner.RunWith
 import org.portablescala.reflect.annotation.EnableReflectiveInstantiation
 
 // Just a non-parameterized marker trait to help SBT's test detection logic.
@@ -50,13 +49,16 @@ trait EffectSuite[F[_]] extends Suite[F] with EffectSuiteAux with SourceLocation
     spec(args).evalMap(report).compile.drain.adaptErr(adaptRunError)
 }
 
-trait RunnableSuite[F[_]] extends EffectSuite[F] {
+@RunWith(classOf[weaver.junit.WeaverRunner])
+abstract class RunnableSuite[F[_]] extends EffectSuite[F] {
   implicit protected def effectCompat: UnsafeRun[EffectType]
-  private[weaver] def runUnsafe(args: List[String])(report: TestOutcome => Unit) : Unit = 
+  private[weaver] def getEffectCompat: UnsafeRun[EffectType] = effectCompat
+  def plan : List[TestName]
+  private[weaver] def runUnsafe(args: List[String])(report: TestOutcome => Unit) : Unit =
     effectCompat.sync(run(args)(outcome => effectCompat.effect.delay(report(outcome))))
 }
 
-trait MutableFSuite[F[_]] extends EffectSuite[F]  {
+abstract class MutableFSuite[F[_]] extends RunnableSuite[F]  {
 
   type Res
   def sharedResource : Resource[F, Res]
@@ -83,7 +85,11 @@ trait MutableFSuite[F[_]] extends EffectSuite[F]  {
     synchronized {
       if (!isInitialized) isInitialized = true
       val argsFilter = Filters.filterTests(this.name)(args)
-      val filteredTests = testSeq.collect { case (name, test) if argsFilter(name) => test }
+      val filteredTests = if (testSeq.exists(_._1.tags(TestName.Tags.only))){
+        testSeq.filter(_._1.tags(TestName.Tags.only)).map { case (_, test) => (res: Res) => test(res)}
+      } else testSeq.collect {
+        case (name, test) if argsFilter(name) => (res : Res) => test(res)
+      }
       val parallism = math.max(1, maxParallelism)
       if (filteredTests.isEmpty) Stream.empty // no need to allocate resources
       else for {
@@ -96,6 +102,9 @@ trait MutableFSuite[F[_]] extends EffectSuite[F]  {
     }
 
   private[this] var testSeq = Seq.empty[(TestName, Res => F[TestOutcome])]
+
+  def plan: List[TestName] = testSeq.map(_._1).toList
+
   private[this] var isInitialized = false
 
   private[this] def initError() =
@@ -105,8 +114,12 @@ trait MutableFSuite[F[_]] extends EffectSuite[F]  {
 
 }
 
-trait FunSuiteAux[F[_]] extends RunnableSuite[F] { self =>
-  def test(name: TestName)(run: => Expectations): Unit = synchronized {
+trait FunSuiteAux {
+  def test(name: TestName)(run: => Expectations): Unit
+}
+
+abstract class FunSuiteF[F[_]] extends RunnableSuite[F] with FunSuiteAux { self =>
+  override def test(name: TestName)(run: => Expectations): Unit = synchronized {
     if(isInitialized) throw initError
     testSeq = testSeq :+ (name -> (() => Test.pure(name.name)(() => run)))
   }
@@ -114,18 +127,23 @@ trait FunSuiteAux[F[_]] extends RunnableSuite[F] { self =>
   override def name : String = self.getClass.getName.replace("$", "")
   private def pureSpec(args: List[String]) = synchronized {
     if(!isInitialized) isInitialized = true
-      val argsFilter = Filters.filterTests(this.name)(args)
-      val filteredTests = testSeq.collect { case (name, test) if argsFilter(name) => test }
-      fs2.Stream.emits(filteredTests.map(execute => execute()))
+    val argsFilter = Filters.filterTests(this.name)(args)
+    val filteredTests = if (testSeq.exists(_._1.tags(TestName.Tags.only))){
+        testSeq.filter(_._1.tags(TestName.Tags.only)).map { case (_, test) => test}
+      } else testSeq.collect {
+        case (name, test) if argsFilter(name) => test
+      }
+    fs2.Stream.emits(filteredTests.map(execute => execute()))
   }
 
   override def spec(args: List[String]) = pureSpec(args).covary[F]
 
-  override def runUnsafe(args: List[String])(report: TestOutcome => Unit) = 
+  override def runUnsafe(args: List[String])(report: TestOutcome => Unit) =
     pureSpec(args).compile.toVector.foreach(report)
-    
+
 
   private[this] var testSeq = Seq.empty[(TestName, () => TestOutcome)]
+  def plan: List[TestName] = testSeq.map(_._1).toList
 
   private[this] var isInitialized = false
 }

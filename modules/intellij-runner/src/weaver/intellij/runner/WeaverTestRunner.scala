@@ -28,7 +28,7 @@ object WeaverTestRunner { self =>
   private def run(name: String, testName: Option[String])(
       report: TestOutcome => Unit
   ): Unit = {
-    import weaver.framework.{ loadModule, cast }
+    import weaver.internals.Reflection._
     val suite =
       cast[RunnableSuite[Any]](loadModule(name,
                                           self.getClass().getClassLoader()))

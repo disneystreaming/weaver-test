@@ -149,6 +149,13 @@ object Expectations {
       case Invalid(_) => success
     }
 
+    implicit class StringOps(str: String) {
+      def only(implicit loc: SourceLocation): TestName =
+        new TestName(str, loc, Set.empty).only
+      def tagged(tag: String)(implicit loc: SourceLocation): TestName =
+        new TestName(str, loc, Set.empty).tagged(tag)
+    }
+
   }
 
   object Helpers extends Helpers
