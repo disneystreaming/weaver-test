@@ -10,7 +10,7 @@ trait BaseIOSuite extends BaseCatsSuite { self: RunnableSuite[IO] =>
   final implicit protected def timer: Timer[IO] = effectCompat.timer
 }
 
-trait BaseFunIOSuite extends FunSuiteAux[IO] with BaseCatsSuite {
+trait BaseFunIOSuite extends FunSuiteF[IO] with BaseCatsSuite {
   override implicit protected def effectCompat: UnsafeRun[EffectType] =
     CatsUnsafeRun
 }
