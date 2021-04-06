@@ -2,6 +2,7 @@ package weaver
 package junit
 
 import weaver.TestStatus._
+import weaver.internals.Reflection
 
 import org.junit.runner.Description
 import org.junit.runner.notification.RunNotifier
@@ -14,11 +15,7 @@ class WeaverRunner(cls: Class[_], dummy: Boolean)
   def this(cls: Class[_]) = this(cls, true)
 
   lazy val suite: RunnableSuite[F] = {
-    val mirror =
-      scala.reflect.runtime.universe.runtimeMirror(getClass().getClassLoader())
-    val module = mirror.staticModule(cls.getName())
-    val obj    = mirror.reflectModule(module)
-    obj.instance.asInstanceOf[RunnableSuite[F]]
+    Reflection.loadRunnableSuite(cls.getName(), getClass().getClassLoader())
   }
 
   lazy val testDescriptions: Map[String, Description] = {

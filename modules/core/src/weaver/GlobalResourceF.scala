@@ -109,6 +109,16 @@ object GlobalResourceF {
       }
   }
 
+  object Read {
+    def empty[F[_]](effect: CECompat.Effect[F]): Read[F] = new Read[F] {
+      implicit protected def F: MonadError[F, Throwable] = effect
+
+      protected def rawGet[A](label: Option[String])(implicit
+      rt: ResourceTag[A]): F[Option[Either[A, Resource[F, A]]]] =
+        effect.pure(None)
+    }
+  }
+
   def createMap[F[_]: CECompat.Effect]: F[Read[F] with Write[F]] =
     Ref[F]
       .of(Map.empty[(Option[String], ResourceTag[_]),

@@ -1,13 +1,11 @@
 package weaver
 package junit
 
+import cats.Show
 import cats.effect._
 
-import org.junit.runner.notification.RunListener
 import org.junit.runner.Description
-import org.junit.runner.notification.Failure
-import org.junit.runner.notification.RunNotifier
-import cats.Show
+import org.junit.runner.notification.{ Failure, RunListener, RunNotifier }
 
 object JUnitRunnerTests extends IOSuite {
 
@@ -56,15 +54,33 @@ object JUnitRunnerTests extends IOSuite {
     }
   }
 
+  test("Works when suite asks for global resources") {
+    blocker =>
+      run(blocker, classOf[Meta.Sharing]).map { notifications =>
+        val expected = List(
+          TestSuiteStarted("weaver.junit.Meta$Sharing"),
+          TestStarted("foo(weaver.junit.Meta$Sharing)"),
+          TestFinished("foo(weaver.junit.Meta$Sharing)"),
+          TestSuiteFinished("weaver.junit.Meta$Sharing")
+        )
+        expect.same(notifications, expected)
+      }
+  }
+
   def run(
       blocker: BlockerCompat[IO],
-      suite: SimpleIOSuite): IO[List[Notification]] = for {
-    runner   <- IO(new WeaverRunner(suite.getClass()))
+      suite: Class[_]): IO[List[Notification]] = for {
+    runner   <- IO(new WeaverRunner(suite))
     queue    <- IO(scala.collection.mutable.Queue.empty[Notification])
     notifier <- IO(new RunNotifier())
     _        <- IO(notifier.addListener(new NotificationListener(queue)))
     _        <- blocker.block(runner.run(notifier))
   } yield queue.toList
+
+  def run(
+      blocker: BlockerCompat[IO],
+      suite: SimpleIOSuite): IO[List[Notification]] =
+    run(blocker, suite.getClass())
 
   sealed trait Notification
   case class TestSuiteStarted(name: String)             extends Notification
@@ -127,6 +143,14 @@ object Meta {
 
     pureTest("not only") {
       failure("foo")
+    }
+
+  }
+
+  class Sharing(global: GlobalRead) extends SimpleIOSuite {
+
+    pureTest("foo") {
+      success
     }
 
   }

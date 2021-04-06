@@ -56,6 +56,7 @@ case class TestEnded(outcome: TestOutcome) extends TestEvent
 @RunWith(classOf[weaver.junit.WeaverRunner])
 abstract class RunnableSuite[F[_]] extends EffectSuite[F] {
   implicit protected def effectCompat: UnsafeRun[EffectType]
+  private[weaver] def getEffectCompat: UnsafeRun[EffectType] = effectCompat
   def plan : List[TestName]
   private[weaver] def runUnsafe(args: List[String])(report: TestOutcome => Unit) : Unit =
     effectCompat.sync(run(args)(outcome => effectCompat.effect.delay(report(outcome))))
