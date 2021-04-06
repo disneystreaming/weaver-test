@@ -36,10 +36,10 @@ private[weaver] object Filters {
       filter match {
 
         case atLine(`suiteName`, line) => {
-          case TestName(_, indicator) => indicator.line == line
+          case TestName(_, indicator, _) => indicator.line == line
         }
         case regexStr => {
-          case TestName(name, _) =>
+          case TestName(name, _, _) =>
             val fullName = suiteName + "." + name
             toPattern(regexStr).matcher(fullName).matches()
         }

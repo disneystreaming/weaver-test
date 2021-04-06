@@ -1,9 +1,11 @@
-package weaver.framework
+package weaver
+package framework
 
 import scala.reflect.ClassTag
 
 import cats.effect.Sync
 
+import weaver.internals.Reflection._
 import weaver.{ EffectSuite, GlobalResourceF }
 
 import sbt.testing.{ Fingerprint, SubclassFingerprint, TaskDef }

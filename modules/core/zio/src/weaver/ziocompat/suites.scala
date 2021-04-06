@@ -10,12 +10,12 @@ import zio._
 import zio.clock.Clock
 import zio.interop.catz._
 
-trait BaseZIOSuite extends RunnableSuite[T] {
-  val effectCompat: UnsafeRun[T] = ZIOUnsafeRun
-}
+trait BaseZIOSuite extends EffectSuite[T]
 
 abstract class BaseMutableZIOSuite[Res <: Has[_]](implicit tag: Tag[Res])
     extends BaseZIOSuite {
+
+  override implicit protected def effectCompat = ZIOUnsafeRun
 
   val sharedLayer: ZLayer[ZEnv with LogModule, Throwable, Res]
 
@@ -82,4 +82,11 @@ abstract class MutableZIOSuite[Res <: Has[_]](implicit tag: Tag[Res])
 abstract class SimpleMutableZIOSuite extends MutableZIOSuite[Has[Unit]] {
   override val sharedLayer: zio.ZLayer[ZEnv, Throwable, Has[Unit]] =
     ZLayer.fromEffect(UIO.unit)
+}
+
+trait FunZIOSuite
+    extends FunSuiteF[T]
+    with BaseZIOSuite
+    with Expectations.Helpers {
+  override implicit protected def effectCompat = ZIOUnsafeRun
 }

@@ -3,7 +3,7 @@ id: monix_bio
 title: Monix BIO usage
 ---
 
-Testing Monix BIO programs is very similar to testing regular Monix progams.
+Testing Monix BIO programs is very similar to testing regular Monix programs.
 
 Tests must return `monix.bio.Task[Expectation]` instances.
 
