@@ -39,7 +39,7 @@ trait SimpleMutableTaskSuite extends MutableTaskSuite {
 }
 
 trait FunTaskSuite
-    extends FunSuiteAux[Task]
+    extends FunSuiteF[Task]
     with BaseTaskSuite
     with Expectations.Helpers {
   implicit protected def effectCompat = MonixUnsafeRun
