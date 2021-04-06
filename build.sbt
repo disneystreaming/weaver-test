@@ -79,15 +79,12 @@ lazy val core = projectMatrix
     libraryDependencies ++= Seq(
       "com.eed3si9n.expecty" %%% "expecty" % "0.15.1",
       // https://github.com/portable-scala/portable-scala-reflect/issues/23
-      ("org.portable-scala" %%% "portable-scala-reflect" % "1.1.1").withDottyCompat(
-        scalaVersion.value)
+      "org.portable-scala" %%% "portable-scala-reflect" % "1.1.1" cross CrossVersion.for3Use2_13
     ),
     libraryDependencies ++= {
       if (virtualAxes.value.contains(VirtualAxis.jvm))
         Seq(
-          ("org.scala-js" %%% "scalajs-stubs" % "1.0.0" % "provided").withDottyCompat(
-            scalaVersion.value)
-        )
+          "org.scala-js" %%% "scalajs-stubs" % "1.0.0" % "provided" cross CrossVersion.for3Use2_13)
       else {
         Seq(
           "io.github.cquiroz" %%% "scala-java-time" % "2.2.1"
@@ -137,9 +134,9 @@ lazy val docs = projectMatrix
       "org.http4s"  %% "http4s-blaze-client" % "0.21.0",
       "com.lihaoyi" %% "fansi"               % "0.2.7"
     ),
-    sourceGenerators in Compile += Def.taskDyn {
+    Compile / sourceGenerators += Def.taskDyn {
       val filePath =
-        sourceManaged.in(Compile).value / "BuildMatrix.scala"
+        (Compile / sourceManaged).value / "BuildMatrix.scala"
 
       def q(s: String) = '"' + s + '"'
 
@@ -205,15 +202,13 @@ lazy val framework = projectMatrix
     libraryDependencies ++= {
       if (virtualAxes.value.contains(VirtualAxis.jvm))
         Seq(
-          "org.scala-sbt"   % "test-interface" % "1.0",
-          ("org.scala-js" %%% "scalajs-stubs"  % "1.0.0" % "provided").withDottyCompat(
-            scalaVersion.value)
+          "org.scala-sbt"  % "test-interface" % "1.0",
+          "org.scala-js" %%% "scalajs-stubs"  % "1.0.0" % "provided" cross CrossVersion.for3Use2_13
         )
       else
         Seq(
-          ("org.scala-js" %% "scalajs-test-interface" % scalaJSVersion).withDottyCompat(
-            scalaVersion.value),
-          "io.github.cquiroz" %%% "scala-java-time-tzdb" % "2.2.1" % Test
+          "org.scala-js"       %% "scalajs-test-interface" % scalaJSVersion cross CrossVersion.for3Use2_13,
+          "io.github.cquiroz" %%% "scala-java-time-tzdb"   % "2.2.1" % Test
         )
     }
   )
