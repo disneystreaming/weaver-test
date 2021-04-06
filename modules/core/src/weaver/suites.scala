@@ -85,8 +85,8 @@ abstract class MutableFSuite[F[_]] extends RunnableSuite[F]  {
     synchronized {
       if (!isInitialized) isInitialized = true
       val argsFilter = Filters.filterTests(this.name)(args)
-      val filteredTests = if (testSeq.exists(_._1.tags("only"))){
-        testSeq.filter(_._1.tags("only")).map { case (_, test) => (res: Res) => test(res)}
+      val filteredTests = if (testSeq.exists(_._1.tags(TestName.Tags.only))){
+        testSeq.filter(_._1.tags(TestName.Tags.only)).map { case (_, test) => (res: Res) => test(res)}
       } else testSeq.collect {
         case (name, test) if argsFilter(name) => (res : Res) => test(res)
       }

@@ -8,11 +8,15 @@ package weaver
  */
 case class TestName(name: String, location: SourceLocation, tags: Set[String]) {
   def tagged(str: String): TestName = this.copy(tags = tags + str)
-  def only: TestName                = tagged("only")
+  def only: TestName                = tagged(TestName.Tags.only)
 }
 
 object TestName {
   implicit def fromString(s: String)(
       implicit location: SourceLocation): TestName =
     TestName(s, location, Set.empty)
+
+  object Tags {
+    val only = "only"
+  }
 }
