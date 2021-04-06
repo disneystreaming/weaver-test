@@ -1,7 +1,5 @@
 import WeaverPlugin._
 
-ThisBuild / version := "0.0.0-foobar"
-
 ThisBuild / commands += Command.command("ci") { state =>
   "versionDump" ::
     "scalafmtCheckAll" ::
