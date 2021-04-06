@@ -1,10 +1,12 @@
 package weaver.discipline
 
-import weaver.SimpleIOSuite
-import org.typelevel.discipline.Laws
-import org.scalacheck.Arbitrary
-import cats.laws.discipline._
 import cats.kernel.Eq
+import cats.laws.discipline._
+
+import weaver.SimpleIOSuite
+
+import org.scalacheck.Arbitrary
+import org.typelevel.discipline.Laws
 
 object IntegrationTest extends SimpleIOSuite {
 
@@ -55,6 +57,11 @@ object IntegrationTest extends SimpleIOSuite {
   object MetaException extends weaver.FunSuite with Discipline {
     checkAll("String", RickrollTests[String].all)
   }
+}
+
+object MetaException extends weaver.FunSuite with Discipline {
+  checkAll("String", RickrollTests[String].all)
+  checkAll("Boolean", RickrollTests[Boolean].all)
 }
 
 trait RickRoll[A] {
