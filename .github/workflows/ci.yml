@@ -34,7 +34,9 @@ jobs:
           java-version: ${{ matrix.java }}
 
       - name: Run tests
-        run: sbt test_${{matrix.ceVersion}}_${{matrix.scalaVersion}}_${{matrix.scalaPlatform}}
+        run: | 
+          sbt test_${{matrix.ceVersion}}_${{matrix.scalaVersion}}_${{matrix.scalaPlatform}} \
+              pushRemoteCache_${{matrix.ceVersion}}_${{matrix.scalaVersion}}_${{matrix.scalaPlatform}}
 
       - name: Run checks
         if: matrix.scalaVersion == '2_13' && matrix.scalaPlatform == 'jvm'

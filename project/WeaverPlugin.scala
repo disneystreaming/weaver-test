@@ -193,8 +193,24 @@ object WeaverPlugin extends AutoPlugin {
           "org.typelevel" %% "kind-projector" % "0.11.3" cross CrossVersion.full
         )
       )
-    }
+    },
+    pushRemoteCacheTo := Some(MavenCache("local-cache", file("/tmp/remote-cache")))
   ) ++ coverageSettings ++ publishSettings
+
+  def artifactName(nm: String, axes: Seq[VirtualAxis]) = {
+    nm + axes.sortBy[Int] {
+      case _: VirtualAxis.ScalaVersionAxis => 0
+      case _: VirtualAxis.PlatformAxis     => 1
+      case _: VirtualAxis.StrongAxis       => 2
+      case _: VirtualAxis.WeakAxis         => 3
+    }.map(_.idSuffix).mkString("-", "-", "")
+  }
+
+  lazy val remoteCacheSettings = Seq(
+    Compile / packageCache / moduleName := artifactName(
+      moduleName.value,
+      virtualAxes.value)
+  )
 
   def compilerOptions(scalaVersion: String) = {
     val allowed =
@@ -346,7 +362,7 @@ object WeaverPlugin extends AutoPlugin {
         moduleBase.value / "test" / "resources"
       ),
       Test / fork := (virtualAxes.value.contains(VirtualAxis.jvm))
-    )
+    ) ++ remoteCacheSettings
   }
 
   lazy val publishSettings = Seq(
@@ -443,11 +459,12 @@ object WeaverPlugin extends AutoPlugin {
     val jvm2_13 = (t: Triplet) => t.scala == "2_13" && t.platform == "jvm"
 
     val desiredCommands: Map[String, (String, Triplet => Boolean)] = Map(
-      "test"          -> ("test", any),
-      "compile"       -> ("compile", any),
-      "scalafix"      -> ("scalafix --check", jvm2_13),
-      "scalafixTests" -> ("Test/scalafix --check", jvm2_13),
-      "scalafmt"      -> ("scalafmtCheckAll", jvm2_13)
+      "test"            -> ("test", any),
+      "compile"         -> ("compile", any),
+      "pushRemoteCache" -> ("pushRemoteCache", any),
+      "scalafix"        -> ("scalafix --check", jvm2_13),
+      "scalafixTests"   -> ("Test/scalafix --check", jvm2_13),
+      "scalafmt"        -> ("scalafmtCheckAll", jvm2_13)
     )
 
     val cmds = all.flatMap {
