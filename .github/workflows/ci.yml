@@ -48,7 +48,7 @@ jobs:
       - name: Upload compilation cache
         uses: actions/upload-artifact@v2
         with:
-          name: compilation cache ${{matrix.ceVersion}} ${{matrix.scalaVersion}} ${{matrix.scalaPlatform}}
+          name: compilation-${{matrix.ceVersion}}-${{matrix.scalaVersion}}-${{matrix.scalaPlatform}}.zip
           path: /tmp/remote-cache
 
   documentation:
@@ -93,7 +93,7 @@ jobs:
           path: /tmp/remote-cache
 
       - name: Unzip compilation cache
-        run: cd /tmp/remote-cache && unzip '*.zip' 
+        run: cd /tmp/remote-cache && unzip '*.zip' -d . 
 
       - name: Publish local
         run: sbt 'pullRemoteCache; publishLocal'
