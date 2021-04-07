@@ -45,6 +45,12 @@ jobs:
               scalafixTests_${{matrix.ceVersion}}_${{matrix.scalaVersion}}_${{matrix.scalaPlatform}} \
               scalafmt_${{matrix.ceVersion}}_${{matrix.scalaVersion}}_${{matrix.scalaPlatform}}
 
+      - name: Upload compilation cache
+        uses: actions/upload-artifact@v2
+        with:
+          name: compilation cache ${{matrix.ceVersion}} ${{matrix.scalaVersion}} ${{matrix.scalaPlatform}}
+          path: /tmp/remote-cache
+
   documentation:
     name: Documentation
     runs-on: ubuntu-latest
