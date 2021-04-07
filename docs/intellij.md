@@ -31,7 +31,7 @@ import cats.effect._
 
 object MySuite extends SimpleIOSuite {
 
-  test("test this") {
+  test("test this".only) {
     IO(success)
   }
 
