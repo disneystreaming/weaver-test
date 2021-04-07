@@ -93,7 +93,7 @@ jobs:
           path: /tmp/remote-cache
 
       - name: Unzip compilation cache
-        run: cd /tmp/remote-cache && unzip '*.zip' -d . 
+        run: cd /tmp/remote-cache && (ls | xargs -I {} sh -c 'cp -r {}/* .')
 
       - name: Publish local
         run: sbt 'pullRemoteCache; publishLocal'
