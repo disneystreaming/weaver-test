@@ -96,7 +96,7 @@ jobs:
         run: cd /tmp/remote-cache && unzip '*.zip' 
 
       - name: Publish local
-        run: sbt publishLocal
+        run: sbt 'pullRemoteCache; publishLocal'
   
   publish:
     name: Publish
