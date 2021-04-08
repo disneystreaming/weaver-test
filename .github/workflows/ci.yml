@@ -71,35 +71,6 @@ jobs:
       - name: Run mdoc
         run: sbt "docs/mdoc"
 
-  dummy-publish:
-    name: Simulate publishing
-    needs: [documentation, build]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout current branch (full)
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-
-      - name: Setup Java and Scala
-        uses: olafurpg/setup-scala@v10
-        with:
-          java-version: adopt@1.8
-
-      - name: Cache
-        uses: coursier/cache-action@v6
-
-      - name: Download compilation cache
-        uses: actions/download-artifact@v2
-        with:
-          path: /tmp/remote-cache
-
-      - name: Unzip compilation cache
-        run: cd /tmp/remote-cache && (ls | xargs -I {} sh -c 'cp -r {}/* .')
-
-      - name: Publish local
-        run: sbt 'pullRemoteCache; publishLocal'
-  
   publish:
     name: Publish
     needs: [documentation, build]
@@ -124,7 +95,7 @@ jobs:
         with:
           path: /tmp/remote-cache
 
-      - name: Unzip compilation cache
+      - name: Unpack compilation cache
         run: cd /tmp/remote-cache && (ls | xargs -I {} sh -c 'cp -r {}/* .')
 
       - name: Publish ${{ github.ref }}
