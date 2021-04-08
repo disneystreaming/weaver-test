@@ -19,6 +19,8 @@ jobs:
         scalaPlatform: ["jvm", "js"]
         ceVersion: ["CE2", "CE3"]
     runs-on: ${{ matrix.os }}
+    env:
+      BUILD_KEY: ${{matrix.ceVersion}}_${{matrix.scalaVersion}}_${{matrix.scalaPlatform}}
     steps:
       - name: Checkout current branch
         uses: actions/checkout@v2
@@ -26,7 +28,7 @@ jobs:
       - name: Cache
         uses: coursier/cache-action@v6
         with:
-          extraKey: ${{matrix.ceVersion}}_${{matrix.scalaVersion}}_${{matrix.scalaPlatform}}
+          extraKey: ${{ env.BUILD_KEY }}
 
       - name: Setup Java and Scala
         uses: olafurpg/setup-scala@v10
@@ -34,14 +36,22 @@ jobs:
           java-version: ${{ matrix.java }}
 
       - name: Run tests
-        run: sbt test_${{matrix.ceVersion}}_${{matrix.scalaVersion}}_${{matrix.scalaPlatform}}
+        run: | 
+          sbt test_$BUILD_KEY \
+              pushRemoteCache_$BUILD_KEY
 
       - name: Run checks
         if: matrix.scalaVersion == '2_13' && matrix.scalaPlatform == 'jvm'
         run: |
-          sbt scalafix_${{matrix.ceVersion}}_${{matrix.scalaVersion}}_${{matrix.scalaPlatform}} \
-              scalafixTests_${{matrix.ceVersion}}_${{matrix.scalaVersion}}_${{matrix.scalaPlatform}} \
-              scalafmt_${{matrix.ceVersion}}_${{matrix.scalaVersion}}_${{matrix.scalaPlatform}}
+          sbt scalafix_$BUILD_KEY \
+              scalafixTests_$BUILD_KEY \
+              scalafmt_$BUILD_KEY
+
+      - name: Upload compilation cache
+        uses: actions/upload-artifact@v2
+        with:
+          name: compilation-${{env.BUILD_KEY}}.zip
+          path: /tmp/remote-cache
 
   documentation:
     name: Documentation
@@ -80,10 +90,18 @@ jobs:
       - name: Cache
         uses: coursier/cache-action@v6
 
+      - name: Download compilation cache
+        uses: actions/download-artifact@v2
+        with:
+          path: /tmp/remote-cache
+
+      - name: Unpack compilation cache
+        run: cd /tmp/remote-cache && (ls | xargs -I {} sh -c 'cp -r {}/* .')
+
       - name: Publish ${{ github.ref }}
         run: |
           echo $PGP_SECRET | base64 --decode | gpg --import --no-tty --batch --yes
-          sbt release 
+          sbt 'pullRemoteCache; release'
         env:
           PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
           PGP_SECRET: ${{ secrets.PGP_SECRET }}
