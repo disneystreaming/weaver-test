@@ -23,17 +23,20 @@ Weaver-test is currently published for **Scala 2.12 and 2.13**
 Refer yourself to the [releases](https://github.com/disneystreaming/weaver-test/releases) page to know the latest released version, and add the following (or scoped equivalent) to your `build.sbt` file.
 
 ```scala
-libraryDependencies += "com.disneystreaming" %% "weaver-framework" % "x.y.z" % Test
-testFrameworks += new TestFramework("weaver.framework.TestFramework")
+libraryDependencies += "com.disneystreaming" %% "weaver-cats" % "x.y.z" % Test
+testFrameworks += new TestFramework("weaver.framework.CatsEffect")
 
 // optionally (for ZIO usage)
 libraryDependencies +=  "com.disneystreaming" %% "weaver-zio" % "x.y.z" % Test
+testFrameworks += new TestFramework("weaver.framework.ZIO")
 
 // optionally (for Monix usage)
 libraryDependencies +=  "com.disneystreaming" %% "weaver-monix" % "x.y.z" % Test
+testFrameworks += new TestFramework("weaver.framework.Monix")
 
 // optionally (for Monix BIO usage)
 libraryDependencies +=  "com.disneystreaming" %% "weaver-monix-bio" % "x.y.z" % Test
+testFrameworks += new TestFramework("weaver.framework.MonixBIO")
 
 // optionally (for Scalacheck usage)
 libraryDependencies +=  "com.disneystreaming" %% "weaver-scalacheck" % "x.y.z" % Test
@@ -49,7 +52,7 @@ libraryDependencies +=  "com.disneystreaming" %% "weaver-specs2" % "x.y.z" % Tes
 
 Weaver aims at providing a nice experience when writing and running tests :
 
-* tests within a suite are run in parallel for quickest results possible
+* tests within a suite are run in parallel by default for quickest results possible
 * expectations (ie assertions) are composable values. This forces
 developers to separate the scenario of the test from the checks they perform,
 which generally keeps tests cleaner / clearer.
@@ -58,14 +61,7 @@ which generally keeps tests cleaner / clearer.
 
 ## API
 
-Weaver's core framework provides two primary types of testing suites.
-
-| Suite name | Use case |
-| --- | --- |
-| `SimpleIOSuite` | Each test is a standalone `IO` action
-| `IOSuite` | Each test needs access to a shared `Resource`
-
-### Suites
+### Example suites (cats-effect)
 
 #### SimpleIOSuite
 
@@ -144,8 +140,8 @@ Weaver also includes support for
 
 | Alias | Suite name | Provided by | Use case |
 | --- | --- | --- | --- |
-| `SimpleIOSuite`   | `SimpleMutableIOSuite`       | `weaver-framework` | Each test is a standalone `IO` action
-| `IOSuite`         | `MutableIOSuite`             | `weaver-framework` | Each test needs access to a shared `Resource`
+| `SimpleIOSuite`   | `SimpleMutableIOSuite`       | `weaver-cats` | Each test is a standalone `IO` action
+| `IOSuite`         | `MutableIOSuite`             | `weaver-cats` | Each test needs access to a shared `Resource`
 | `SimpleZIOSuite`  | `SimpleMutableZIOSuite`      | `weaver-zio`       | Each test is a standalone `ZIO` action
 | `ZIOSuite[R]`     | `MutableZIOSuite[R]`         | `weaver-zio`       | Each test needs access to a shared `ZLayer`
 | `SimpleTaskSuite` | `SimpleMutableTaskSuite`     | `weaver-monix`     | Each test is a standalone `Task` action
@@ -174,7 +170,7 @@ Something worth noting is that expectations are not throwing, and that if the us
 When using the IOSuite variants, the user can call the test command as such:
 
 ``` 
-> test -o *foo*
+> test -- -o *foo*
 ```
 
 This will filter prevent the execution of any test that doesn't contain the string "foo" in is qualified name. For a test labeled "foo" in a "FooSuite" object, in the package "fooPackage", the qualified name of a test is :
@@ -197,8 +193,8 @@ Weaver comes with basic scalacheck integration.
 import weaver._
 import weaver.scalacheck._
 
-// Notice the IOCheckers mix-in
-object ForallExamples extends SimpleIOSuite with IOCheckers {
+// Notice the Checkers mix-in
+object ForallExamples extends SimpleIOSuite with Checkers {
 
   test("Gen form") {
     // Takes an explicit "Gen" instance. There is only a single
