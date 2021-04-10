@@ -219,11 +219,11 @@ object Checkers {
         def lift(a: Expectations): F[Expectations] = Applicative[F].pure(a)
       }
 
-    implicit def unwrapped[F[_]]: Prop[F, F[Expectations]] =
-      new Prop[F, F[Expectations]] {
-        def lift(a: F[Expectations]): F[Expectations] = a
+    implicit def unwrapped[F[_], FE](
+        implicit ev: FE <:< F[Expectations]): Prop[F, FE] =
+      new Prop[F, FE] {
+        def lift(a: FE): F[Expectations] = ev(a)
       }
-
   }
 
 }

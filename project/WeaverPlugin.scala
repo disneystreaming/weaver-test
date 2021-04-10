@@ -194,7 +194,8 @@ object WeaverPlugin extends AutoPlugin {
         )
       )
     },
-    pushRemoteCacheTo := Some(MavenCache("local-cache", file("/tmp/remote-cache")))
+    pushRemoteCacheTo := Some(MavenCache("local-cache",
+                                         file("/tmp/remote-cache")))
   ) ++ coverageSettings ++ publishSettings
 
   def artifactName(nm: String, axes: Seq[VirtualAxis]) = {

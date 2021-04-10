@@ -85,8 +85,8 @@ lazy val core = projectMatrix
     libraryDependencies ++= {
       if (virtualAxes.value.contains(VirtualAxis.jvm))
         Seq(
-          "org.scala-js" %%% "scalajs-stubs" % "1.0.0" % "provided" cross CrossVersion.for3Use2_13,
-          "junit"          % "junit"         % "4.13.2"  % Optional
+          "org.scala-js" %%% "scalajs-stubs" % "1.0.0"  % "provided" cross CrossVersion.for3Use2_13,
+          "junit"          % "junit"         % "4.13.2" % Optional
         )
       else {
         Seq(
@@ -366,7 +366,7 @@ lazy val monixBio = projectMatrix
 lazy val zio = projectMatrix
   .in(file("modules/framework/zio"))
   .sparse(withCE3 = false, withJS = true, withScala3 = false)
-  .dependsOn(framework, coreZio)
+  .dependsOn(framework, coreZio, scalacheck % "test->compile")
   .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.simpleLayout)
   .settings(
