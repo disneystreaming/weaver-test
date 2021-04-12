@@ -51,7 +51,7 @@ lazy val allModules = Seq(
   effectFrameworks
 ).flatten
 
-lazy val catsEffect3Version = "3.0.1"
+lazy val catsEffect3Version = "3.0.2"
 
 def catsEffectDependencies(proj: Project): Project = {
   proj.settings(
