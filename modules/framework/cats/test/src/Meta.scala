@@ -148,11 +148,7 @@ object Meta {
   }
 
   object SetTimeUnsafeRun extends CatsUnsafeRun {
-    private val setTimestamp = java.time.OffsetDateTime.now
-      .withHour(12)
-      .withMinute(54)
-      .withSecond(35)
-      .toEpochSecond * 1000
+    private val setTimestamp = weaver.internals.Timestamp.localTime(12, 54, 35)
 
     override def realTimeMillis: IO[Long] = IO.pure(setTimestamp)
   }

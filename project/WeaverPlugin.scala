@@ -462,6 +462,7 @@ object WeaverPlugin extends AutoPlugin {
     val desiredCommands: Map[String, (String, Triplet => Boolean)] = Map(
       "test"            -> ("test", any),
       "compile"         -> ("compile", any),
+      "publishLocal"    -> ("publishLocal", any),
       "pushRemoteCache" -> ("pushRemoteCache", any),
       "scalafix"        -> ("scalafix --check", jvm2_13),
       "scalafixTests"   -> ("Test/scalafix --check", jvm2_13),

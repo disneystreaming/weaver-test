@@ -4,10 +4,10 @@ ThisBuild / commands += Command.command("ci") { state =>
   "versionDump" ::
     "scalafmtCheckAll" ::
     "scalafix --check" ::
-    "test:scalafix --check" ::
+    "Test/scalafix --check" ::
     "clean" ::
-    "test:compile" ::
-    "test:fastLinkJS" :: // do this separately as it's memory intensive
+    "Test/compile" ::
+    "Test/fastLinkJS" :: // do this separately as it's memory intensive
     "test" ::
     "docs/docusaurusCreateSite" ::
     "core/publishLocal" :: state
@@ -15,7 +15,7 @@ ThisBuild / commands += Command.command("ci") { state =>
 
 ThisBuild / commands += Command.command("fix") { state =>
   "scalafix" ::
-    "test:scalafix" ::
+    "Test/scalafix" ::
     "scalafmtAll" ::
     "scalafmtSbt" :: state
 }
@@ -88,11 +88,7 @@ lazy val core = projectMatrix
           "org.scala-js" %%% "scalajs-stubs" % "1.0.0"  % "provided" cross CrossVersion.for3Use2_13,
           "junit"          % "junit"         % "4.13.2" % Optional
         )
-      else {
-        Seq(
-          "io.github.cquiroz" %%% "scala-java-time" % "2.2.1"
-        )
-      }
+      else Seq.empty
     },
     libraryDependencies ++= {
       if (virtualAxes.value.contains(VirtualAxis.jvm)) {
@@ -212,8 +208,7 @@ lazy val framework = projectMatrix
         )
       else
         Seq(
-          "org.scala-js"       %% "scalajs-test-interface" % scalaJSVersion cross CrossVersion.for3Use2_13,
-          "io.github.cquiroz" %%% "scala-java-time-tzdb"   % "2.2.1" % Test
+          "org.scala-js" %% "scalajs-test-interface" % scalaJSVersion cross CrossVersion.for3Use2_13
         )
     } ++ Seq("junit" % "junit" % "4.13.2")
   )
@@ -335,10 +330,7 @@ lazy val cats = projectMatrix
   .settings(WeaverPlugin.simpleLayout)
   .settings(
     name := "cats",
-    testFrameworks := Seq(new TestFramework("weaver.framework.CatsEffect")),
-    libraryDependencies += {
-      "io.github.cquiroz" %%% "scala-java-time-tzdb" % "2.2.1" % Test
-    }
+    testFrameworks := Seq(new TestFramework("weaver.framework.CatsEffect"))
   )
 
 lazy val monix = projectMatrix
