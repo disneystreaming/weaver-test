@@ -300,15 +300,22 @@ lazy val coreMonixBio = projectMatrix
 
 lazy val coreZio = projectMatrix
   .in(file("modules/core/zio"))
-  .sparse(withCE3 = false, withJS = true, withScala3 = false)
+  .sparse(withCE3 = true, withJS = true, withScala3 = false)
   .dependsOn(core)
   .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.simpleLayout)
   .settings(
     name := "zio-core",
-    libraryDependencies ++= Seq(
-      "dev.zio" %%% "zio-interop-cats" % "2.4.0.0"
-    )
+    libraryDependencies ++= {
+      if (virtualAxes.value.contains(CatsEffect3Axis))
+        Seq(
+          "dev.zio" %%% "zio-interop-cats" % "3.0.2.0"
+        )
+      else
+        Seq(
+          "dev.zio" %%% "zio-interop-cats" % "2.4.1.0"
+        )
+    }
   )
 
 // #################################################################################################
@@ -357,7 +364,7 @@ lazy val monixBio = projectMatrix
 
 lazy val zio = projectMatrix
   .in(file("modules/framework/zio"))
-  .sparse(withCE3 = false, withJS = true, withScala3 = false)
+  .sparse(withCE3 = true, withJS = true, withScala3 = false)
   .dependsOn(framework, coreZio, scalacheck % "test->compile")
   .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.simpleLayout)
