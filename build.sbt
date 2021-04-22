@@ -371,7 +371,7 @@ lazy val zio = projectMatrix
   .settings(
     name := "zio",
     testFrameworks := Seq(new TestFramework("weaver.framework.ZIO")),
-    libraryDependencies += "io.github.cquiroz" %%% "scala-java-time" % "2.2.1" % Test
+    libraryDependencies += "io.github.cquiroz" %%% "scala-java-time" % "2.2.2" % Test
   )
 
 // #################################################################################################
