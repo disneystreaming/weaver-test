@@ -111,7 +111,9 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
     stillRunning.set(sbtTasks.size)
 
     // Waiting for the resources to be allocated.
-    scala.concurrent.Await.result(gate.future, 120.second)
+    if (unsafeRun.name != "monix-bio") {
+      scala.concurrent.Await.result(gate.future, 120.second)
+    }
     sbtTasks.toArray
   }
 
