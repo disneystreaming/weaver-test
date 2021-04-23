@@ -2,8 +2,10 @@ package weaver
 package scalacheck
 
 import scala.concurrent.duration._
+
 import cats.effect.{ IO, Resource }
 import cats.syntax.all._
+
 import weaver.framework._
 
 object PropertyDogFoodTest extends IOSuite {
