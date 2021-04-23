@@ -6,7 +6,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.atomic.{ AtomicBoolean, AtomicInteger }
 
 import scala.concurrent.duration._
-import scala.concurrent.{ExecutionContext, Promise}
+import scala.concurrent.{ ExecutionContext, Promise }
 
 import cats.data.Chain
 import cats.effect.{ Sync, _ }
