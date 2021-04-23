@@ -237,7 +237,7 @@ lazy val specs2 = projectMatrix
     name := "specs2",
     testFrameworks := Seq(new TestFramework("weaver.framework.CatsEffect")),
     libraryDependencies ++= Seq(
-      "org.specs2" %%% "specs2-matcher" % "4.10.6"
+      "org.specs2" %%% "specs2-matcher" % "4.11.0"
     )
   )
   .settings(WeaverPlugin.simpleLayout)
