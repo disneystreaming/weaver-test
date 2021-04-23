@@ -10,7 +10,7 @@ object MonixUnsafeRun extends UnsafeRun[Task] {
 
   type CancelToken = Cancelable
 
-  implicit val scheduler: Scheduler = monix.execution.Scheduler.global
+  implicit val scheduler: Scheduler = PlatformCompat.defaultScheduler
 
   override implicit val contextShift: ContextShift[Task] =
     Task.contextShift(scheduler)
