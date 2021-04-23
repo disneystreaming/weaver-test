@@ -27,6 +27,4 @@ trait CatsUnsafeRun extends UnsafeRun[IO] {
 
   def async(task: IO[Unit]): Unit = task.unsafeRunAsyncAndForget()
 
-  final val name = "cats-effect"
-
 }

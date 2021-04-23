@@ -40,6 +40,4 @@ trait UnsafeRun[F[_]] extends EffectCompat[F] {
   def sync(task: F[Unit]): Unit
   def async(task: F[Unit]): Unit
 
-  def name: String
-
 }

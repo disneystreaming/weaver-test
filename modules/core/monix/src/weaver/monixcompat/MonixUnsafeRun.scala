@@ -29,5 +29,4 @@ object MonixUnsafeRun extends UnsafeRun[Task] {
 
   def async(task: Task[Unit]): Unit = task.runAsyncAndForget
 
-  final val name = "monix"
 }

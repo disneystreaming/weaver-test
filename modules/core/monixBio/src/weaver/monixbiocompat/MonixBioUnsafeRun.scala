@@ -22,6 +22,4 @@ object MonixBIOUnsafeRun extends UnsafeRun[monix.bio.Task] {
   def sync(task: monix.bio.Task[Unit]): Unit  = PlatformCompat.runSync(task)
   def async(task: monix.bio.Task[Unit]): Unit = task.runAsyncAndForget
   def cancel(token: CancelToken): Unit        = token.cancel()
-
-  final val name = "monix-bio"
 }
