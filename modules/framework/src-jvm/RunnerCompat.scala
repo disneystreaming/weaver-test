@@ -130,8 +130,7 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
       gate: Promise[Unit]): F[Unit] = {
 
     def preventDeadlock[A](resource: Resource[F, A]) = {
-      val resource_ = resource.evalTap(_ => effect.delay(gate.success(())))
-      CECompat.onErrorEnsure(resource_) {
+      CECompat.onErrorEnsure(resource) {
         error =>
           effect.delay(isDone.set(true)) *>
             effect.delay(error.printStackTrace(errorStream)) *>
@@ -141,6 +140,7 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
 
     preventDeadlock(resourceMap(globalResources)).use { read =>
       for {
+        _   <- effect.delay(gate.success(()))
         ref <- Ref.of[F, Chain[(SuiteName, TestOutcome)]](Chain.empty)
         sem <- Semaphore[F](0L)
         maybePublish: F[Unit] =
