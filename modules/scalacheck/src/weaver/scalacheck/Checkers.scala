@@ -189,7 +189,7 @@ trait Checkers {
     def shouldStop =
       failure.isDefined ||
         succeeded >= checkConfig.minimumSuccessful ||
-        discarded >= checkConfig.maximumDiscardRatio
+        discarded >= checkConfig.maximumDiscarded
 
     def shouldContinue = !shouldStop
 
