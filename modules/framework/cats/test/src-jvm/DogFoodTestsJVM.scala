@@ -81,7 +81,7 @@ object DogFoodTestsJVM extends IOSuite {
 
   }
 
-  test("failed global resource does not deadlock") {
+  test("failed global resource results to thrown exception") {
 
     val framework = Resource.eval {
       import java.io.ByteArrayOutputStream
@@ -111,7 +111,8 @@ object DogFoodTestsJVM extends IOSuite {
             dogfood.sharingSuite[MetaJVM.LazyAccessParallel]
           ),
           maxParallelism = 1
-        ).productR(getDump).map { dump =>
+        ).attempt.product(getDump).map { case (result, dump) =>
+          expect.same(result, Left(MetaJVM.GlobalStub))
           expect(dump.contains("Global Boom"))
         }
     }

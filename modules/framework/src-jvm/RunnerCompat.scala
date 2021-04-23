@@ -5,8 +5,8 @@ import java.io.PrintStream
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.atomic.{ AtomicBoolean, AtomicInteger }
 
-import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
+import scala.concurrent.{ ExecutionContext, Promise }
 
 import cats.data.Chain
 import cats.effect.{ Sync, _ }
@@ -45,8 +45,9 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
 
   private def runBackground(
       globalResources: List[GlobalResourceF[F]],
-      tasks: List[IOTask]): Unit = {
-    cancelToken = Some(unsafeRun.background(run(globalResources, tasks)))
+      tasks: List[IOTask],
+      gate: Promise[Unit]): Unit = {
+    cancelToken = Some(unsafeRun.background(run(globalResources, tasks, gate)))
   }
 
   def tasks(taskDefs: Array[TaskDef]): Array[Task] = {
@@ -103,9 +104,16 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
       case (_, suiteLoader.GlobalResourcesRef(init)) => init
     }.toList
 
-    runBackground(globalResources, ioTasks.toList)
-
+    // Passing a promise to the FP side that needs to be fulfilled
+    // when the global resources have been allocated.
+    val gate = Promise[Unit]()
+    runBackground(globalResources, ioTasks.toList, gate)
     stillRunning.set(sbtTasks.size)
+
+    // Waiting for the resources to be allocated.
+    scala.concurrent.blocking {
+      scala.concurrent.Await.result(gate.future, 120.second)
+    }
     sbtTasks.toArray
   }
 
@@ -120,17 +128,21 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
 
   private def run(
       globalResources: List[GlobalResourceF[F]],
-      tasks: List[IOTask]): F[Unit] = {
+      tasks: List[IOTask],
+      gate: Promise[Unit]): F[Unit] = {
 
-    def preventDeadlock[A](resource: Resource[F, A]) =
+    def preventDeadlock[A](resource: Resource[F, A]) = {
       CECompat.onErrorEnsure(resource) {
         error =>
           effect.delay(isDone.set(true)) *>
-            effect.delay(error.printStackTrace(errorStream))
+            effect.delay(error.printStackTrace(errorStream)) *>
+            effect.delay(gate.failure(error))
       }
+    }
 
     preventDeadlock(resourceMap(globalResources)).use { read =>
       for {
+        _   <- effect.delay(gate.success(()))
         ref <- Ref.of[F, Chain[(SuiteName, TestOutcome)]](Chain.empty)
         sem <- Semaphore[F](0L)
         maybePublish: F[Unit] =

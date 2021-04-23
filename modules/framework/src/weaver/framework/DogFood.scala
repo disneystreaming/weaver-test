@@ -81,16 +81,15 @@ abstract class DogFood[F[_]](
       done(runner).void
     }
 
-    runner.evalMap {
-      runner =>
-        val taskDefs: Array[TaskDef] = suites.toArray.map { s =>
-          new TaskDef(s.fullyQualifiedName,
-                      s.fingerprint,
-                      true,
-                      Array(new SuiteSelector))
-        }
+    runner.evalMap { runner =>
+      val taskDefs: Array[TaskDef] = suites.toArray.map { s =>
+        new TaskDef(s.fullyQualifiedName,
+                    s.fingerprint,
+                    true,
+                    Array(new SuiteSelector))
+      }
 
-        Sync[F].delay(runner -> runner.tasks(taskDefs))
+      blocker.block(runner -> runner.tasks(taskDefs))
     }
   }
 

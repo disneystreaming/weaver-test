@@ -7,4 +7,6 @@ object PlatformCompat {
   def runSync(task: monix.eval.Task[Unit])(implicit scheduler: Scheduler) = {
     val _ = scheduler
   }
+
+  def defaultScheduler: Scheduler = Scheduler.global
 }
