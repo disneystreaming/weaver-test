@@ -63,7 +63,7 @@ def catsEffectDependencies(proj: Project): Project = {
         )
       else
         Seq(
-          "co.fs2"        %%% "fs2-core"    % "3.0.1",
+          "co.fs2"        %%% "fs2-core"    % "3.0.2",
           "org.typelevel" %%% "cats-effect" % catsEffect3Version
         )
     }
