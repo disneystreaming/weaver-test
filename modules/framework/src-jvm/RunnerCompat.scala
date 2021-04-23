@@ -5,8 +5,8 @@ import java.io.PrintStream
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.atomic.{ AtomicBoolean, AtomicInteger }
 
-import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
+import scala.concurrent.{ExecutionContext, Promise}
 
 import cats.data.Chain
 import cats.effect.{ Sync, _ }
@@ -16,7 +16,6 @@ import sbt.testing.{ Task, TaskDef }
 
 import CECompat.Ref
 import CECompat.Semaphore
-import scala.concurrent.Promise
 
 trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
 
