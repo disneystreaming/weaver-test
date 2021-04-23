@@ -111,7 +111,7 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
     stillRunning.set(sbtTasks.size)
 
     // Waiting for the resources to be allocated.
-    scala.concurrent.Await.result(gate.future, 300.second)
+    scala.concurrent.Await.result(gate.future, 120.second)
     sbtTasks.toArray
   }
 
@@ -129,13 +129,15 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
       tasks: List[IOTask],
       gate: Promise[Unit]): F[Unit] = {
 
-    def preventDeadlock[A](resource: Resource[F, A]) =
-      CECompat.onErrorEnsure(resource) {
+    def preventDeadlock[A](resource: Resource[F, A]) = {
+      val resource_ = resource.evalTap(_ => effect.delay(gate.success(())))
+      CECompat.onErrorEnsure(resource_) {
         error =>
           effect.delay(isDone.set(true)) *>
             effect.delay(error.printStackTrace(errorStream)) *>
             effect.delay(gate.failure(error))
-      }.evalTap(_ => effect.delay(gate.success(())))
+      }
+    }
 
     preventDeadlock(resourceMap(globalResources)).use { read =>
       for {
