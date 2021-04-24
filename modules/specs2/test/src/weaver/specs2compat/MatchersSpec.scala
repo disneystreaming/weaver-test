@@ -25,6 +25,22 @@ object MatchersSpec extends SimpleIOSuite with IOMatchers {
     1 === 1
   }
 
+  pureTest("pureTest { (1 === 1) and (1 === 1) }") {
+    (1 === 1) and (1 === 1)
+  }
+
+  pureTest("pureTest { Some(1) must beSome(1) }") {
+    Some(1) must beSome(1)
+  }
+
+  pureTest("pureTest { Some(1) must beSome((i: Int) => i === 1) }") {
+    Some(1) must beSome((i: Int) => i === 1)
+  }
+
+  pureTest("pureTest { Some(1) must beSome((i: Int) => (i === 1) and (i === 1)) }") {
+    Some(1) must beSome((i: Int) => (i === 1) and (i === 1))
+  }
+
   def expectFailure[A](matchResult: MatchResult[A]): Expectations = {
     matchResult.run.toEither.fold(
       nel => expect(nel.head.message == matchResult.toResult.message),
