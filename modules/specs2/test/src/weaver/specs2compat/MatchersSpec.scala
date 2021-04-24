@@ -51,23 +51,4 @@ object MatchersSpec extends SimpleIOSuite with IOMatchers {
   pureTest("pureTest { expectFailure { 1 === 2 failed } }") {
     expectFailure(1 === 2)
   }
-  pureTest("pureTest { 1 must beEqualTo(1) }") {
-    1 must beEqualTo(1)
-  }
-
-  pureTest("pureTest { 1 must be_==(1) }") {
-    1 must be_==(1)
-  }
-
-  pureTest("pureTest { 1 must_== 1 }") {
-    1 must_== 1
-  }
-
-  pureTest("pureTest { 1 mustEqual 1 }") {
-    1 mustEqual 1
-  }
-
-  pureTest("pureTest { 1 === 1 }") {
-    1 === 1
-  }
 }
