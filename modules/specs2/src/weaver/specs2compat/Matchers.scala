@@ -7,8 +7,8 @@ import cats.effect.IO
 
 import weaver.{ AssertionException, EffectSuite, Expectations, SourceLocation }
 
-import org.specs2.execute.{ Failure, Success }
-import org.specs2.matcher.{ MatchResult, MustMatchers, ValueCheck }
+import org.specs2.execute.{Failure, Result, Success}
+import org.specs2.matcher.{MatchResult, MustMatchers, StandardMatchResults}
 
 trait Matchers[F[_]] extends MustMatchers {
   self: EffectSuite[F] =>
@@ -32,9 +32,7 @@ trait Matchers[F[_]] extends MustMatchers {
       implicit pos: SourceLocation
   ): F[Expectations] = effectCompat.effect.pure(toExpectations(m))
 
-  implicit def toValueCheck[T](
-      check: T => Expectations
-  ): ValueCheck[T] = check.andThen(ex =>
+  implicit def toSpecs2Result(ex: Expectations): Result =
     ex.run match {
       case Valid(_) =>
         Success("", "")
@@ -42,7 +40,15 @@ trait Matchers[F[_]] extends MustMatchers {
         Failure(err.head.message,
                 err.head.message,
                 err.head.getStackTrace().toList)
-    })
+    }
+
+  implicit def toSpecs2MatchResult(ex: Expectations): MatchResult[_] =
+    ex.run match {
+      case Valid(_) =>
+        StandardMatchResults.ok
+      case Invalid(err) =>
+        StandardMatchResults.ko(err.head.message)
+    }
 }
 
 trait IOMatchers extends Matchers[IO] {
