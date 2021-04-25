@@ -4,7 +4,7 @@ package monixcompat
 import monix.execution.Scheduler
 
 object PlatformCompat {
-  def runSync(task: monix.eval.Task[Unit])(implicit scheduler: Scheduler) =
+  def runSync[A](task: monix.eval.Task[A])(implicit scheduler: Scheduler) =
     task.runSyncUnsafe()
 
   def defaultScheduler: Scheduler = Scheduler.fixedPool(

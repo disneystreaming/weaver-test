@@ -4,8 +4,9 @@ package monixbiocompat
 import monix.execution.Scheduler
 
 object PlatformCompat {
-  def runSync(task: monix.bio.Task[Unit])(implicit scheduler: Scheduler) = {
+  def runSync[A](task: monix.bio.Task[A])(implicit scheduler: Scheduler) = {
     val _ = scheduler
+    throw new Exception("Cannot block on JS!")
   }
 
   def defaultScheduler: Scheduler = Scheduler.global

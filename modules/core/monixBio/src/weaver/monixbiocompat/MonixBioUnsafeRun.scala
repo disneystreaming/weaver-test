@@ -19,7 +19,7 @@ object MonixBIOUnsafeRun extends UnsafeRun[monix.bio.Task] {
   def background(task: monix.bio.Task[Unit]): CancelToken = {
     task.runAsync { _ => () }(scheduler)
   }
-  def sync(task: monix.bio.Task[Unit]): Unit  = PlatformCompat.runSync(task)
+  def sync[A](task: monix.bio.Task[A]): A  = PlatformCompat.runSync(task)
   def async(task: monix.bio.Task[Unit]): Unit = task.runAsyncAndForget
   def cancel(token: CancelToken): Unit        = token.cancel()
 }

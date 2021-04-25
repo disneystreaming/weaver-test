@@ -25,7 +25,7 @@ object MonixUnsafeRun extends UnsafeRun[Task] {
 
   def cancel(token: CancelToken): Unit = token.cancel()
 
-  def sync(task: Task[Unit]): Unit = PlatformCompat.runSync(task)
+  def sync[A](task: Task[A]): A = PlatformCompat.runSync(task)
 
   def async(task: Task[Unit]): Unit = task.runAsyncAndForget
 
