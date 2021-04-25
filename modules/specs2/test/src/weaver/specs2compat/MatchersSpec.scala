@@ -59,8 +59,7 @@ object MatchersSpec extends SimpleIOSuite with IOMatchers {
     1 must beLike { case i: Int => i === 1 }
   }
 
-  pureTest(
-    "pureTest { 1 must beLike { case i: Int => (i === 1) and (i === 1) } }") {
+  pureTest("pureTest { 1 must beLike { case i: Int => (i === 1) and (i === 1) } }") {
     1 must beLike { case i: Int => (i === 1) and (i === 1) }
   }
 
@@ -95,5 +94,15 @@ object MatchersSpec extends SimpleIOSuite with IOMatchers {
     val matchResult = Some(1) must beSome((i: Int) => (i === 1) and (i === 2))
     expectFailure(matchResult) &&
     expect(matchResult.message.contains("Some(1) is Some but 1 != 2"))
+  }
+
+  pureTest("pureTest { expectFailure { 1 must beLike { case i: Int => i === 2 } }") {
+    expectFailure(1 must beLike { case i: Int => i === 2 })
+  }
+
+  pureTest("pureTest { expectFailure { 1 must beLike { case i: Int => (i === 1) and (i === 2) } }") {
+    val matchResult = 1 must beLike { case i: Int => (i === 1) and (i === 2) }
+    expectFailure(matchResult) &&
+    expect(matchResult.message.contains("1 != 2"))
   }
 }
