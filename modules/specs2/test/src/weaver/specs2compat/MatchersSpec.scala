@@ -41,11 +41,11 @@ object MatchersSpec extends SimpleIOSuite with IOMatchers {
     Some(1) must beSome((i: Int) => i === 1)
   }
 
-  pureTest("pureTest { Some(1) must beSome((i: Int) => (i === 1) and (i === 1)) }") {
+  pureTest("deal with 'and' inside 'beSome' check") {
     Some(1) must beSome((i: Int) => (i === 1) and (i === 1))
   }
 
-  pureTest("pureTest { Some(1) must beSome((i: Int) => (i === 1) or (i === 1)) }") {
+  pureTest("deal with 'or' inside 'beSome' check") {
     Some(1) must beSome((i: Int) => (i === 1) or (i === 1))
   }
 
@@ -85,6 +85,6 @@ object MatchersSpec extends SimpleIOSuite with IOMatchers {
   pureTest("pureTest { expectFailure { Some(1) must beSome((i: Int) => (i === 1) and (i === 2)) } }") {
     val matchResult = Some(1) must beSome((i: Int) => (i === 1) and (i === 2))
     expectFailure(matchResult) &&
-      expect(matchResult.message.contains("Some(1) is Some but 1 != 2"))
+    expect(matchResult.message.contains("Some(1) is Some but 1 != 2"))
   }
 }
