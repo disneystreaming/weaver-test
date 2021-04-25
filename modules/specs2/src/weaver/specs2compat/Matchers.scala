@@ -7,8 +7,8 @@ import cats.effect.IO
 
 import weaver.{ AssertionException, EffectSuite, Expectations, SourceLocation }
 
-import org.specs2.execute.{Failure, Result, Success}
-import org.specs2.matcher.{MatchResult, MustMatchers, StandardMatchResults}
+import org.specs2.execute.{ Failure, Result, Success }
+import org.specs2.matcher.{ MatchResult, MustMatchers, StandardMatchResults }
 
 trait Matchers[F[_]] extends MustMatchers {
   self: EffectSuite[F] =>
@@ -31,6 +31,10 @@ trait Matchers[F[_]] extends MustMatchers {
   )(
       implicit pos: SourceLocation
   ): F[Expectations] = effectCompat.effect.pure(toExpectations(m))
+
+  /** 
+   * Some specs2 matchers expect a MatchResult/Result so we might have to convert them back from weaver's Expectations
+   **/
 
   implicit def toSpecs2Result(ex: Expectations): Result =
     ex.run match {
