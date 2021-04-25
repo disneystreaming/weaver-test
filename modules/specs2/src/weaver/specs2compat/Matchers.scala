@@ -1,12 +1,14 @@
 package weaver.specs2compat
 
 import cats.Monoid
+import cats.data.Validated.{Invalid, Valid}
 import cats.data.{ NonEmptyList, Validated }
 import cats.effect.IO
 
 import weaver.{ AssertionException, EffectSuite, Expectations, SourceLocation }
 
-import org.specs2.matcher.{ MatchResult, MustMatchers }
+import org.specs2.execute.{Failure, Success}
+import org.specs2.matcher.{MatchResult, MustMatchers, ValueCheck}
 
 trait Matchers[F[_]] extends MustMatchers {
   self: EffectSuite[F] =>
@@ -30,6 +32,14 @@ trait Matchers[F[_]] extends MustMatchers {
       implicit pos: SourceLocation
   ): F[Expectations] = effectCompat.effect.pure(toExpectations(m))
 
+  implicit def toValueCheck[T](
+    ex: T => Expectations
+  ): ValueCheck[T] = ex.andThen(e => e.run match {
+    case Valid(_) => 
+      Success("", "")
+    case Invalid(err) =>
+      Failure(err.head.message, err.head.message, err.head.getStackTrace().toList)
+  })
 }
 
 trait IOMatchers extends Matchers[IO] {
