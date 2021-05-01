@@ -44,4 +44,4 @@ object MySuite extends SimpleIOSuite {
 
 ### Note regarding test durations
 
-Because of inherently modelling incompatiblities between weaver and IntelliJ, we had to implement the JUnit runner in a way that makes it impossible for durations to be reported correctly by the IDE. We apologise for the inconvenience.
+Because of inherently modelling incompatibilities between weaver and IntelliJ, we had to implement the JUnit runner in a way that makes it impossible for durations to be reported correctly by the IDE. We apologise for the inconvenience.
