@@ -20,7 +20,8 @@
       "specs2",
       "discipline",
       "parallelism",
-      "funsuite"
+      "funsuite",
+      "filtering"
     ],
     "Sample reports": [
       "multiple_suites_success",
