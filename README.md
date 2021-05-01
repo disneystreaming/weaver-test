@@ -251,9 +251,9 @@ If you want to build and run the website then you will need yarn installed:
 brew install yarn
 ```
 
-### Intellij plugin
+### IntelliJ plugin
 
-The code of the intellij plugin lives [there](https://github.com/disneystreaming/weaver-intellij)
+The code of the IntelliJ plugin lives [there](https://github.com/disneystreaming/weaver-intellij)
 
 ### PR Guidelines
 
