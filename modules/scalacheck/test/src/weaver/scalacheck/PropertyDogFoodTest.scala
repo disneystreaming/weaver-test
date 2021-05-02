@@ -8,6 +8,8 @@ import cats.syntax.all._
 
 import weaver.framework._
 
+import org.scalacheck.Gen
+
 object PropertyDogFoodTest extends IOSuite {
 
   type Res = DogFood[IO]
@@ -64,6 +66,20 @@ object PropertyDogFoodTest extends IOSuite {
       expect(events.headOption.get.duration() >= 5000)
     }
   }
+
+  test("Discarded counts should be accurate") { dogfood =>
+    dogfood.runSuite(Meta.DiscardedChecks)
+      .map { case (logs, _) =>
+        val errorLogs = logs.collect {
+          case LoggedEvent.Error(msg) => msg
+        }
+        exists(errorLogs) { log =>
+          val expectedMessage =
+            s"Discarded more inputs (${Meta.DiscardedChecks.checkConfig.maximumDiscarded}) than allowed"
+          expect(log.contains(expectedMessage))
+        }
+      }
+  }
 }
 
 object Meta {
@@ -105,5 +121,17 @@ object Meta {
       forall.withConfig(super.checkConfig.copy(
         perPropertyParallelism = 1,
         minimumSuccessful = 5))
+  }
+
+  object DiscardedChecks extends SimpleIOSuite with Checkers {
+
+    override def checkConfig =
+      super.checkConfig.copy(minimumSuccessful = 100,
+                             // to avoid overcounting of discarded checks
+                             perPropertyParallelism = 1)
+
+    test("Discards all the time") {
+      forall(Gen.posNum[Int].suchThat(_ < 0))(succeed)
+    }
   }
 }
