@@ -167,13 +167,13 @@ Something worth noting is that expectations are not throwing, and that if the us
 
 ### Filtering tests
 
-When using the IOSuite variants, the user can call the test command as such:
+When using the IOSuite variants, the user can call `sbt`'s test command as such:
 
 ``` 
-> test -- -o *foo*
+> testOnly -- -o *foo*
 ```
 
-This will filter prevent the execution of any test that doesn't contain the string "foo" in is qualified name. For a test labeled "foo" in a "FooSuite" object, in the package "fooPackage", the qualified name of a test is :
+This filter will prevent the execution of any test that doesn't contain the string "foo" in is qualified name. For a test labeled "foo" in a "FooSuite" object, in the package "fooPackage", the qualified name of a test is:
 
 ```
 fooPackage.FooSuite.foo
@@ -251,9 +251,24 @@ If you want to build and run the website then you will need yarn installed:
 brew install yarn
 ```
 
-### Intellij plugin
+### Building the website
 
-The code of the intellij plugin lives [there](https://github.com/disneystreaming/weaver-intellij)
+If you're changing documentation, here's how you can check your changes locally:
+
+```bash
+sbt docs/docusaurusCreateSite
+cd website
+yarn start
+```
+
+If you're only changing `.md` files, you can run `sbt '~docs/mdoc'`.
+
+Note that the site will look a tiny bit different because to build a versioned website we have some machinery in the script running on CI - but you don't have to worry about that.
+
+
+### IntelliJ plugin
+
+The code of the IntelliJ plugin lives [there](https://github.com/disneystreaming/weaver-intellij)
 
 ### PR Guidelines
 
