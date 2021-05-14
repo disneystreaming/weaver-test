@@ -224,7 +224,7 @@ lazy val scalacheck = projectMatrix
   .settings(
     testFrameworks := Seq(new TestFramework("weaver.framework.CatsEffect")),
     libraryDependencies ++= Seq(
-      "org.scalacheck" %%% "scalacheck" % "1.15.3"
+      "org.scalacheck" %%% "scalacheck" % "1.15.4"
     )
   )
 
@@ -237,7 +237,7 @@ lazy val specs2 = projectMatrix
     name := "specs2",
     testFrameworks := Seq(new TestFramework("weaver.framework.CatsEffect")),
     libraryDependencies ++= Seq(
-      "org.specs2" %%% "specs2-matcher" % "4.10.6"
+      "org.specs2" %%% "specs2-matcher" % "4.11.0"
     )
   )
   .settings(WeaverPlugin.simpleLayout)
@@ -281,7 +281,7 @@ lazy val coreMonix = projectMatrix
   .settings(
     name := "monix-core",
     libraryDependencies ++= Seq(
-      "io.monix" %%% "monix" % "3.3.0"
+      "io.monix" %%% "monix" % "3.4.0"
     )
   )
 
@@ -371,7 +371,7 @@ lazy val zio = projectMatrix
   .settings(
     name := "zio",
     testFrameworks := Seq(new TestFramework("weaver.framework.ZIO")),
-    libraryDependencies += "io.github.cquiroz" %%% "scala-java-time" % "2.2.1" % Test
+    libraryDependencies += "io.github.cquiroz" %%% "scala-java-time" % "2.2.2" % Test
   )
 
 // #################################################################################################
