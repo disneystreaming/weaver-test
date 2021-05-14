@@ -224,7 +224,7 @@ lazy val scalacheck = projectMatrix
   .settings(
     testFrameworks := Seq(new TestFramework("weaver.framework.CatsEffect")),
     libraryDependencies ++= Seq(
-      "org.scalacheck" %%% "scalacheck" % "1.15.3"
+      "org.scalacheck" %%% "scalacheck" % "1.15.4"
     )
   )
 
