@@ -281,7 +281,7 @@ lazy val coreMonix = projectMatrix
   .settings(
     name := "monix-core",
     libraryDependencies ++= Seq(
-      "io.monix" %%% "monix" % "3.3.0"
+      "io.monix" %%% "monix" % "3.4.0"
     )
   )
 
