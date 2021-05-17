@@ -25,7 +25,13 @@ ThisBuild / commands += Command.command("release") { state =>
     "sonatypeBundleRelease" :: state
 }
 
-ThisBuild / commands ++= createBuildCommands(allModules)
+/* ThisBuild / commands ++= createBuildCommands(allModules) */
+import commandmatrix._
+
+val catsEffectDimension = Dimension.create("CE2") {
+  case CatsEffect2Axis => "CE2"
+  case CatsEffect3Axis => "CE3"
+}
 
 ThisBuild / scalaVersion := WeaverPlugin.scala213
 
@@ -66,6 +72,15 @@ lazy val root = project
   .aggregate(allModules: _*)
   .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.doNotPublishArtifact)
+
+val allMatrices = Seq(
+  core,
+  framework,
+  scalacheck,
+  specs2,
+  discipline,
+  intellijRunner) ++
+  effectCoresMatrices
 
 lazy val allModules = Seq(
   core.projectRefs,
@@ -286,6 +301,9 @@ lazy val discipline = projectMatrix
 // Effect-specific cores
 // #################################################################################################
 
+def effectCoresMatrices: Seq[sbt.internal.ProjectMatrix] =
+  Seq(coreCats, coreMonix, coreZio, coreMonixBio)
+
 lazy val effectCores: Seq[ProjectReference] =
   coreCats.projectRefs ++ coreMonix.projectRefs ++ coreZio.projectRefs ++ coreMonixBio.projectRefs
 
@@ -424,3 +442,43 @@ versionDump := {
   val file = (ThisBuild / baseDirectory).value / "version"
   IO.write(file, (Compile / version).value)
 }
+
+ThisBuild / commands ++= CrossCommand.single(
+  "test",
+  matrices = allMatrices,
+  dimensions = Seq(
+    catsEffectDimension,
+    Dimension.scala("2.12", fullFor3 = false),
+    Dimension.platform()
+  )
+)
+
+ThisBuild / commands ++= CrossCommand.single(
+  "pushRemoteCache",
+  matrices = allMatrices,
+  dimensions = Seq(
+    catsEffectDimension,
+    Dimension.scala("2.12", fullFor3 = false),
+    Dimension.platform()
+  )
+)
+
+ThisBuild / commands ++= CrossCommand.composite(
+  "codeQuality",
+  Seq(
+    "scalafmtCheckAll",
+    "scalafix --check",
+    "Test/scalafix"
+  ),
+  matrices = allMatrices,
+  dimensions = Seq(
+    catsEffectDimension,
+    Dimension.scala("2.12", fullFor3 = false),
+    Dimension.platform()
+  ),
+  filter = axes =>
+    CrossCommand.filter.isScalaBinary(2L, Some(13L))(axes) &&
+      CrossCommand.filter.onlyJvm(axes),
+  stubMissing = true
+)
+

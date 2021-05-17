@@ -15,12 +15,12 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         java: [adopt@1.8]
-        scalaVersion: ["2_12", "2_13", "3_0"]
+        scalaVersion: ["2_12", "2_13", "3"]
         scalaPlatform: ["jvm", "js"]
         ceVersion: ["CE2", "CE3"]
     runs-on: ${{ matrix.os }}
     env:
-      BUILD_KEY: ${{matrix.ceVersion}}_${{matrix.scalaVersion}}_${{matrix.scalaPlatform}}
+      BUILD_KEY: ${{matrix.ceVersion}}-${{matrix.scalaVersion}}-${{matrix.scalaPlatform}}
     steps:
       - name: Checkout current branch
         uses: actions/checkout@v2
@@ -37,15 +37,9 @@ jobs:
 
       - name: Run tests
         run: | 
-          sbt test_$BUILD_KEY \
-              pushRemoteCache_$BUILD_KEY
-
-      - name: Run checks
-        if: matrix.scalaVersion == '2_13' && matrix.scalaPlatform == 'jvm'
-        run: |
-          sbt scalafix_$BUILD_KEY \
-              scalafixTests_$BUILD_KEY \
-              scalafmt_$BUILD_KEY
+          sbt test-$BUILD_KEY \
+              pushRemoteCache-$BUILD_KEY \
+              codeQuality-$BUILD_KEY
 
       - name: Upload compilation cache
         uses: actions/upload-artifact@v2
