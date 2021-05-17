@@ -429,7 +429,7 @@ object WeaverPlugin extends AutoPlugin {
           var projectId = lp.project
 
           val scalaAxis =
-            if (projectId.endsWith(scala3Suffix)) {
+            if (projectId.endsWith(scala3Suffix) && !projectId.endsWith(ce3Suffix)) {
               projectId = projectId.dropRight(scala3Suffix.length)
               "3_0"
             } else if (projectId.endsWith(scala212Suffix)) {
@@ -437,6 +437,7 @@ object WeaverPlugin extends AutoPlugin {
               "2_12"
             } else
               "2_13"
+          
 
           val platformAxis =
             if (projectId.endsWith(jsSuffix)) {
