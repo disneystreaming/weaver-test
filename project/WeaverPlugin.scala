@@ -153,7 +153,7 @@ object WeaverPlugin extends AutoPlugin {
 
   lazy val scala212               = "2.12.13"
   lazy val scala213               = "2.13.5"
-  lazy val scala3                 = "3.0.0-RC2"
+  lazy val scala3                 = "3.0.0"
   lazy val supportedScalaVersions = List(scala212, scala213, scala3)
 
   lazy val supportedScala2Versions = List(scala212, scala213)
@@ -429,7 +429,7 @@ object WeaverPlugin extends AutoPlugin {
           var projectId = lp.project
 
           val scalaAxis =
-            if (projectId.endsWith(scala3Suffix)) {
+            if (projectId.endsWith(scala3Suffix) && !projectId.endsWith(ce3Suffix)) {
               projectId = projectId.dropRight(scala3Suffix.length)
               "3_0"
             } else if (projectId.endsWith(scala212Suffix)) {
@@ -437,6 +437,7 @@ object WeaverPlugin extends AutoPlugin {
               "2_12"
             } else
               "2_13"
+          
 
           val platformAxis =
             if (projectId.endsWith(jsSuffix)) {
