@@ -34,6 +34,33 @@ ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports"
 Global / (Test / fork) := true
 Global / (Test / testOptions) += Tests.Argument("--quickstart")
 
+val Version = new {
+  object CE3 {
+    val fs2        = "3.0.3"
+    val cats       = "3.1.1"
+    val zioInterop = "3.0.2.0"
+  }
+
+  object CE2 {
+    val fs2        = "2.5.6"
+    val cats       = "2.5.1"
+    val zioInterop = "2.4.1.0"
+  }
+
+  val expecty         = "0.15.3"
+  val portableReflect = "1.1.1"
+  val junit           = "4.13.2"
+  val scalajsStubs    = "1.0.0"
+  val specs2          = "4.11.0"
+  val discipline      = "1.1.5"
+  val catsLaws        = "2.6.1"
+  val scalacheck      = "1.15.4"
+  val monix           = "3.4.0"
+  val monixBio        = "1.1.0"
+  val testInterface   = "1.0"
+  val scalaJavaTime   = "2.3.0"
+}
+
 lazy val root = project
   .in(file("."))
   .aggregate(allModules: _*)
@@ -51,20 +78,18 @@ lazy val allModules = Seq(
   effectFrameworks
 ).flatten
 
-lazy val catsEffect3Version = "3.1.0"
-
 def catsEffectDependencies(proj: Project): Project = {
   proj.settings(
     libraryDependencies ++= {
       if (virtualAxes.value.contains(CatsEffect2Axis))
         Seq(
-          "co.fs2"        %%% "fs2-core"    % "2.5.5",
-          "org.typelevel" %%% "cats-effect" % "2.5.0"
+          "co.fs2"        %%% "fs2-core"    % Version.CE2.fs2,
+          "org.typelevel" %%% "cats-effect" % Version.CE2.cats
         )
       else
         Seq(
-          "co.fs2"        %%% "fs2-core"    % "3.0.2",
-          "org.typelevel" %%% "cats-effect" % catsEffect3Version
+          "co.fs2"        %%% "fs2-core"    % Version.CE3.fs2,
+          "org.typelevel" %%% "cats-effect" % Version.CE3.cats
         )
     }
   )
@@ -78,15 +103,15 @@ lazy val core = projectMatrix
   .configure(catsEffectDependencies)
   .settings(
     libraryDependencies ++= Seq(
-      "com.eed3si9n.expecty" %%% "expecty" % "0.15.2",
+      "com.eed3si9n.expecty" %%% "expecty" % Version.expecty,
       // https://github.com/portable-scala/portable-scala-reflect/issues/23
-      "org.portable-scala" %%% "portable-scala-reflect" % "1.1.1" cross CrossVersion.for3Use2_13
+      "org.portable-scala" %%% "portable-scala-reflect" % Version.portableReflect cross CrossVersion.for3Use2_13
     ),
     libraryDependencies ++= {
       if (virtualAxes.value.contains(VirtualAxis.jvm))
         Seq(
-          "org.scala-js" %%% "scalajs-stubs" % "1.0.0"  % "provided" cross CrossVersion.for3Use2_13,
-          "junit"          % "junit"         % "4.13.2" % Optional
+          "org.scala-js" %%% "scalajs-stubs" % Version.scalajsStubs % "provided" cross CrossVersion.for3Use2_13,
+          "junit"          % "junit"         % Version.junit        % Optional
         )
       else Seq.empty
     },
@@ -182,7 +207,7 @@ lazy val docs = projectMatrix
         | package weaver.docs
         |
         | object BuildMatrix {
-        |    val catsEffect3Version = ${q(catsEffect3Version)}
+        |    val catsEffect3Version = ${q(Version.CE3.cats)}
         |    val artifactsCE2Version = ${q(artifactsCE2Version)}
         |    val artifactsCE3Version = ${q(artifactsCE3Version)}
         |    val effects = $effects
@@ -203,14 +228,14 @@ lazy val framework = projectMatrix
     libraryDependencies ++= {
       if (virtualAxes.value.contains(VirtualAxis.jvm))
         Seq(
-          "org.scala-sbt"  % "test-interface" % "1.0",
-          "org.scala-js" %%% "scalajs-stubs"  % "1.0.0" % "provided" cross CrossVersion.for3Use2_13
+          "org.scala-sbt"  % "test-interface" % Version.testInterface,
+          "org.scala-js" %%% "scalajs-stubs"  % Version.scalajsStubs % "provided" cross CrossVersion.for3Use2_13
         )
       else
         Seq(
           "org.scala-js" %% "scalajs-test-interface" % scalaJSVersion cross CrossVersion.for3Use2_13
         )
-    } ++ Seq("junit" % "junit" % "4.13.2")
+    } ++ Seq("junit" % "junit" % Version.junit)
   )
   .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.simpleLayout)
@@ -224,7 +249,7 @@ lazy val scalacheck = projectMatrix
   .settings(
     testFrameworks := Seq(new TestFramework("weaver.framework.CatsEffect")),
     libraryDependencies ++= Seq(
-      "org.scalacheck" %%% "scalacheck" % "1.15.4"
+      "org.scalacheck" %%% "scalacheck" % Version.scalacheck
     )
   )
 
@@ -237,7 +262,7 @@ lazy val specs2 = projectMatrix
     name := "specs2",
     testFrameworks := Seq(new TestFramework("weaver.framework.CatsEffect")),
     libraryDependencies ++= Seq(
-      "org.specs2" %%% "specs2-matcher" % "4.11.0"
+      "org.specs2" %%% "specs2-matcher" % Version.specs2
     )
   )
   .settings(WeaverPlugin.simpleLayout)
@@ -251,8 +276,8 @@ lazy val discipline = projectMatrix
     name := "discipline",
     testFrameworks := Seq(new TestFramework("weaver.framework.CatsEffect")),
     libraryDependencies ++= Seq(
-      "org.typelevel" %%% "discipline-core" % "1.1.4",
-      "org.typelevel" %%% "cats-laws"       % "2.6.0" % Test
+      "org.typelevel" %%% "discipline-core" % Version.discipline,
+      "org.typelevel" %%% "cats-laws"       % Version.catsLaws % Test
     )
   )
   .settings(WeaverPlugin.simpleLayout)
@@ -281,7 +306,7 @@ lazy val coreMonix = projectMatrix
   .settings(
     name := "monix-core",
     libraryDependencies ++= Seq(
-      "io.monix" %%% "monix" % "3.4.0"
+      "io.monix" %%% "monix" % Version.monix
     )
   )
 
@@ -294,7 +319,7 @@ lazy val coreMonixBio = projectMatrix
   .settings(
     name := "monix-bio-core",
     libraryDependencies ++= Seq(
-      "io.monix" %%% "monix-bio" % "1.1.0"
+      "io.monix" %%% "monix-bio" % Version.monixBio
     )
   )
 
@@ -309,11 +334,11 @@ lazy val coreZio = projectMatrix
     libraryDependencies ++= {
       if (virtualAxes.value.contains(CatsEffect3Axis))
         Seq(
-          "dev.zio" %%% "zio-interop-cats" % "3.0.2.0"
+          "dev.zio" %%% "zio-interop-cats" % Version.CE3.zioInterop
         )
       else
         Seq(
-          "dev.zio" %%% "zio-interop-cats" % "2.4.1.0"
+          "dev.zio" %%% "zio-interop-cats" % Version.CE2.zioInterop
         )
     }
   )
@@ -371,7 +396,7 @@ lazy val zio = projectMatrix
   .settings(
     name := "zio",
     testFrameworks := Seq(new TestFramework("weaver.framework.ZIO")),
-    libraryDependencies += "io.github.cquiroz" %%% "scala-java-time" % "2.3.0" % Test
+    libraryDependencies += "io.github.cquiroz" %%% "scala-java-time" % Version.scalaJavaTime % Test
   )
 
 // #################################################################################################
