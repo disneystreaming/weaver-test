@@ -44,7 +44,7 @@ val Version = new {
   object CE2 {
     val fs2        = "2.5.6"
     val cats       = "2.5.1"
-    val zioInterop = "2.4.1.0"
+    val zioInterop = "2.5.1.0"
   }
 
   val expecty         = "0.15.3"
