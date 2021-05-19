@@ -11,7 +11,7 @@ object ZIOUnsafeRun extends UnsafeRun[T] {
 
   type CancelToken = Fiber.Id => Exit[Throwable, Unit]
 
-  implicit val runtime = Runtime.default
+  implicit val runtime: Runtime[ZEnv] = Runtime.default
 
   implicit def effect: Async[T] = catz.asyncInstance[ZEnv]
 

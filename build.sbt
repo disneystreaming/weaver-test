@@ -325,7 +325,13 @@ lazy val coreMonixBio = projectMatrix
 
 lazy val coreZio = projectMatrix
   .in(file("modules/core/zio"))
-  .sparse(withCE3 = true, withJS = true, withScala3 = false)
+  .sparse(withCE3 = true,
+          withJS = true,
+          withScala3 = true,
+          filter = {
+            case (scala, VirtualAxis.js, _) if scala.startsWith("3") => false
+            case _                                                   => true
+          })
   .dependsOn(core)
   .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.simpleLayout)
@@ -389,7 +395,13 @@ lazy val monixBio = projectMatrix
 
 lazy val zio = projectMatrix
   .in(file("modules/framework/zio"))
-  .sparse(withCE3 = true, withJS = true, withScala3 = false)
+  .sparse(withCE3 = true,
+          withJS = true,
+          withScala3 = true,
+          filter = {
+            case (scala, VirtualAxis.js, _) if scala.startsWith("3") => false
+            case _                                                   => true
+          })
   .dependsOn(framework, coreZio, scalacheck % "test->compile")
   .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.simpleLayout)

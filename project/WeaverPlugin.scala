@@ -84,7 +84,8 @@ object WeaverPlugin extends AutoPlugin {
     def sparse(
         withCE3: Boolean,
         withJS: Boolean,
-        withScala3: Boolean
+        withScala3: Boolean,
+        filter: ((String, VirtualAxis.PlatformAxis, CatsEffectAxis)) => Boolean = _ => true
     ): ProjectMatrix = {
       val defaultScalaVersions = supportedScala2Versions
       val defaultPlatform      = List(VirtualAxis.jvm)
@@ -98,6 +99,7 @@ object WeaverPlugin extends AutoPlugin {
         scalaVersion <- defaultScalaVersions ++ addScala3
         platform     <- defaultPlatform ++ addJs
         catsEffect   <- defaultCE ++ addCE3
+        if filter((scalaVersion, platform, catsEffect))
       } yield addOne(scalaVersion, platform, catsEffect)
 
       val configure: ConfigureX = configurators.reduce(_ andThen _)
