@@ -56,7 +56,7 @@ val Version = new {
   val catsLaws        = "2.6.1"
   val scalacheck      = "1.15.4"
   val monix           = "3.4.0"
-  val monixBio        = "1.1.0"
+  val monixBio        = "1.2.0"
   val testInterface   = "1.0"
   val scalaJavaTime   = "2.3.0"
 }
