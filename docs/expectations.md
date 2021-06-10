@@ -13,24 +13,26 @@ import cats.effect.IO
 
 object MySuite2 extends SimpleIOSuite {
 
-  pureTest("And/Or composition") {
+  pureTest("And/Or composition (success)") {
     expect(1 != 2) and expect(2 != 1) or expect(2 != 3)
   }
 
-  pureTest("Varargs composition") {
+  pureTest("And/Or composition (failure") {
+    expect(1 != 2) and expect(2 == 1) or expect(2 != 3)
+  }
+
+  pureTest("Varargs composition (success)") {
     // expect(1 + 1 == 2) && expect (2 + 2 == 4) && expect(4 * 2 == 8)
     expect.all(1 + 1 == 2, 2 + 2 == 4, 4 * 2 == 8)
   }
 
-  pureTest("Pretty string diffs") {
-    expect.same("foo", "bar")
+  pureTest("Varargs composition (failure)") {
+    // expect(1 + 1 == 2) && expect (2 + 2 == 4) && expect(4 * 2 == 8)
+    expect.all(1 + 1 == 2, 2 + 2 == 5, 4 * 2 == 8)
   }
 
-  pureTest("Foldable operations") {
-    val list = List(1,2,3)
-    import cats.instances.list._
-    forEach(list)(i => expect(i > 0)) and
-    exists(list)(i => expect(i == 3))
+  pureTest("Pretty string diffs") {
+    expect.same("foo", "bar")
   }
 
   pureTest("Non macro-based expectations") {
@@ -46,6 +48,84 @@ object MySuite2 extends SimpleIOSuite {
   }
 
 }
+```
+
+```scala mdoc:invisible
+import weaver.Expectations.Helpers._
+```
+
+## Expectations on collections (`Foldable`)
+
+For anything that implements [`Foldable`](https://typelevel.org/cats/typeclasses/foldable.html) typeclass from cats,
+two special methods are provided:
+
+1. `forEach`
+2. `exists`
+
+```scala mdoc:silent
+// OK
+forEach(List(1, 2, 3))(i => expect(i < 5)) and
+  forEach(Option("hello"))(msg => expect.same(msg, "hello")) and
+  exists(List("a", "b", "c"))(i => expect(i == "c")) and
+  exists(Vector(true, true, false))(i => expect(i == false))
+```
+
+```scala mdoc:fansi
+// FAILURE
+forEach(Vector("hello", "world"))(msg => expect.same(msg, "hello"))
+```
+
+```scala mdoc:fansi
+// FAILURE
+exists(Option(39))(i => expect(i > 50))
+```
+
+## Equality (`Eq`) comparison
+
+1. Only uses equality as defined by `Eq[T]` typeclass
+2. If values are different, the diff is rendered based on the string representation
+
+   - If no `Show[T]` instance is found, the diff will fallback to `.toString` representation
+
+```scala mdoc:silent
+import cats.Eq
+case class Test(d: Double)
+
+implicit val eqTest: Eq[Test] = Eq.by[Test, Double](_.d)
+
+// OK
+expect.eql("hello", "hello") and
+  expect.eql(List(1, 2, 3), List(1, 2, 3)) and
+  expect.eql(Test(25.0), Test(25.0))
+```
+
+```scala mdoc:fansi
+// FAILURE
+expect.eql("hello", "world")
+```
+
+```scala mdoc:fansi
+// FAILURE
+expect.eql(List(1, 2, 3), List(1, 19, 3))
+```
+
+```scala mdoc:fansi
+expect.eql(Test(25.0), Test(50.0))
+```
+
+### Relaxed equality comparison
+
+`expect.same` is very similar to `expect.eql`, but if the `Eq[T]` instance is not found, it will
+fall back to universal equality.
+
+```scala mdoc
+class Hello(d: Double) {
+  override def toString = s"Hello to $d"
+}
+```
+
+```scala mdoc:fansi
+expect.same(new Hello(25.0), new Hello(50.0))
 ```
 
 ## Tracing locations of failed expectations
