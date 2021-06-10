@@ -75,9 +75,26 @@ forEach(List(1, 2, 3))(i => expect(i < 5)) and
 forEach(Vector("hello", "world"))(msg => expect.same(msg, "hello"))
 ```
 
+```scala mdoc:invisible
+/** Note: Because mdoc adds a binder on the same line as the expression,
+  the code captured by Expecty will look like this:
+
+  val res2 = exists(Option(39))(i => expect(i > 50)); $doc.binder(res2, 1, 0, 1, 39)
+                                            | |
+                                            | false
+                                            39
+
+  To alleviate the issue, we just wrap it in a block with newlines and strip this in the `fansi` modifier
+
+  Computers 🔥 💩 🔥
+**/
+```
+
 ```scala mdoc:fansi
+{
 // FAILURE
 exists(Option(39))(i => expect(i > 50))
+}
 ```
 
 ## Equality (`Eq`) comparison
