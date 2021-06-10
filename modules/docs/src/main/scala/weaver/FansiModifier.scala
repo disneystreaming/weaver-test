@@ -10,15 +10,30 @@ class FansiModifier extends mdoc.PostModifier {
     val header = "<div class='terminal'><pre><code class = 'nohighlight'>"
     val footer = "</code></pre></div>"
 
-    val add = ctx.lastValue match {
+    val (add, code) = ctx.lastValue match {
       case assertion: Expectations =>
-        val result = Result.fromAssertion(assertion).formatted.mkString("\n")
-        header + Ansi2Html(result) + footer
-      case _ => ""
+        val result =
+          Result
+            .fromAssertion(assertion)
+            .formatted
+            .mkString("\n")
+
+        val add = header + Ansi2Html(result) + footer
+        val raw =
+          ctx.originalCode.text.trim().linesIterator.toVector.map(_.trim())
+
+        println(raw)
+
+        if (raw.headOption.contains("{") && raw.lastOption.contains("}"))
+          (add, raw.init.drop(1).mkString("\n"))
+        else
+          (add, raw.mkString("\n"))
+
+      case _ => ("", ctx.originalCode.text)
 
     }
 
-    "\n```scala\n" + ctx.originalCode.text + "\n```\n\n" + add + "\n"
+    "\n```scala\n" + code + "\n```\n\n" + add + "\n"
 
   }
 }
