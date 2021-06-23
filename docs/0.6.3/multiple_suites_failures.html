@@ -1,0 +1,96 @@
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>Failures · Weaver Test</title><meta name="viewport" content="width=device-width, initial-scale=1.0"/><meta name="generator" content="Docusaurus"/><meta name="description" content="Weaver aggregates failures from all tests to output them after all the tests have finished"/><meta name="docsearch:version" content="0.6.3"/><meta name="docsearch:language" content="en"/><meta property="og:title" content="Failures · Weaver Test"/><meta property="og:type" content="website"/><meta property="og:url" content="http(s)://disneystreaming.github.io//weaver-test/"/><meta property="og:description" content="Weaver aggregates failures from all tests to output them after all the tests have finished"/><meta property="og:image" content="http(s)://disneystreaming.github.io//weaver-test/img/undraw_online.svg"/><meta name="twitter:card" content="summary"/><meta name="twitter:image" content="http(s)://disneystreaming.github.io//weaver-test/img/undraw_tweetstorm.svg"/><link rel="shortcut icon" href="/weaver-test/img/dss-profile-white-transparent.svg"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css"/><script type="text/javascript" src="https: //buttons.github.io/buttons.js"></script><script src="/weaver-test/js/scrollSpy.js"></script><link rel="stylesheet" href="/weaver-test/css/main.css"/><script src="/weaver-test/js/codetabs.js"></script></head><body class="sideNavVisible separateOnPageNav"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/weaver-test/"><img class="logo" src="/weaver-test/img/dss-profile-white-transparent.svg" alt="Weaver Test"/><h2 class="headerTitleWithLogo">Weaver Test</h2></a><a href="/weaver-test/versions"><h3>0.6.3</h3></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class="siteNavGroupActive"><a href="/weaver-test/docs/0.6.3/installation" target="_self">Docs</a></li><li class=""><a href="https://github.com/disneystreaming/weaver-test" target="_blank">GitHub</a></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="docsNavContainer" id="docsNav"><nav class="toc"><div class="toggleNav"><section class="navWrapper wrapper"><div class="navBreadcrumb wrapper"><div class="navToggle" id="navToggler"><div class="hamburger-menu"><div class="line1"></div><div class="line2"></div><div class="line3"></div></div></div><h2><i>›</i><span>Sample reports</span></h2><div class="tocToggler" id="tocToggler"><i class="icon-toc"></i></div></div><div class="navGroups"><div class="navGroup"><h3 class="navGroupCategoryTitle">Overview</h3><ul class=""><li class="navListItem"><a class="navItem" href="/weaver-test/docs/0.6.3/installation">Installation</a></li><li class="navListItem"><a class="navItem" href="/weaver-test/docs/0.6.3/motivation">Motivation</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">Effect types</h3><ul class=""><li class="navListItem"><a class="navItem" href="/weaver-test/docs/0.6.3/cats">Cats-effect usage</a></li><li class="navListItem"><a class="navItem" href="/weaver-test/docs/0.6.3/monix">Monix usage</a></li><li class="navListItem"><a class="navItem" href="/weaver-test/docs/0.6.3/monix_bio">Monix BIO usage</a></li><li class="navListItem"><a class="navItem" href="/weaver-test/docs/0.6.3/zio">ZIO usage</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">Features</h3><ul class=""><li class="navListItem"><a class="navItem" href="/weaver-test/docs/0.6.3/expectations">Expectations (assertions)</a></li><li class="navListItem"><a class="navItem" href="/weaver-test/docs/0.6.3/resources">Sharing resources</a></li><li class="navListItem"><a class="navItem" href="/weaver-test/docs/0.6.3/global_resources">Sharing resources across suites</a></li><li class="navListItem"><a class="navItem" href="/weaver-test/docs/0.6.3/logging">Logging information</a></li><li class="navListItem"><a class="navItem" href="/weaver-test/docs/0.6.3/tagging">Tagging</a></li><li class="navListItem"><a class="navItem" href="/weaver-test/docs/0.6.3/scalacheck">ScalaCheck integration</a></li><li class="navListItem"><a class="navItem" href="/weaver-test/docs/0.6.3/specs2">specs2 integration</a></li><li class="navListItem"><a class="navItem" href="/weaver-test/docs/0.6.3/discipline">Discipline integration</a></li><li class="navListItem"><a class="navItem" href="/weaver-test/docs/0.6.3/parallelism">Configuring parallelism</a></li><li class="navListItem"><a class="navItem" href="/weaver-test/docs/0.6.3/funsuite">Pure tests</a></li><li class="navListItem"><a class="navItem" href="/weaver-test/docs/0.6.3/filtering">Filtering tests</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">Sample reports</h3><ul class=""><li class="navListItem"><a class="navItem" href="/weaver-test/docs/0.6.3/multiple_suites_success">Successes</a></li><li class="navListItem navListItemActive"><a class="navItem" href="/weaver-test/docs/0.6.3/multiple_suites_failures">Failures</a></li><li class="navListItem"><a class="navItem" href="/weaver-test/docs/0.6.3/multiple_suites_logging">Logging</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">IDE integrations</h3><ul class=""><li class="navListItem"><a class="navItem" href="/weaver-test/docs/0.6.3/intellij">IntelliJ integration</a></li></ul></div></div></section></div><script>
+            var coll = document.getElementsByClassName('collapsible');
+            var checkActiveCategory = true;
+            for (var i = 0; i < coll.length; i++) {
+              var links = coll[i].nextElementSibling.getElementsByTagName('*');
+              if (checkActiveCategory){
+                for (var j = 0; j < links.length; j++) {
+                  if (links[j].classList.contains('navListItemActive')){
+                    coll[i].nextElementSibling.classList.toggle('hide');
+                    coll[i].childNodes[1].classList.toggle('rotate');
+                    checkActiveCategory = false;
+                    break;
+                  }
+                }
+              }
+
+              coll[i].addEventListener('click', function() {
+                var arrow = this.childNodes[1];
+                arrow.classList.toggle('rotate');
+                var content = this.nextElementSibling;
+                content.classList.toggle('hide');
+              });
+            }
+
+            document.addEventListener('DOMContentLoaded', function() {
+              createToggler('#navToggler', '#docsNav', 'docsSliderActive');
+              createToggler('#tocToggler', 'body', 'tocActive');
+
+              var headings = document.querySelector('.toc-headings');
+              headings && headings.addEventListener('click', function(event) {
+                var el = event.target;
+                while(el !== headings){
+                  if (el.tagName === 'A') {
+                    document.body.classList.remove('tocActive');
+                    break;
+                  } else{
+                    el = el.parentNode;
+                  }
+                }
+              }, false);
+
+              function createToggler(togglerSelector, targetSelector, className) {
+                var toggler = document.querySelector(togglerSelector);
+                var target = document.querySelector(targetSelector);
+
+                if (!toggler) {
+                  return;
+                }
+
+                toggler.onclick = function(event) {
+                  event.preventDefault();
+
+                  target.classList.toggle(className);
+                };
+              }
+            });
+        </script></nav></div><div class="container mainContainer docsContainer"><div class="wrapper"><div class="post"><header class="postHeader"><h1 id="__docusaurus" class="postHeaderTitle">Failures</h1></header><article><div><span><p>Weaver aggregates failures from all tests to output them after all the tests have finished</p>
+<pre><code class="hljs css language-scala"><span class="hljs-keyword">import</span> weaver._
+<span class="hljs-keyword">import</span> cats.effect._
+
+<span class="hljs-class"><span class="hljs-keyword">object</span> <span class="hljs-title">MySuite</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">SimpleIOSuite</span> </span>{
+  <span class="hljs-keyword">val</span> randomUUID = <span class="hljs-type">IO</span>(java.util.<span class="hljs-type">UUID</span>.randomUUID())
+
+  pureTest(<span class="hljs-string">"failing test 1"</span>) {
+    expect(<span class="hljs-number">1</span> &gt;= <span class="hljs-number">2</span>)
+  }
+}
+
+<span class="hljs-class"><span class="hljs-keyword">object</span> <span class="hljs-title">MyAnotherSuite</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">SimpleIOSuite</span> </span>{
+  <span class="hljs-keyword">import</span> scala.util.<span class="hljs-type">Random</span>.alphanumeric
+
+  <span class="hljs-keyword">val</span> randomString = <span class="hljs-type">IO</span>(alphanumeric.take(<span class="hljs-number">10</span>).mkString(<span class="hljs-string">""</span>))
+
+  test(<span class="hljs-string">"failing test 2"</span>) {
+    <span class="hljs-keyword">for</span> {
+      x &lt;- randomString
+    } <span class="hljs-keyword">yield</span> check(x).traced(here)
+  }
+
+  <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">check</span></span>(x : <span class="hljs-type">String</span>) = expect(x.length &gt; <span class="hljs-number">10</span>)
+}
+</code></pre>
+<p>The report looks like this:</p>
+<div class='terminal'><pre><code class = 'nohighlight'>
+<span style='color: cyan'>MyAnotherSuite</span>
+<span style='color: red'>-&nbsp;</span>failing&nbsp;test&nbsp;2&nbsp;<span style='color: lightgray'><b>17ms</span></b>
+<p><span style='color: cyan'>MySuite</span>
+<span style='color: red'>- </span>failing test 1 <span style='color: lightgray'><b>13ms</span></b></p>
+<p><span style='color: red'>*************</span>FAILURES<span style='color: red'>*************</span>
+<span style='color: cyan'>MyAnotherSuite</span>
+<span style='color: red'>- </span>failing test 2 <span style='color: lightgray'><b>17ms</span></b><br /><span style='color: red'>  assertion failed (multiple_suites_failures.md:34)<br /> (multiple_suites_failures.md:31)<br /><br />  def check(x : String) = expect(x.length &gt; 10)<br />                                 | |      |<br />                                 | 10     false<br />                                 xCXPp9GDoX</span></p>
+<p><span style='color: cyan'>MySuite</span>
+<span style='color: red'>- </span>failing test 1 <span style='color: lightgray'><b>13ms</span></b><br /><span style='color: red'>  assertion failed (multiple_suites_failures.md:18)<br /><br />  expect(1 &gt;= 2)</span></p>
+<p>Total 2, Failed 2, Passed 0, Ignored 0, Cancelled 0
+</code></pre></div></p>
+</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/weaver-test/docs/0.6.3/multiple_suites_success"><span class="arrow-prev">← </span><span>Successes</span></a><a class="docs-next button" href="/weaver-test/docs/0.6.3/multiple_suites_logging"><span>Logging</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/weaver-test/" class="nav-home"></a><div><h5>Community</h5><a href="https://twitter.com/disneystreaming" target="_blank" rel="noreferrer noopener">Twitter</a></div><div><h5>More</h5><a href="https://github.com/disneystreaming/weaver-test">GitHub</a><a class="github-button" href="https://github.com/disneystreaming/weaver-test" data-icon="octicon-star" data-count-href="/facebook/docusaurus/stargazers" data-show-count="true" data-count-aria-label="# stargazers on GitHub" aria-label="Star this project on GitHub">Star</a><div class="social"><a href="https://twitter.com/disneystreaming" class="twitter-follow-button">Follow @disneystreaming</a></div></div></section><a href="https://github.com/disneystreaming" target="_blank" rel="noreferrer noopener" class="dssOpenSource"><img src="/weaver-test/img/dss-white-transparent.svg" alt="Disney Streaming Services Open Source" width="204" height="54"/></a><section class="copyright">Copyright © 2021 Disney Streaming Services</section></footer></div><script>window.twttr=(function(d,s, id){var js,fjs=d.getElementsByTagName(s)[0],t=window.twttr||{};if(d.getElementById(id))return t;js=d.createElement(s);js.id=id;js.src='https://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js, fjs);t._e = [];t.ready = function(f) {t._e.push(f);};return t;}(document, 'script', 'twitter-wjs'));</script></body></html>
