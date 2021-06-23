@@ -45,6 +45,42 @@ object HttpSuite extends IOSuite {
 }
 ```
 
+We can demonstrate the resource lifecycle with this example:
+
+```scala mdoc
+import java.util.concurrent.ConcurrentLinkedQueue
+
+// We will store the messages in this queue
+val order = new ConcurrentLinkedQueue[String]()
+
+object ResourceDemo extends IOSuite {
+
+  def record(msg: String) = IO(order.add(msg)).void
+
+  override type Res = Int
+  override def sharedResource = {
+    val acquire = record("Acquiring resource") *> IO.pure(42)
+    val release = (i: Int) => record(s"Releasing resource $i")
+    Resource.make(acquire)(release)
+  }
+
+  test("Test 1") { res =>
+    record(s"Test 1 is using resource $res").as(success)
+  }
+
+  test("Test 2") { res => 
+    record(s"Test 2 is using resource $res").as(expect(res == 45))
+  }
+}
+```
+
 ```scala mdoc:passthrough
-println(weaver.docs.Output.runSuites(HttpSuite).unsafeRunSync())
+println(weaver.docs.Output.runSuites(ResourceDemo).unsafeRunSync())
+
+println("Contents of `order` are:\n")
+println("```")
+order.toArray.foreach { el => 
+  println(s"// * $el")
+}
+println("```")
 ```
