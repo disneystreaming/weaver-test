@@ -45,6 +45,8 @@ object HttpSuite extends IOSuite {
 }
 ```
 
+### Resources lifecycle
+
 We can demonstrate the resource lifecycle with this example:
 
 ```scala mdoc
