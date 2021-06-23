@@ -64,6 +64,14 @@ object MatchersSpec extends SimpleIOSuite with IOMatchers {
   pureTest("pureTest { 1 === 1 }") {
     1 === 1
   }
+  
+  pureTest("failure example") {
+    1 must beEqualTo(2)
+  }
 }
 
+```
+
+```scala mdoc:passthrough
+println(weaver.docs.Output.runSuites(MatchersSpec).unsafeRunSync())
 ```

@@ -65,6 +65,13 @@ object ForallExamples extends SimpleIOSuite with Checkers {
       expect(a1 * a2 * a3 == a3 * a2 * a1)
     }
   }
+  
+  test("Failure example") {
+    // There are 6 overloads, to pass 1-6 parameters
+    forall { (a1: Int, a2: Int) =>
+      expect(a1 + a2 % 2 == 0)
+    }
+  }
 
 }
 ```

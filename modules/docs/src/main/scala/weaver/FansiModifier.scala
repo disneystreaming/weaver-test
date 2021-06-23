@@ -22,8 +22,6 @@ class FansiModifier extends mdoc.PostModifier {
         val raw =
           ctx.originalCode.text.trim().linesIterator.toVector.map(_.trim())
 
-        println(raw)
-
         if (raw.headOption.contains("{") && raw.lastOption.contains("}"))
           (add, raw.init.drop(1).mkString("\n"))
         else

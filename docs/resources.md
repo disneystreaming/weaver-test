@@ -45,3 +45,6 @@ object HttpSuite extends IOSuite {
 }
 ```
 
+```scala mdoc:passthrough
+println(weaver.docs.Output.runSuites(HttpSuite).unsafeRunSync())
+```
