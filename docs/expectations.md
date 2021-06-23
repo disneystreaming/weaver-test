@@ -208,9 +208,9 @@ As of 0.5.0, failed expectations carry a `NonEmptyList[SourceLocation]`, which c
 By default, the very location where the expectation is created is captured, but the `traced` method can be use to add additional locations to the expectation.
 
 ```scala mdoc
-object MySuite3 extends SimpleIOSuite {
+object TracingSuite extends SimpleIOSuite {
 
-  pureTest("And/Or composition") {
+  pureTest("Tracing example") {
     foo
   }
 
@@ -219,6 +219,9 @@ object MySuite3 extends SimpleIOSuite {
   def bar() = baz().traced(here)
 
   def baz() = expect(1 != 1)
-
 }
+```
+
+```scala mdoc:passthrough
+println(weaver.docs.Output.runSuites(TracingSuite).unsafeRunSync())
 ```
