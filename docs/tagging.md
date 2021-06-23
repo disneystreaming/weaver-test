@@ -10,7 +10,7 @@ import weaver._
 import cats.effect.IO
 import cats.syntax.all._
 
-object MySuite extends SimpleIOSuite {
+object TaggingSuite extends SimpleIOSuite {
 
   test("Only on CI") {
     for {
@@ -31,4 +31,8 @@ object MySuite extends SimpleIOSuite {
   }
 
 }
+```
+
+```scala mdoc:passthrough
+println(weaver.docs.Output.runSuites(TaggingSuite).unsafeRunSync())
 ```
