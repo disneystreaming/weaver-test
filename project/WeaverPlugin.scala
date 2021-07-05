@@ -1,6 +1,3 @@
-// For getting Scoverage out of the generated POM
-import scala.xml.Elem
-import scala.xml.transform.{ RewriteRule, RuleTransformer }
 import scalafix.sbt.ScalafixPlugin.autoImport._
 import xerial.sbt.Sonatype.SonatypeKeys._
 
@@ -151,8 +148,8 @@ object WeaverPlugin extends AutoPlugin {
   override def requires = plugins.JvmPlugin
   override def trigger  = allRequirements
 
-  lazy val scala212               = "2.12.13"
-  lazy val scala213               = "2.13.5"
+  lazy val scala212               = "2.12.14"
+  lazy val scala213               = "2.13.6"
   lazy val scala3                 = "3.0.0"
   lazy val supportedScalaVersions = List(scala212, scala213, scala3)
 
@@ -196,7 +193,7 @@ object WeaverPlugin extends AutoPlugin {
     },
     pushRemoteCacheTo := Some(MavenCache("local-cache",
                                          file("/tmp/remote-cache")))
-  ) ++ coverageSettings ++ publishSettings
+  ) ++ publishSettings
 
   def artifactName(nm: String, axes: Seq[VirtualAxis]) = {
     nm + axes.sortBy[Int] {
@@ -287,37 +284,12 @@ object WeaverPlugin extends AutoPlugin {
       "-Ywarn-nullary-unit"               // Warn when nullary methods return Unit.
     )
 
-  lazy val coverageSettings = Seq(
-    // For evicting Scoverage out of the generated POM
-    // See: https://github.com/scoverage/sbt-scoverage/issues/153
-    pomPostProcess := { (node: xml.Node) =>
-      new RuleTransformer(new RewriteRule {
-        override def transform(node: xml.Node): Seq[xml.Node] = node match {
-          case e: Elem
-              if e.label == "dependency" && e.child.exists(child =>
-                child.label == "groupId" && child.text == "org.scoverage") =>
-            Nil
-          case _ => Seq(node)
-        }
-      }).transform(node).head
-    }
-  )
-
   lazy val doNotPublishArtifact = Seq(
     publishArtifact := false,
     Compile / packageDoc / publishArtifact := false,
     Compile / packageSrc / publishArtifact := false,
     Compile / packageBin / publishArtifact := false
   )
-
-  def profile: Project => Project = pr => {
-    val withCoverage = sys.env.getOrElse("SBT_PROFILE", "") match {
-      case "coverage" => pr
-      case _          => pr.disablePlugins(scoverage.ScoverageSbtPlugin)
-    }
-
-    withCoverage
-  }
 
   // Mill-like simple layout
   val simpleLayout: Seq[Setting[_]] = {
@@ -437,7 +409,7 @@ object WeaverPlugin extends AutoPlugin {
               "2_12"
             } else
               "2_13"
-          
+
 
           val platformAxis =
             if (projectId.endsWith(jsSuffix)) {
