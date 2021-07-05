@@ -47,11 +47,11 @@ val Version = new {
     val zioInterop = "2.5.1.0"
   }
 
-  val expecty         = "0.15.3"
+  val expecty         = "0.15.4"
   val portableReflect = "1.1.1"
   val junit           = "4.13.2"
   val scalajsStubs    = "1.0.0"
-  val specs2          = "4.12.0"
+  val specs2          = "4.12.1"
   val discipline      = "1.1.5"
   val catsLaws        = "2.6.1"
   val scalacheck      = "1.15.4"

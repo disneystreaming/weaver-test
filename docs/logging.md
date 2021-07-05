@@ -19,7 +19,7 @@ object LoggedTests extends IOSuite {
   }
 
 
-  // We can oviously have tests receive loggers AND shared resources
+  // We can obviously have tests receive loggers AND shared resources
   override type Res = String
   override def sharedResource : Resource[IO, Res] =
     Resource.pure[IO, Res]("hello")
@@ -34,3 +34,6 @@ object LoggedTests extends IOSuite {
 }
 ```
 
+```scala mdoc:passthrough
+println(weaver.docs.Output.runSuites(LoggedTests).unsafeRunSync())
+```
