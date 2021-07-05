@@ -36,13 +36,13 @@ Global / (Test / testOptions) += Tests.Argument("--quickstart")
 
 val Version = new {
   object CE3 {
-    val fs2        = "3.0.4"
+    val fs2        = "3.0.6"
     val cats       = "3.1.1"
     val zioInterop = "3.1.1.0"
   }
 
   object CE2 {
-    val fs2        = "2.5.6"
+    val fs2        = "2.5.8"
     val cats       = "2.5.1"
     val zioInterop = "2.5.1.0"
   }
@@ -51,7 +51,7 @@ val Version = new {
   val portableReflect = "1.1.1"
   val junit           = "4.13.2"
   val scalajsStubs    = "1.0.0"
-  val specs2          = "4.12.1"
+  val specs2          = "4.12.2"
   val discipline      = "1.1.5"
   val catsLaws        = "2.6.1"
   val scalacheck      = "1.15.4"
@@ -64,7 +64,6 @@ val Version = new {
 lazy val root = project
   .in(file("."))
   .aggregate(allModules: _*)
-  .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.doNotPublishArtifact)
 
 lazy val allModules = Seq(
@@ -97,7 +96,6 @@ def catsEffectDependencies(proj: Project): Project = {
 
 lazy val core = projectMatrix
   .in(file("modules/core"))
-  .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.simpleLayout)
   .full
   .configure(catsEffectDependencies)
@@ -237,14 +235,12 @@ lazy val framework = projectMatrix
         )
     } ++ Seq("junit" % "junit" % Version.junit)
   )
-  .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.simpleLayout)
 
 lazy val scalacheck = projectMatrix
   .in(file("modules/scalacheck"))
   .full
   .dependsOn(core, cats % "test->compile")
-  .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.simpleLayout)
   .settings(
     testFrameworks := Seq(new TestFramework("weaver.framework.CatsEffect")),
@@ -257,7 +253,6 @@ lazy val specs2 = projectMatrix
   .in(file("modules/specs2"))
   .sparse(withCE3 = true, withJS = true, withScala3 = false)
   .dependsOn(core, cats % "test->compile")
-  .configure(WeaverPlugin.profile)
   .settings(
     name := "specs2",
     testFrameworks := Seq(new TestFramework("weaver.framework.CatsEffect")),
@@ -271,7 +266,6 @@ lazy val discipline = projectMatrix
   .in(file("modules/discipline"))
   .sparse(withCE3 = true, withJS = true, withScala3 = true)
   .dependsOn(core, cats)
-  .configure(WeaverPlugin.profile)
   .settings(
     name := "discipline",
     testFrameworks := Seq(new TestFramework("weaver.framework.CatsEffect")),
@@ -293,7 +287,6 @@ lazy val coreCats = projectMatrix
   .in(file("modules/core/cats"))
   .full
   .dependsOn(core)
-  .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.simpleLayout)
   .settings(name := "cats-core")
 
@@ -301,7 +294,6 @@ lazy val coreMonix = projectMatrix
   .in(file("modules/core/monix"))
   .sparse(withCE3 = false, withJS = true, withScala3 = false)
   .dependsOn(core)
-  .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.simpleLayout)
   .settings(
     name := "monix-core",
@@ -314,7 +306,6 @@ lazy val coreMonixBio = projectMatrix
   .in(file("modules/core/monixBio"))
   .sparse(withCE3 = false, withJS = true, withScala3 = false)
   .dependsOn(core)
-  .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.simpleLayout)
   .settings(
     name := "monix-bio-core",
@@ -327,7 +318,6 @@ lazy val coreZio = projectMatrix
   .in(file("modules/core/zio"))
   .sparse(withCE3 = true, withJS = true, withScala3 = false)
   .dependsOn(core)
-  .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.simpleLayout)
   .settings(
     name := "zio-core",
@@ -358,7 +348,6 @@ lazy val cats = projectMatrix
   .in(file("modules/framework/cats"))
   .dependsOn(framework, coreCats)
   .full
-  .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.simpleLayout)
   .settings(
     name := "cats",
@@ -369,7 +358,6 @@ lazy val monix = projectMatrix
   .in(file("modules/framework/monix"))
   .sparse(withCE3 = false, withJS = true, withScala3 = false)
   .dependsOn(framework, coreMonix)
-  .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.simpleLayout)
   .settings(
     name := "monix",
@@ -380,7 +368,6 @@ lazy val monixBio = projectMatrix
   .in(file("modules/framework/monix-bio"))
   .sparse(withCE3 = false, withJS = true, withScala3 = false)
   .dependsOn(framework, coreMonixBio)
-  .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.simpleLayout)
   .settings(
     name := "monix-bio",
@@ -391,7 +378,6 @@ lazy val zio = projectMatrix
   .in(file("modules/framework/zio"))
   .sparse(withCE3 = true, withJS = true, withScala3 = false)
   .dependsOn(framework, coreZio, scalacheck % "test->compile")
-  .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.simpleLayout)
   .settings(
     name := "zio",
@@ -407,7 +393,6 @@ lazy val intellijRunner = projectMatrix
   .sparse(withCE3 = false, withJS = false, withScala3 = false)
   .in(file("modules/intellij-runner"))
   .dependsOn(core, framework, framework % "test->compile")
-  .configure(WeaverPlugin.profile)
   .settings(WeaverPlugin.simpleLayout)
   .settings(
     name := "intellij-runner"
