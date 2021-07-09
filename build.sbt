@@ -42,7 +42,7 @@ val Version = new {
   }
 
   object CE2 {
-    val fs2        = "2.5.8"
+    val fs2        = "2.5.9"
     val cats       = "2.5.1"
     val zioInterop = "2.5.1.0"
   }
