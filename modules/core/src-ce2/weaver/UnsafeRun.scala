@@ -34,7 +34,7 @@ trait UnsafeRun[F[_]] extends EffectCompat[F] {
   def background(task: F[Unit]): CancelToken
   def cancel(token: CancelToken): Unit
 
-  def sync(task: F[Unit]): Unit
+  def sync[A](task: F[A]): A
   def async(task: F[Unit]): Unit
 
 }

@@ -27,7 +27,7 @@ object ZIOUnsafeRun extends UnsafeRun[T] {
   def cancel(token: Fiber.Id => Exit[Throwable, Unit]): Unit =
     discard[Exit[Throwable, Unit]](token(Fiber.Id.None))
 
-  def sync(task: T[Unit]): Unit = runtime.unsafeRun(task)
+  def sync[A](task: T[A]): A = runtime.unsafeRun(task)
 
   def async(task: T[Unit]): Unit = runtime.unsafeRunAsync(task)(_ => ())
 }

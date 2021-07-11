@@ -4,8 +4,9 @@ package monixcompat
 import monix.execution.Scheduler
 
 object PlatformCompat {
-  def runSync(task: monix.eval.Task[Unit])(implicit scheduler: Scheduler) = {
+  def runSync[A](task: monix.eval.Task[A])(implicit scheduler: Scheduler) = {
     val _ = scheduler
+    throw new Exception("Cannot block on JS!")
   }
 
   def defaultScheduler: Scheduler = Scheduler.global

@@ -23,7 +23,7 @@ trait CatsUnsafeRun extends UnsafeRun[IO] {
 
   def cancel(token: CancelToken): Unit = sync(token)
 
-  def sync(task: IO[Unit]): Unit = task.unsafeRunSync()
+  def sync[A](task: IO[A]): A = task.unsafeRunSync()
 
   def async(task: IO[Unit]): Unit = task.unsafeRunAsyncAndForget()
 
