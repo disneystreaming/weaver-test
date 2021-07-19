@@ -18,7 +18,7 @@ trait SourceLocationMacro {
   implicit def fromContext: SourceLocation =
     macro Macros.fromContext
 
-  
+
 }
 
 object macros {
@@ -32,7 +32,10 @@ object macros {
     }
 
     private def getSourceLocation = {
-      val pwd  = java.nio.file.Paths.get("").toAbsolutePath
+      val pwd = SourceLocationHelper
+        .sourcePath(c.compilerSettings)
+        .getOrElse(java.nio.file.Paths.get("").toAbsolutePath)
+
       val p = c.enclosingPosition.source.path
       val abstractFile = c.enclosingPosition.source.file
 
