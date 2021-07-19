@@ -7,7 +7,6 @@ import cats.effect.IO
 import cats.syntax.all._
 
 import org.scalacheck.Gen
-import org.scalacheck.rng.Seed
 
 object CheckersTest extends SimpleIOSuite with Checkers {
 
