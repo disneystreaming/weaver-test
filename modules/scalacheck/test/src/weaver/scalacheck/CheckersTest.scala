@@ -67,4 +67,5 @@ object CheckersTest extends SimpleIOSuite with Checkers {
     }
   }
 
+
 }

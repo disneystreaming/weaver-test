@@ -9,6 +9,7 @@ import cats.syntax.all._
 import weaver.framework._
 
 import org.scalacheck.Gen
+import org.scalacheck.rng.Seed
 
 object PropertyDogFoodTest extends IOSuite {
 
@@ -106,7 +107,7 @@ object Meta {
   object FailedChecks extends SimpleIOSuite with Checkers {
 
     override def checkConfig: CheckConfig =
-      super.checkConfig.copy(perPropertyParallelism = 1, initialSeed = Some(5L))
+      super.checkConfig.copy(perPropertyParallelism = 1, initialSeed = Some(Seed(5L)))
 
     test("foobar") {
       forall { (x: Int) =>
