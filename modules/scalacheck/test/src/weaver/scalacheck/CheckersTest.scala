@@ -7,6 +7,7 @@ import cats.effect.IO
 import cats.syntax.all._
 
 import org.scalacheck.Gen
+import org.scalacheck.rng.Seed
 
 object CheckersTest extends SimpleIOSuite with Checkers {
 
@@ -66,5 +67,6 @@ object CheckersTest extends SimpleIOSuite with Checkers {
       IO.sleep(1.second).map(_ => expect(a1 + a2 == a2 + a1))
     }
   }
+
 
 }

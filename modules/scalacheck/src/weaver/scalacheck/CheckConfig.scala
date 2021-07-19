@@ -1,12 +1,14 @@
 package weaver
 package scalacheck
 
+import org.scalacheck.rng.Seed
+
 case class CheckConfig(
     minimumSuccessful: Int,
     maximumDiscardRatio: Int,
     maximumGeneratorSize: Int,
     perPropertyParallelism: Int,
-    initialSeed: Option[Long]
+    initialSeed: Option[Seed]
 ) {
   assert(maximumDiscardRatio >= 0)
   assert(maximumDiscardRatio <= 100)
