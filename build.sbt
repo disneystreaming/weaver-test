@@ -42,11 +42,7 @@ val Version = new {
   }
 
   object CE2 {
-<<<<<<< HEAD
     val fs2        = "2.5.9"
-=======
-    val fs2        = "2.5.8"
->>>>>>> fe2b288... Remove scoverage, bump versions
     val cats       = "2.5.1"
     val zioInterop = "2.5.1.0"
   }
