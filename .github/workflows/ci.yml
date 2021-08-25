@@ -46,7 +46,7 @@ jobs:
           sbt scalafix_$BUILD_KEY \
               scalafixTests_$BUILD_KEY \
               scalafmt_$BUILD_KEY \
-              docs/mdoc --in $PWD/README.md
+              "docs/mdoc --in $PWD/README.md"
 
       - name: Upload compilation cache
         uses: actions/upload-artifact@v2
