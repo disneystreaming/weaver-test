@@ -121,7 +121,7 @@ object MySuite extends IOSuite {
   }
 
   test("test with resource"){ n =>
-    IOO(expect(n == 123))
+    IO(expect(n == 123))
   }
 
   test("test with resource and a logger"){ (n, log) =>
