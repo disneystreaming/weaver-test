@@ -1,15 +1,12 @@
 <img src="https://github.com/disneystreaming/weaver-test/raw/master/website/static/img/logo.png" width="200px" height="231px" align="right">
 
-
 [![CI](https://github.com/disneystreaming/weaver-test/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/disneystreaming/weaver-test/actions/workflows/ci.yml)
 [![Latest version](https://index.scala-lang.org/disneystreaming/weaver-test/weaver-core/latest.svg?color=orange)](https://index.scala-lang.org/disneystreaming/weaver-test/weaver-core)
 [![Gitter](https://img.shields.io/gitter/room/disneystreaming/weaver-test.svg)](https://gitter.im/disneystreaming/weaver-test)
 [![Scala Steward badge](https://img.shields.io/badge/Scala_Steward-helping-blue.svg?style=flat&logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAQCAMAAAARSr4IAAAAVFBMVEUAAACHjojlOy5NWlrKzcYRKjGFjIbp293YycuLa3pYY2LSqql4f3pCUFTgSjNodYRmcXUsPD/NTTbjRS+2jomhgnzNc223cGvZS0HaSD0XLjbaSjElhIr+AAAAAXRSTlMAQObYZgAAAHlJREFUCNdNyosOwyAIhWHAQS1Vt7a77/3fcxxdmv0xwmckutAR1nkm4ggbyEcg/wWmlGLDAA3oL50xi6fk5ffZ3E2E3QfZDCcCN2YtbEWZt+Drc6u6rlqv7Uk0LdKqqr5rk2UCRXOk0vmQKGfc94nOJyQjouF9H/wCc9gECEYfONoAAAAASUVORK5CYII=)](https://scala-steward.org)
 [![CLA assistant](https://cla-assistant.io/readme/badge/disneystreaming/weaver-test)](https://cla-assistant.io/disneystreaming/weaver-test)
 
-
 # Weaver-test
-
 
 A test-framework built on [cats-effect](https://github.com/typelevel/cats-effect) and
 [fs2](https://github.com/functional-streams-for-scala/fs2), with [zio](https://zio.dev) and [monix](https://monix.io) interop.
@@ -52,12 +49,12 @@ libraryDependencies +=  "com.disneystreaming" %% "weaver-specs2" % "x.y.z" % Tes
 
 Weaver aims at providing a nice experience when writing and running tests :
 
-* tests within a suite are run in parallel by default for quickest results possible
-* expectations (ie assertions) are composable values. This forces
-developers to separate the scenario of the test from the checks they perform,
-which generally keeps tests cleaner / clearer.
-* failures are aggregated and reported at the end of the run. This prevents the developer from having to "scroll up" forever when trying to understand what failed.
-* a lazy logger is provided for each test, and log statements are only displayed in case of a test failure. This lets the developer enrich their tests with clues and works perfectly well with parallel runs
+- tests within a suite are run in parallel by default for quickest results possible
+- expectations (ie assertions) are composable values. This forces
+  developers to separate the scenario of the test from the checks they perform,
+  which generally keeps tests cleaner / clearer.
+- failures are aggregated and reported at the end of the run. This prevents the developer from having to "scroll up" forever when trying to understand what failed.
+- a lazy logger is provided for each test, and log statements are only displayed in case of a test failure. This lets the developer enrich their tests with clues and works perfectly well with parallel runs
 
 ## API
 
@@ -67,7 +64,7 @@ which generally keeps tests cleaner / clearer.
 
 The suite that is most familiar to developers :
 
-```scala
+```scala mdoc
 import weaver.SimpleIOSuite
 import cats.effect._
 
@@ -102,7 +99,7 @@ object MySuite extends SimpleIOSuite {
 
 The `IOSuite` constructs the given resource once for all tests in the suite.
 
-```scala
+```scala mdoc:reset
 import weaver.IOSuite
 import cats.effect._
 
@@ -125,7 +122,7 @@ object MySuite extends IOSuite {
   }
 
   test("test with resource and a logger"){ (n, log) =>
-    log.info("log was available") *> 
+    log.info("log was available") *>
     IO(expect(n == 123))
   }
 }
@@ -134,20 +131,21 @@ object MySuite extends IOSuite {
 #### Other suites
 
 Weaver also includes support for
-* `ZIO`-based suites via the optional `weaver-zio` dependency
-* `Monix`-based suites via the optional `weaver-monix` dependency
-* `Monix BIO`-based suites via the optional `weaver-monix-bio` dependency
 
-| Alias | Suite name | Provided by | Use case |
-| --- | --- | --- | --- |
-| `SimpleIOSuite`   | `SimpleMutableIOSuite`       | `weaver-cats` | Each test is a standalone `IO` action
-| `IOSuite`         | `MutableIOSuite`             | `weaver-cats` | Each test needs access to a shared `Resource`
-| `SimpleZIOSuite`  | `SimpleMutableZIOSuite`      | `weaver-zio`       | Each test is a standalone `ZIO` action
-| `ZIOSuite[R]`     | `MutableZIOSuite[R]`         | `weaver-zio`       | Each test needs access to a shared `ZLayer`
-| `SimpleTaskSuite` | `SimpleMutableTaskSuite`     | `weaver-monix`     | Each test is a standalone `Task` action
-| `TaskSuite`       | `MutableTaskSuite`           | `weaver-monix`     | Each test needs access to a shared `Resource`
-| `SimpleIOSuite`   | `SimpleMutableIOSuite`       | `weaver-monix-bio` | Each test is a standalone `Task` action
-| `IOSuite`         | `MutableIOSuite`             | `weaver-monix-bio` | Each test needs access to a shared `Resource`
+- `ZIO`-based suites via the optional `weaver-zio` dependency
+- `Monix`-based suites via the optional `weaver-monix` dependency
+- `Monix BIO`-based suites via the optional `weaver-monix-bio` dependency
+
+| Alias             | Suite name               | Provided by        | Use case                                      |
+| ----------------- | ------------------------ | ------------------ | --------------------------------------------- |
+| `SimpleIOSuite`   | `SimpleMutableIOSuite`   | `weaver-cats`      | Each test is a standalone `IO` action         |
+| `IOSuite`         | `MutableIOSuite`         | `weaver-cats`      | Each test needs access to a shared `Resource` |
+| `SimpleZIOSuite`  | `SimpleMutableZIOSuite`  | `weaver-zio`       | Each test is a standalone `ZIO` action        |
+| `ZIOSuite[R]`     | `MutableZIOSuite[R]`     | `weaver-zio`       | Each test needs access to a shared `ZLayer`   |
+| `SimpleTaskSuite` | `SimpleMutableTaskSuite` | `weaver-monix`     | Each test is a standalone `Task` action       |
+| `TaskSuite`       | `MutableTaskSuite`       | `weaver-monix`     | Each test needs access to a shared `Resource` |
+| `SimpleIOSuite`   | `SimpleMutableIOSuite`   | `weaver-monix-bio` | Each test is a standalone `Task` action       |
+| `IOSuite`         | `MutableIOSuite`         | `weaver-monix-bio` | Each test needs access to a shared `Resource` |
 
 ### Expectations (assertions)
 
@@ -189,9 +187,10 @@ This is useful when you consider your tests (typically `end-to-end` ones) as a p
 
 Weaver comes with basic scalacheck integration.
 
-```scala
+```scala mdoc
 import weaver._
 import weaver.scalacheck._
+import org.scalacheck.Gen
 
 // Notice the Checkers mix-in
 object ForallExamples extends SimpleIOSuite with Checkers {
@@ -265,7 +264,6 @@ If you're only changing `.md` files, you can run `sbt '~docs/mdoc'`.
 
 Note that the site will look a tiny bit different because to build a versioned website we have some machinery in the script running on CI - but you don't have to worry about that.
 
-
 ### IntelliJ plugin
 
 The code of the IntelliJ plugin lives [there](https://github.com/disneystreaming/weaver-intellij)
@@ -273,18 +271,13 @@ The code of the IntelliJ plugin lives [there](https://github.com/disneystreaming
 ### PR Guidelines
 
 Please:
+
 - Sign the CLA
 - Write positive and negative tests
 - Include documentation
-
-
 
 ## Inspiration
 
 A **HUGE** thank you to Alexandru Nedelcu, author of [Monix](https://github.com/monix/monix) and contributor to
 cats-effect, as he wrote the [minitest](https://github.com/monix/minitest)
 framework which got this framework started.
-
-
-
-

@@ -36,7 +36,7 @@ jobs:
           java-version: ${{ matrix.java }}
 
       - name: Run tests
-        run: | 
+        run: |
           sbt test_$BUILD_KEY \
               pushRemoteCache_$BUILD_KEY
 
@@ -45,7 +45,8 @@ jobs:
         run: |
           sbt scalafix_$BUILD_KEY \
               scalafixTests_$BUILD_KEY \
-              scalafmt_$BUILD_KEY
+              scalafmt_$BUILD_KEY \
+              docs/mdoc --in $PWD/README.md
 
       - name: Upload compilation cache
         uses: actions/upload-artifact@v2
