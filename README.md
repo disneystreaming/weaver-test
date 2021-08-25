@@ -117,16 +117,16 @@ object MySuite extends IOSuite {
     )(n => IO(println(s"Closing resource $n")))
 
   test("test, but resource not visible"){
-    expect(123 == 123)
+    IO(expect(123 == 123))
   }
 
   test("test with resource"){ n =>
-    expect(n == 123)
+    IO(expect(n == 123))
   }
 
   test("test with resource and a logger"){ (n, log) =>
-    log.info("log was available")
-    expect(n == 123)
+    log.info("log was available") *> 
+    IO(expect(n == 123))
   }
 }
 ```
