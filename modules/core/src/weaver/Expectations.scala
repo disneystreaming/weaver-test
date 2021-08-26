@@ -38,8 +38,8 @@ case class Expectations(val run: ValidatedNel[AssertionException, Unit]) {
     }
 
   /**
-   * Adds the specified location to the list of locations that will
-   * be reported if an expectation is failed.
+   * Adds the specified location to the list of locations that will be reported
+   * if an expectation is failed.
    */
   def traced(loc: SourceLocation): Expectations =
     Expectations(run.leftMap(_.map(e =>
@@ -113,8 +113,8 @@ object Expectations {
       _ => failure(hint)
 
     /**
-     * Checks that an assertion is true for all elements in a foldable.
-     * Succeeds if the foldable is empty.
+     * Checks that an assertion is true for all elements in a foldable. Succeeds
+     * if the foldable is empty.
      */
     def forEach[L[_], A](la: L[A])(f: A => Expectations)(
         implicit L: Foldable[L]): Expectations = la.foldMap(f)

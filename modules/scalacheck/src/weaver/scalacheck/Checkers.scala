@@ -160,8 +160,8 @@ trait Checkers {
         .flatTap { (x: Option[(T, Expectations)]) =>
           x match {
             case Some((_, ex)) if ex.run.isValid => state.update(_.addSuccess)
-            case Some((t, ex))                   => state.update(_.addFailure(t.show, seed, ex))
-            case None                            => state.update(_.addDiscard)
+            case Some((t, ex)) => state.update(_.addFailure(t.show, seed, ex))
+            case None          => state.update(_.addDiscard)
           }
         }
         .productR(state.get)

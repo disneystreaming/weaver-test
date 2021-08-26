@@ -13,7 +13,8 @@ import monix.execution.Scheduler
 trait BaseIOSuite extends EffectSuite[Task]
 
 /**
- * Individual test runner for Monix BIO's `IO[Throwable, A]` that properly handles unexpected errors,
+ * Individual test runner for Monix BIO's `IO[Throwable, A]` that properly
+ * handles unexpected errors,
  * i.e. errors that occur in another channel.
  */
 object Test {

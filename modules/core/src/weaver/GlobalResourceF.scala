@@ -12,16 +12,16 @@ import org.portablescala.reflect.annotation.EnableReflectiveInstantiation
 import CECompat.Ref
 
 /**
- * Top-level instances of this trait are detected by the framework and used to manage
- * the lifecycle of shared resources.
+ * Top-level instances of this trait are detected by the framework and used to
+ * manage the lifecycle of shared resources.
  *
  * The [[weaver.GlobalResourceF.Write]] store is a channel that lets you store
- * resources (http/database clients) using some type-specific tags. We provide [[scala.reflect.ClassTag]]
- * based implementation that works for that aren't subject to type-erasure (ie when a Scala type is
- * equivalent to a JVM class)
+ * resources (http/database clients) using some type-specific tags. We provide
+ * [[scala.reflect.ClassTag]] based implementation that works for that aren't
+ * subject to type-erasure (ie when a Scala type is equivalent to a JVM class)
  *
- * Stored resources can be retrieved in test suites, by having your suite sport a constructor
- * that takes a [[GlobalResourceF]] instance.
+ * Stored resources can be retrieved in test suites, by having your suite sport
+ * a constructor that takes a [[GlobalResourceF]] instance.
  */
 @EnableReflectiveInstantiation
 trait GlobalResourceBase
@@ -45,15 +45,17 @@ object GlobalResourceF {
       CECompat.resourceLift(put(value, label))
 
     /**
-     * Memoises a resource so to optimise its sharing. The memoised resource gets allocated
-     * lazily, when the first suite that needs it starts running, and gets finalised as soon
-     * as all suites that need it concurrently are done.
+     * Memoises a resource so to optimise its sharing. The memoised resource
+     * gets allocated lazily, when the first suite that needs it starts running,
+     * and gets finalised as soon as all suites that need it concurrently are
+     * done.
      *
-     * In case the resource was already finalised when a suite needs, it gets re-allocated
-     * on demand.
+     * In case the resource was already finalised when a suite needs, it gets
+     * re-allocated on demand.
      *
-     * This can be useful for constructs that consume large amount of machine resources
-     * (CPU, memory, connections), to ensure they are cleaned-up when they should.
+     * This can be useful for constructs that consume large amount of machine
+     * resources (CPU, memory, connections), to ensure they are cleaned-up when
+     * they should.
      */
     def putLazy[A](
         resource: Resource[F, A],
@@ -162,11 +164,11 @@ object GlobalResourceF {
 }
 
 /**
- * Rough type-tag, for which we provide a low effort instance based on classtags for classes that
- * are not subject to type-erasure.
+ * Rough type-tag, for which we provide a low effort instance based on classtags
+ * for classes that are not subject to type-erasure.
  *
- * Because this type is used as an index in a map, you ought to make sure it implements
- * proper equals/hashCode methods
+ * Because this type is used as an index in a map, you ought to make sure it
+ * implements proper equals/hashCode methods
  */
 trait ResourceTag[A] extends AnyRef {
   def description: String

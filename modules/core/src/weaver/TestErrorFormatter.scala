@@ -45,7 +45,7 @@ object TestErrorFormatter {
 
   private def groupStackTraceElements(
       elements: Vector[StackTraceElement]): List[TraceOutput] = {
-    val traces                      = new scala.collection.mutable.ListBuffer[TraceOutput]
+    val traces = new scala.collection.mutable.ListBuffer[TraceOutput]
     var latest: Option[TraceOutput] = None
 
     def append(el: TraceOutput) = {

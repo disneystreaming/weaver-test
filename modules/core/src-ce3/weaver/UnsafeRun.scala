@@ -27,8 +27,8 @@ trait EffectCompat[F[_]] {
 /**
  * Abstraction allowing for running IO constructs unsafely.
  *
- * This is meant to delegate to library-specific constructs for running
- * effect types.
+ * This is meant to delegate to library-specific constructs for running effect
+ * types.
  */
 trait UnsafeRun[F[_]] extends EffectCompat[F] {
 

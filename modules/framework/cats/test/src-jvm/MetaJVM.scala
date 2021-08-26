@@ -21,7 +21,7 @@ object MetaJVM {
         store.putR(file)
       }
 
-    val makeTmpFile                    = IO(java.io.File.createTempFile("hello", ".tmp"))
+    val makeTmpFile = IO(java.io.File.createTempFile("hello", ".tmp"))
     def deleteFile(file: java.io.File) = IO(file.delete()).void
   }
 
@@ -87,7 +87,7 @@ object MetaJVM {
         case (initialised, finalised, totalUses, localUses) =>
           expect.all(
             initialised == 1, // resource is initialised only once and uses in parallel
-            finalised == 0,   // resource is not finalised until all parallel uses are completed
+            finalised == 0, // resource is not finalised until all parallel uses are completed
             totalUses >= 1,
             totalUses <= 3,
             localUses >= 1,
