@@ -97,7 +97,7 @@
 
 <span class="hljs-comment">// We will store the messages in this queue</span>
 <span class="hljs-keyword">val</span> order = <span class="hljs-keyword">new</span> <span class="hljs-type">ConcurrentLinkedQueue</span>[<span class="hljs-type">String</span>]()
-<span class="hljs-comment">// order: ConcurrentLinkedQueue[String] = [Acquiring resource, Test 2 is using resource 42, Test 1 is using resource 42, Releasing resource 42]</span>
+<span class="hljs-comment">// order: ConcurrentLinkedQueue[String] = [Acquiring resource, Test 1 is using resource 42, Test 2 is using resource 42, Releasing resource 42]</span>
 
 <span class="hljs-class"><span class="hljs-keyword">object</span> <span class="hljs-title">ResourceDemo</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">IOSuite</span> </span>{
 
@@ -121,17 +121,17 @@
 </code></pre>
 <div class='terminal'><pre><code class = 'nohighlight'>
 <span style='color: cyan'>ResourceDemo</span>
-<span style='color: green'>+&nbsp;</span>Test&nbsp;1&nbsp;<span style='color: lightgray'><b>8ms</span></b>
-<span style='color: red'>-&nbsp;</span>Test&nbsp;2&nbsp;<span style='color: lightgray'><b>1ms</span></b>
+<span style='color: green'>+&nbsp;</span>Test&nbsp;1&nbsp;<span style='color: lightgray'><b>0ms</span></b>
+<span style='color: red'>-&nbsp;</span>Test&nbsp;2&nbsp;<span style='color: lightgray'><b>2ms</span></b>
 <p><span style='color: red'>*************</span>FAILURES<span style='color: red'>*************</span>
 <span style='color: cyan'>ResourceDemo</span>
-<span style='color: red'>- </span>Test 2 <span style='color: lightgray'><b>1ms</span></b><br /><span style='color: red'>  assertion failed (resources.md:76)<br /><br />  record(s&quot;Test 2 is using resource $res&quot;).as(expect(res == 45))<br />                                                     |   |<br />                                                     42  false</span></p>
+<span style='color: red'>- </span>Test 2 <span style='color: lightgray'><b>2ms</span></b><br /><span style='color: red'>  assertion failed (resources.md:76)<br /><br />  record(s&quot;Test 2 is using resource $res&quot;).as(expect(res == 45))<br />                                                     |   |<br />                                                     42  false</span></p>
 <p>Total 2, Failed 1, Passed 1, Ignored 0, Cancelled 0
 </code></pre></div>
 Contents of <code>order</code> are:</p>
 <pre><code class="hljs"><span class="hljs-string">//</span> <span class="hljs-string">*</span> <span class="hljs-string">Acquiring</span> <span class="hljs-string">resource</span>
-<span class="hljs-string">//</span> <span class="hljs-string">*</span> <span class="hljs-string">Test</span> <span class="hljs-number">2</span> <span class="hljs-string">is</span> <span class="hljs-string">using</span> <span class="hljs-string">resource</span> <span class="hljs-number">42</span>
 <span class="hljs-string">//</span> <span class="hljs-string">*</span> <span class="hljs-string">Test</span> <span class="hljs-number">1</span> <span class="hljs-string">is</span> <span class="hljs-string">using</span> <span class="hljs-string">resource</span> <span class="hljs-number">42</span>
+<span class="hljs-string">//</span> <span class="hljs-string">*</span> <span class="hljs-string">Test</span> <span class="hljs-number">2</span> <span class="hljs-string">is</span> <span class="hljs-string">using</span> <span class="hljs-string">resource</span> <span class="hljs-number">42</span>
 <span class="hljs-string">//</span> <span class="hljs-string">*</span> <span class="hljs-string">Releasing</span> <span class="hljs-string">resource</span> <span class="hljs-number">42</span>
 </code></pre>
 </span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/weaver-test/docs/next/expectations"><span class="arrow-prev">← </span><span>Expectations (assertions)</span></a><a class="docs-next button" href="/weaver-test/docs/next/global_resources"><span>Sharing resources across suites</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/weaver-test/" class="nav-home"></a><div><h5>Community</h5><a href="https://twitter.com/disneystreaming" target="_blank" rel="noreferrer noopener">Twitter</a></div><div><h5>More</h5><a href="https://github.com/disneystreaming/weaver-test">GitHub</a><a class="github-button" href="https://github.com/disneystreaming/weaver-test" data-icon="octicon-star" data-count-href="/facebook/docusaurus/stargazers" data-show-count="true" data-count-aria-label="# stargazers on GitHub" aria-label="Star this project on GitHub">Star</a><div class="social"><a href="https://twitter.com/disneystreaming" class="twitter-follow-button">Follow @disneystreaming</a></div></div></section><a href="https://github.com/disneystreaming" target="_blank" rel="noreferrer noopener" class="dssOpenSource"><img src="/weaver-test/img/dss-white-transparent.svg" alt="Disney Streaming Services Open Source" width="204" height="54"/></a><section class="copyright">Copyright © 2021 Disney Streaming Services</section></footer></div><script>window.twttr=(function(d,s, id){var js,fjs=d.getElementsByTagName(s)[0],t=window.twttr||{};if(d.getElementById(id))return t;js=d.createElement(s);js.id=id;js.src='https://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js, fjs);t._e = [];t.ready = function(f) {t._e.push(f);};return t;}(document, 'script', 'twitter-wjs'));</script></body></html>
