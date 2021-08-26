@@ -46,18 +46,32 @@ abstract class BaseMutableZIOSuite[Res <: Has[_]](implicit tag: Tag[Res])
       if (filteredTests.isEmpty) Stream.empty // no need to allocate resources
       else {
         for {
-          ref <-
-            Stream.eval(FiberRef.make(Chain.empty[Log.Entry]))
+          ref <- Stream.eval(FiberRef.make(Chain.empty[Log.Entry]))
           testLayer: RLayer[ZEnv, LogModule with ZEnv] =
             ZEnv.any ++ ZLayer.fromService[Clock.Service, LogModule.Service](
               FiberRefLog(ref, _))
           suiteLayer =
             (testLayer >+> sharedLayer).passthrough
           resource <- Stream.resource(suiteLayer.build.toResourceZIO)
-          result <- Stream
-            .emits(filteredTests)
-            .lift[Task]
-            .parEvalMap(math.max(1, maxParallelism))(_.provide(resource))
+          result <-
+            if (maxParallelism > 1) {
+              Stream
+                .emits(filteredTests)
+                .lift[Task]
+                .parEvalMap(math.max(1, maxParallelism))(_.provide(resource))
+            } else {
+              // Forcing a fork in `evalMap` to trigger a fiber ref copy.
+              Stream.emits(filteredTests)
+                .lift[Task]
+                .evalMap { t =>
+                  for {
+                    before <- ref.get
+                    fiber  <- t.provide(resource).fork
+                    result <- fiber.join
+                    _      <- ref.set(before)
+                  } yield result
+                }
+            }
         } yield result
       }
     }
