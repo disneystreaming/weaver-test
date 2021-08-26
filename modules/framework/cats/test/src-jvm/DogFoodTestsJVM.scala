@@ -89,8 +89,8 @@ object DogFoodTestsJVM extends IOSuite {
       import java.nio.charset.StandardCharsets
 
       IO {
-        val baos      = new ByteArrayOutputStream()
-        val ps        = new PrintStream(baos, true, StandardCharsets.UTF_8.name())
+        val baos = new ByteArrayOutputStream()
+        val ps   = new PrintStream(baos, true, StandardCharsets.UTF_8.name())
         val framework = new CatsEffect(ps)
         val getDump   = IO(new String(baos.toByteArray()))
         (framework, getDump)

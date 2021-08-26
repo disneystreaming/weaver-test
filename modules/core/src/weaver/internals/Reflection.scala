@@ -27,7 +27,7 @@ private[weaver] object Reflection {
                 val unused =
                   value.newInstance(null).asInstanceOf[RunnableSuite[AnyEffect]]
                 val effectCompat = unused.getEffectCompat
-                val read         = GlobalResourceF.Read.empty(effectCompat.effect)
+                val read = GlobalResourceF.Read.empty(effectCompat.effect)
                 // Re-instantiating with empty global read.
                 value.newInstance(read).asInstanceOf[RunnableSuite[AnyEffect]]
               case None =>

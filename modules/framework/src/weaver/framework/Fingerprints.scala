@@ -61,8 +61,8 @@ abstract class WeaverFingerprints[F[_]](implicit F: Sync[F]) {
     }
 
   /**
-   * A fingerprint that searches only for singleton objects
-   * of type [[weaver.EffectSuite]].
+   * A fingerprint that searches only for singleton objects of type
+   * [[weaver.EffectSuite]].
    */
   object SuiteFingerprint extends WeaverFingerprint {
     val isModule                           = true
@@ -71,8 +71,9 @@ abstract class WeaverFingerprints[F[_]](implicit F: Sync[F]) {
   }
 
   /**
-   * A fingerprint that searches only for classes extending [[weaver.EffectSuite]].
-   * that have a constructor that takes a single [[weaver.GlobalResources.Read]] parameter.
+   * A fingerprint that searches only for classes extending
+   * [[weaver.EffectSuite]]. that have a constructor that takes a single
+   * [[weaver.GlobalResources.Read]] parameter.
    */
   object ResourceSharingSuiteFingerprint extends WeaverFingerprint {
     val isModule                           = false
@@ -83,7 +84,7 @@ abstract class WeaverFingerprints[F[_]](implicit F: Sync[F]) {
   object GlobalResourcesFingerprint extends WeaverFingerprint {
     val isModule                           = true
     def requireNoArgConstructor(): Boolean = true
-    def superclassName(): String           = GlobalResourcesInitClass.runtimeClass.getName
+    def superclassName(): String = GlobalResourcesInitClass.runtimeClass.getName
   }
 
   trait WeaverFingerprint extends SubclassFingerprint {

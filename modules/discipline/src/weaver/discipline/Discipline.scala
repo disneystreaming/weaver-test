@@ -23,7 +23,7 @@ trait Discipline { self: FunSuiteAux =>
         test(name.copy(s"${name.name}: $id")) {
           Test.check(prop)(parameters).status match {
             case Passed | Proved(_) => success
-            case Exhausted          => failure("Property exhausted")(name.location)
+            case Exhausted => failure("Property exhausted")(name.location)
             case Failed(input, _) =>
               failure(s"Property violated \n" + printArgs(input))(name.location)
             case PropException(input, cause, _) =>

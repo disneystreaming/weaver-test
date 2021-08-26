@@ -13,7 +13,7 @@ trait EffectCompat[F[_]] extends PlatformEffectCompat[F] {
   implicit def timer: Timer[F]
   implicit def contextShift: ContextShift[F]
 
-  def realTimeMillis: F[Long]                  = timer.clock.realTime(TimeUnit.MILLISECONDS)
+  def realTimeMillis: F[Long] = timer.clock.realTime(TimeUnit.MILLISECONDS)
   def sleep(duration: FiniteDuration): F[Unit] = timer.sleep(duration)
   def fromFuture[A](thunk: => scala.concurrent.Future[A]): F[A] =
     Async.fromFuture(effect.delay(thunk))
@@ -24,8 +24,8 @@ trait EffectCompat[F[_]] extends PlatformEffectCompat[F] {
 /**
  * Abstraction allowing for running IO constructs unsafely.
  *
- * This is meant to delegate to library-specific constructs for running
- * effect types.
+ * This is meant to delegate to library-specific constructs for running effect
+ * types.
  */
 trait UnsafeRun[F[_]] extends EffectCompat[F] {
 

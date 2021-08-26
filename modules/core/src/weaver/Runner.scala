@@ -56,14 +56,12 @@ class Runner[F[_]: CECompat.Effect](
       printLine(event.formatted(mode))
     def handle(specEvent: SpecEvent): F[Outcome] = {
       val (successes, failures, outcome) =
-        specEvent.events.foldMap[(
-            List[TestOutcome],
-            List[TestOutcome],
-            Outcome)] {
-          case ev if ev.status.isFailed =>
-            (List.empty, List(ev), Outcome.fromEvent(ev))
+        // format: off
+        specEvent.events.foldMap[(List[TestOutcome],List[TestOutcome],Outcome)] {
+          case ev if ev.status.isFailed => (List.empty, List(ev), Outcome.fromEvent(ev))
           case ev => (List(ev), List.empty, Outcome.fromEvent(ev))
         }
+        // format: on
 
       for {
         _ <- printLine(cyan(specEvent.name))

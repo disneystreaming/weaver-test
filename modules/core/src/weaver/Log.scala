@@ -41,9 +41,12 @@ object Log {
   /**
    * Builds a logger that collects to a referential-transparent variable
    *
-   * @param ref A reference to the logger
-   * @tparam F Effect type
-   * @tparam L Logging collection type
+   * @param ref
+   *   A reference to the logger
+   * @tparam F
+   *   Effect type
+   * @tparam L
+   *   Logging collection type
    */
   private[weaver] def collected[F[_]: FlatMap, L[_]: MonoidK: Applicative](
       ref: Ref[F, L[Entry]],
