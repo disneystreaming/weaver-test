@@ -7,13 +7,13 @@ import cats.data.NonEmptyChain
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object Output {
-  implicit val cs          = IO.contextShift(global)
+  implicit val cs = IO.contextShift(global)
 
-  def format(s: String) = { 
+  def format(s: String) = {
     Ansi2Html(removeTrailingNewLine(
       removeTrailingNewLine(
-        s.replace("repl.MdocSessionApp", "").replace("(none:", "(MyTests.scala:")))
-      )
+        s.replace("repl.MdocSessionApp", "").replace("(none:",
+                                                     "(MyTests.scala:"))))
   }
 
   def removeTrailingNewLine(s: String) = {
@@ -21,7 +21,7 @@ object Output {
   }
 
   def runSuites(s: Suite[IO]*): IO[String] = {
-    val header = "<div class='terminal'><pre><code class = 'nohighlight'>" 
+    val header = "<div class='terminal'><pre><code class = 'nohighlight'>"
     val footer = "</code></pre></div>"
 
     for {
@@ -35,7 +35,6 @@ object Output {
     } yield value.reduceLeft(_ + "\n" + _)
   }
 }
-
 
 import fansi.Str
 
@@ -94,7 +93,7 @@ object Ansi2Html extends Function1[String, String] {
 
           current = color
         }
-        if(character == ' ')
+        if (character == ' ')
           sb.append("&nbsp;")
         else if (character == '\n')
           sb.append("<br />")
