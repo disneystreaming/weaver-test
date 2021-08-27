@@ -39,10 +39,7 @@ object CodecsTest extends SimpleIOSuite {
   val outcomes = for {
     entry  <- entries
     result <- results
-  } yield TestOutcome.Default("outcome",
-                              1.second,
-                              result,
-                              Chain.fromSeq(entries))
+  } yield TestOutcome.Default("outcome", 1.second, result, Chain.fromSeq(entries))
 
   val messages =
     List(SuiteStarts("foo")) ++

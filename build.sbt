@@ -109,7 +109,7 @@ lazy val core = projectMatrix
       if (virtualAxes.value.contains(VirtualAxis.jvm))
         Seq(
           "org.scala-js" %%% "scalajs-stubs" % Version.scalajsStubs % "provided" cross CrossVersion.for3Use2_13,
-          "junit"          % "junit"         % Version.junit        % Optional
+          "junit" % "junit" % Version.junit % Optional
         )
       else Seq.empty
     },
@@ -226,8 +226,8 @@ lazy val framework = projectMatrix
     libraryDependencies ++= {
       if (virtualAxes.value.contains(VirtualAxis.jvm))
         Seq(
-          "org.scala-sbt"  % "test-interface" % Version.testInterface,
-          "org.scala-js" %%% "scalajs-stubs"  % Version.scalajsStubs % "provided" cross CrossVersion.for3Use2_13
+          "org.scala-sbt" % "test-interface" % Version.testInterface,
+          "org.scala-js" %%% "scalajs-stubs" % Version.scalajsStubs % "provided" cross CrossVersion.for3Use2_13
         )
       else
         Seq(
@@ -254,7 +254,7 @@ lazy val specs2 = projectMatrix
   .sparse(withCE3 = true, withJS = true, withScala3 = false)
   .dependsOn(core, cats % "test->compile")
   .settings(
-    name := "specs2",
+    name           := "specs2",
     testFrameworks := Seq(new TestFramework("weaver.framework.CatsEffect")),
     libraryDependencies ++= Seq(
       "org.specs2" %%% "specs2-matcher" % Version.specs2
@@ -267,7 +267,7 @@ lazy val discipline = projectMatrix
   .sparse(withCE3 = true, withJS = true, withScala3 = true)
   .dependsOn(core, cats)
   .settings(
-    name := "discipline",
+    name           := "discipline",
     testFrameworks := Seq(new TestFramework("weaver.framework.CatsEffect")),
     libraryDependencies ++= Seq(
       "org.typelevel" %%% "discipline-core" % Version.discipline,
@@ -350,7 +350,7 @@ lazy val cats = projectMatrix
   .full
   .settings(WeaverPlugin.simpleLayout)
   .settings(
-    name := "cats",
+    name           := "cats",
     testFrameworks := Seq(new TestFramework("weaver.framework.CatsEffect"))
   )
 
@@ -360,7 +360,7 @@ lazy val monix = projectMatrix
   .dependsOn(framework, coreMonix)
   .settings(WeaverPlugin.simpleLayout)
   .settings(
-    name := "monix",
+    name           := "monix",
     testFrameworks := Seq(new TestFramework("weaver.framework.Monix"))
   )
 
@@ -370,7 +370,7 @@ lazy val monixBio = projectMatrix
   .dependsOn(framework, coreMonixBio)
   .settings(WeaverPlugin.simpleLayout)
   .settings(
-    name := "monix-bio",
+    name           := "monix-bio",
     testFrameworks := Seq(new TestFramework("weaver.framework.MonixBIO"))
   )
 
@@ -380,7 +380,7 @@ lazy val zio = projectMatrix
   .dependsOn(framework, coreZio, scalacheck % "test->compile")
   .settings(WeaverPlugin.simpleLayout)
   .settings(
-    name := "zio",
+    name           := "zio",
     testFrameworks := Seq(new TestFramework("weaver.framework.ZIO")),
     libraryDependencies += "io.github.cquiroz" %%% "scala-java-time" % Version.scalaJavaTime % Test
   )
