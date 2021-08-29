@@ -18,7 +18,7 @@ trait SourceLocationMacro {
   implicit def fromContext: SourceLocation =
     macro Macros.fromContext
 
-  
+
 }
 
 object macros {
