@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ["windows-2016"]
+        os: ["windows-latest"]
         java: [adopt@1.8]
         # scalaVersion: ["2_12", "2_13", "3_0"]
         # scalaPlatform: ["jvm", "js"]
