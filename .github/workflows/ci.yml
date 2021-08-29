@@ -40,7 +40,7 @@ jobs:
 
       - name: Run tests
         run: |
-          sbt test_$BUILD_KEY
+          sbt core/compile
 
       # - name: Run checks
       #   if: matrix.scalaVersion == '2_13' && matrix.scalaPlatform == 'jvm'
