@@ -1,14 +1,139 @@
 name: CI
+
 on:
+  pull_request:
+    branches: ["*"]
   push:
+    branches: ["master"]
+    tags: ["v*"]
+
 jobs:
   build:
+    name: Test ${{matrix.ceVersion}} ${{matrix.scalaVersion}} (${{matrix.scalaPlatform}})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        java: [adopt@1.8]
+        scalaVersion: ["2_12", "2_13", "3_0"]
+        scalaPlatform: ["jvm", "js"]
+        ceVersion: ["CE2", "CE3"]
+    runs-on: ${{ matrix.os }}
+    env:
+      BUILD_KEY: ${{matrix.ceVersion}}_${{matrix.scalaVersion}}_${{matrix.scalaPlatform}}
+    steps:
+      - name: Checkout current branch
+        uses: actions/checkout@v2
+
+      - name: Cache
+        uses: coursier/cache-action@v6
+        with:
+          extraKey: ${{ env.BUILD_KEY }}
+
+      - name: Setup Java and Scala
+        uses: olafurpg/setup-scala@v10
+        with:
+          java-version: ${{ matrix.java }}
+
+      - name: Run tests
+        run: |
+          sbt test_$BUILD_KEY \
+              pushRemoteCache_$BUILD_KEY
+
+      - name: Run checks
+        if: matrix.scalaVersion == '2_13' && matrix.scalaPlatform == 'jvm'
+        run: |
+          sbt scalafix_$BUILD_KEY \
+              scalafixTests_$BUILD_KEY \
+              scalafmt_$BUILD_KEY \
+              "docs/mdoc --in $PWD/README.md"
+
+      - name: Upload compilation cache
+        uses: actions/upload-artifact@v2
+        with:
+          name: compilation-${{env.BUILD_KEY}}.zip
+          path: /tmp/remote-cache
+
+  documentation:
+    name: Documentation
     runs-on: ubuntu-latest
     steps:
-    - name: Configure git
-      run: "git config --global core.autocrlf false"
-      shell: bash
-    - uses: actions/checkout@v1
-    - uses: olafurpg/setup-scala@v11
-    - name: Compile
-      run: sbt cats/test
+      - name: Checkout current branch
+        uses: actions/checkout@v2
+
+      - name: Cache
+        uses: coursier/cache-action@v6
+
+      - name: Setup Java and Scala
+        uses: olafurpg/setup-scala@v10
+        with:
+          java-version: adopt@1.8
+
+      - name: Run mdoc
+        run: sbt "docs/mdoc"
+
+  publish:
+    name: Publish
+    needs: [documentation, build]
+    if: github.event_name != 'pull_request' && (startsWith(github.ref, 'refs/tags/v'))
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout current branch (full)
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java and Scala
+        uses: olafurpg/setup-scala@v10
+        with:
+          java-version: adopt@1.8
+
+      - name: Cache
+        uses: coursier/cache-action@v6
+
+      - name: Download compilation cache
+        uses: actions/download-artifact@v2
+        with:
+          path: /tmp/remote-cache
+
+      - name: Unpack compilation cache
+        run: cd /tmp/remote-cache && (ls | xargs -I {} sh -c 'cp -r {}/* .')
+
+      - name: Publish ${{ github.ref }}
+        run: |
+          echo $PGP_SECRET | base64 --decode | gpg --import --no-tty --batch --yes
+          sbt 'pullRemoteCache; release'
+        env:
+          PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
+          PGP_SECRET: ${{ secrets.PGP_SECRET }}
+          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+
+  site:
+    name: Publish Site
+    needs: [publish]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout current branch (full)
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          lfs: true
+
+      - uses: laughedelic/coursier-setup@v1
+        with:
+          jvm: adopt:8
+          apps: ammonite sbt
+
+      - name: Cache
+        uses: coursier/cache-action@v3
+
+      - name: Release site
+        run: |
+          mkdir -p $HOME/.ssh
+          ssh-keyscan -t rsa github.com >> $HOME/.ssh/known_hosts
+          sbt docs/docusaurusCreateSite
+          amm scripts/releaseSite.sc
+        env:
+          GITHUB_DEPLOY_KEY: ${{ secrets.GIT_DEPLOY_KEY }}

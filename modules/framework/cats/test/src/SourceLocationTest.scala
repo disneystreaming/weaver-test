@@ -12,7 +12,6 @@ object SourceLocationTest extends SimpleIOSuite {
     val relPath = sourceLocation.fileRelativePath
     val line    = sourceLocation.line
 
-    expect(1 == 2) &&
     expect(name.contains("SourceLocationTest.scala")) &&
     expect(relPath.contains(
       "modules/framework/cats/test/src/SourceLocationTest.scala")) &&
