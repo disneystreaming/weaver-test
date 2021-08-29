@@ -5,6 +5,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+    - name: Configure git
+      run: "git config --global core.autocrlf false"
+      shell: bash
     - uses: actions/checkout@v1
     - uses: olafurpg/setup-scala@v11
     - name: Compile
