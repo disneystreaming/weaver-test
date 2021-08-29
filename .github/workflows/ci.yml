@@ -8,4 +8,4 @@ jobs:
     - uses: actions/checkout@v1
     - uses: olafurpg/setup-scala@v11
     - name: Compile
-      run: sbt core/compile
+      run: sbt cats/test
