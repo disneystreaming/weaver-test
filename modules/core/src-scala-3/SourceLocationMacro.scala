@@ -25,8 +25,11 @@ object macros {
 
     val position = Position.ofMacroExpansion
 
-    val rp = Expr(pwd.relativize(position.sourceFile.jpath).toString)
-    val absPath = Expr(position.sourceFile.jpath.toAbsolutePath.toString)
+    val psj = position.sourceFile.jpath
+    // Comparing roots to workaround a Windows-specific behaviour
+    // https://github.com/disneystreaming/weaver-test/issues/364
+    val rp = if(pwd.getRoot == psj.getRoot) Expr(pwd.relativize(psj).toString) else Expr(psj.toString)
+    val absPath = Expr(psj.toAbsolutePath.toString)
     val l = Expr(position.startLine + 1)
 
     '{new SourceLocation($absPath, $rp, $l) }

@@ -18,7 +18,7 @@ trait SourceLocationMacro {
   implicit def fromContext: SourceLocation =
     macro Macros.fromContext
 
-  
+
 }
 
 object macros {
@@ -36,7 +36,9 @@ object macros {
       val p = c.enclosingPosition.source.path
       val abstractFile = c.enclosingPosition.source.file
 
-      val rp = if (!abstractFile.isVirtual){
+      // Comparing roots to workaround a Windows-specific behaviour
+      // https://github.com/disneystreaming/weaver-test/issues/364
+      val rp = if (!abstractFile.isVirtual && (pwd.getRoot() == abstractFile.file.toPath().getRoot())){
         pwd.relativize(abstractFile.file.toPath()).toString()
       } else p
 
