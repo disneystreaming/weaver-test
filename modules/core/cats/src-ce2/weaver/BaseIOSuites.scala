@@ -8,9 +8,11 @@ trait BaseIOSuite extends BaseCatsSuite { self: RunnableSuite[IO] =>
   final implicit protected def contextShift: ContextShift[IO] =
     effectCompat.contextShift
   final implicit protected def timer: Timer[IO] = effectCompat.timer
+  def getSuite: EffectSuite[IO]                 = this
 }
 
 trait BaseFunIOSuite extends FunSuiteF[IO] with BaseCatsSuite {
   override implicit protected def effectCompat: UnsafeRun[EffectType] =
     CatsUnsafeRun
+  def getSuite: EffectSuite[IO] = this
 }
