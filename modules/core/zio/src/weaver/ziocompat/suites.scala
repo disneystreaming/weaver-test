@@ -10,7 +10,7 @@ import zio._
 import zio.clock.Clock
 import zio.interop.catz._
 
-trait BaseZIOSuite extends EffectSuite[T]
+trait BaseZIOSuite extends EffectSuite[T] with EffectSuite.Provider[T]
 
 abstract class BaseMutableZIOSuite[Res <: Has[_]](implicit tag: Tag[Res])
     extends BaseZIOSuite {
@@ -28,6 +28,8 @@ abstract class BaseMutableZIOSuite[Res <: Has[_]](implicit tag: Tag[Res])
       if (isInitialized) throw initError()
       testSeq = testSeq :+ ((name, test))
     }
+
+  def getSuite: EffectSuite[T] = this
 
   def pureTest(name: TestName)(run: => Expectations): Unit =
     registerTest(name)(Test(name.name, ZIO(run)))
@@ -103,4 +105,5 @@ trait FunZIOSuite
     with BaseZIOSuite
     with Expectations.Helpers {
   override implicit protected def effectCompat = ZIOUnsafeRun
+  def getSuite: EffectSuite[T]                 = this
 }
