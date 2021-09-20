@@ -6,7 +6,7 @@ import cats.effect.Resource
 import monix.eval.Task
 import monix.execution.Scheduler
 
-trait BaseTaskSuite extends EffectSuite[Task]
+trait BaseTaskSuite extends EffectSuite.Provider[Task]
 
 abstract class PureTaskSuite
     extends EffectSuite[Task]
@@ -21,6 +21,7 @@ abstract class PureTaskSuite
       run: Log[Task] => Task[Expectations]): Task[TestOutcome] =
     Test[Task](name, run)
 
+  def getSuite: EffectSuite[Task] = this
 }
 
 abstract class MutableTaskSuite
@@ -31,6 +32,7 @@ abstract class MutableTaskSuite
   implicit protected def effectCompat = MonixUnsafeRun
 
   final implicit protected def scheduler: Scheduler = effectCompat.scheduler
+  def getSuite: EffectSuite[Task]                   = this
 }
 
 trait SimpleMutableTaskSuite extends MutableTaskSuite {
@@ -45,4 +47,5 @@ trait FunTaskSuite
   implicit protected def effectCompat = MonixUnsafeRun
 
   final implicit protected def scheduler: Scheduler = effectCompat.scheduler
+  def getSuite: EffectSuite[Task]                   = this
 }
