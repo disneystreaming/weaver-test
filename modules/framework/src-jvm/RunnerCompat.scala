@@ -181,8 +181,8 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
 
       val runSuite = for {
         suite <- mkSuite(globalResources)
-        _     <- start // waiting for SBT to tell us to start
-        _     <- broker.send(SuiteStarted(SuiteName(fqn)))
+        _ <- start // waiting for SBT to tell us to start
+        _ <- broker.send(SuiteStarted(SuiteName(fqn)))
         _ <- suite.run(args) { testOutcome =>
           outcomes
             .update(_.append(SuiteName(fqn) -> testOutcome))
