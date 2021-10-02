@@ -30,6 +30,6 @@ A **HUGE** thank you to Alexandru Nedelcu, author of [Monix](https://github.com/
 cats-effect, as he wrote the [minitest](https://github.com/monix/minitest)
 framework which got this framework started.
 
-Another **HUGE** thank eu to Eugene Yokota, author of [Expecty](https://github.com/eed3si9n/expecty/).
+Another **HUGE** thank you to Eugene Yokota, author of [Expecty](https://github.com/eed3si9n/expecty/).
 
 And an obvious thank you to the maintainers of cats and fs2. We stand on the shoulders of giants.
