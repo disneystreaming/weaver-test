@@ -36,14 +36,14 @@ Global / (Test / testOptions) += Tests.Argument("--quickstart")
 
 val Version = new {
   object CE3 {
-    val fs2        = "3.1.2"
-    val cats       = "3.2.8"
+    val fs2        = "3.1.4"
+    val cats       = "3.2.9"
     val zioInterop = "3.1.1.0"
   }
 
   object CE2 {
     val fs2        = "2.5.9"
-    val cats       = "2.5.3"
+    val cats       = "2.5.4"
     val zioInterop = "2.5.1.0"
   }
 
