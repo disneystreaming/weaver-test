@@ -10,7 +10,7 @@ import cats.effect.concurrent.Ref
 import monix.bio.{ IO, Task }
 import monix.execution.Scheduler
 
-trait BaseIOSuite extends EffectSuite[Task]
+trait BaseIOSuite extends EffectSuite.Provider[Task]
 
 /**
  * Individual test runner for Monix BIO's `IO[Throwable, A]` that properly
@@ -45,6 +45,7 @@ abstract class MutableIOSuite
 
   implicit protected def effectCompat               = MonixBIOUnsafeRun
   final implicit protected def scheduler: Scheduler = effectCompat.scheduler
+  def getSuite: EffectSuite[Task]                   = this
 
   override def test(name: TestName): PartiallyAppliedTest =
     new SubPartiallyAppliedTest(name)
@@ -71,4 +72,5 @@ trait FunIOSuite
     with Expectations.Helpers {
   implicit protected def effectCompat               = MonixBIOUnsafeRun
   final implicit protected def scheduler: Scheduler = effectCompat.scheduler
+  def getSuite: EffectSuite[Task]                   = this
 }

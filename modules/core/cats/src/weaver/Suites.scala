@@ -2,7 +2,7 @@ package weaver
 
 import cats.effect.{ IO, Resource }
 
-trait BaseCatsSuite extends EffectSuite[IO]
+trait BaseCatsSuite extends EffectSuite.Provider[IO]
 
 abstract class PureIOSuite
     extends RunnableSuite[IO]
