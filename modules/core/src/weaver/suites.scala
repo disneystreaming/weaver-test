@@ -87,6 +87,9 @@ abstract class MutableFSuite[F[_]] extends RunnableSuite[F]  {
     def apply(run: => F[Expectations]) : Unit = registerTest(name)(_ => Test(name.name, run))
     def apply(run : Res => F[Expectations]) : Unit = registerTest(name)(res => Test(name.name, run(res)))
     def apply(run : (Res, Log[F]) => F[Expectations]) : Unit = registerTest(name)(res => Test(name.name, log => run(res, log)))
+
+    // this alias helps using pattern matching on `Res`
+    def usingRes(run : Res => F[Expectations]) : Unit = apply(run)
   }
 
   override def spec(args: List[String]) : Stream[F, TestOutcome] =
