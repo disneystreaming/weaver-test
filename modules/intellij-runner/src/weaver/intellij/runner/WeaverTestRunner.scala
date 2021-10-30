@@ -41,7 +41,7 @@ object WeaverTestRunner { self =>
 
   case class Config(
       testClasses: List[String],
-      showProgressMessages: Boolean, //What is this supposed to do?
+      showProgressMessages: Boolean, // What is this supposed to do?
       testName: Option[String])
 
   private def parse(
