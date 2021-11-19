@@ -11,7 +11,7 @@ We (the maintainers) had tried to build an IntelliJ plugin. It worked but its ma
 
 ## Installation
 
-Nothing is needed (as long as weaver is declared correctly in your build).
+Ensure the JUnit plugin is enabled in IntelliJ. Nothing else is needed (as long as weaver is declared correctly in your build). 
 
 ## Usage
 
