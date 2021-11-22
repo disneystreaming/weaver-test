@@ -38,7 +38,7 @@ val Version = new {
   object CE3 {
     val fs2        = "3.1.6"
     val cats       = "3.2.9"
-    val zioInterop = "3.1.1.0"
+    val zioInterop = "3.2.9.0"
   }
 
   object CE2 {
