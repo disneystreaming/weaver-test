@@ -29,7 +29,7 @@ ThisBuild / commands ++= createBuildCommands(allModules)
 
 ThisBuild / scalaVersion := WeaverPlugin.scala213
 
-ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.4.4"
+ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.5.0"
 
 Global / (Test / fork) := true
 Global / (Test / testOptions) += Tests.Argument("--quickstart")
@@ -37,8 +37,8 @@ Global / (Test / testOptions) += Tests.Argument("--quickstart")
 val Version = new {
   object CE3 {
     val fs2        = "3.1.6"
-    val cats       = "3.2.9"
-    val zioInterop = "3.1.1.0"
+    val cats       = "3.3.0"
+    val zioInterop = "3.2.9.0"
   }
 
   object CE2 {
@@ -51,7 +51,7 @@ val Version = new {
   val portableReflect = "1.1.1"
   val junit           = "4.13.2"
   val scalajsStubs    = "1.1.0"
-  val specs2          = "4.13.0"
+  val specs2          = "4.13.1"
   val discipline      = "1.1.5"
   val catsLaws        = "2.7.0"
   val scalacheck      = "1.15.4"
@@ -408,4 +408,13 @@ lazy val versionDump =
 versionDump := {
   val file = (ThisBuild / baseDirectory).value / "version"
   IO.write(file, (Compile / version).value)
+}
+
+ThisBuild / concurrentRestrictions ++= {
+  if (!sys.env.contains("CI")) {
+    Seq(
+      Tags.limitAll(4),
+      Tags.limit(ScalaJSPlugin.autoImport.ScalaJSTags.Link, 1)
+    )
+  } else Seq.empty
 }
