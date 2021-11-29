@@ -25,7 +25,7 @@ object macros {
 
     val position = Position.ofMacroExpansion
 
-    val psj = position.sourceFile.jpath
+    val psj = position.sourceFile.getJPath.get
     // Comparing roots to workaround a Windows-specific behaviour
     // https://github.com/disneystreaming/weaver-test/issues/364
     val rp = if(pwd.getRoot == psj.getRoot) Expr(pwd.relativize(psj).toString) else Expr(psj.toString)
