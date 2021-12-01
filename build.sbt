@@ -292,7 +292,7 @@ lazy val coreCats = projectMatrix
 
 lazy val coreMonix = projectMatrix
   .in(file("modules/core/monix"))
-  .sparse(withCE3 = false, withJS = true, withScala3 = false)
+  .sparse(withCE3 = false, withJS = true, withScala3 = true)
   .dependsOn(core)
   .settings(WeaverPlugin.simpleLayout)
   .settings(

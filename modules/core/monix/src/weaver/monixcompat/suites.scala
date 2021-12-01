@@ -31,7 +31,7 @@ abstract class MutableTaskSuite
 
   implicit protected def effectCompat = MonixUnsafeRun
 
-  final implicit protected def scheduler: Scheduler = effectCompat.scheduler
+  final implicit protected def scheduler: Scheduler = MonixUnsafeRun.scheduler
   def getSuite: EffectSuite[Task]                   = this
 }
 
@@ -46,6 +46,6 @@ trait FunTaskSuite
     with Expectations.Helpers {
   implicit protected def effectCompat = MonixUnsafeRun
 
-  final implicit protected def scheduler: Scheduler = effectCompat.scheduler
+  final implicit protected def scheduler: Scheduler = MonixUnsafeRun.scheduler
   def getSuite: EffectSuite[Task]                   = this
 }
