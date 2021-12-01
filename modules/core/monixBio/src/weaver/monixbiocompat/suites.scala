@@ -43,9 +43,10 @@ abstract class MutableIOSuite
     with BaseIOSuite
     with Expectations.Helpers {
 
-  implicit protected def effectCompat               = MonixBIOUnsafeRun
-  final implicit protected def scheduler: Scheduler = effectCompat.scheduler
-  def getSuite: EffectSuite[Task]                   = this
+  implicit protected def effectCompat = MonixBIOUnsafeRun
+  final implicit protected def scheduler: Scheduler =
+    MonixBIOUnsafeRun.scheduler
+  def getSuite: EffectSuite[Task] = this
 
   override def test(name: TestName): PartiallyAppliedTest =
     new SubPartiallyAppliedTest(name)
@@ -70,7 +71,8 @@ trait FunIOSuite
     extends FunSuiteF[Task]
     with BaseIOSuite
     with Expectations.Helpers {
-  implicit protected def effectCompat               = MonixBIOUnsafeRun
-  final implicit protected def scheduler: Scheduler = effectCompat.scheduler
-  def getSuite: EffectSuite[Task]                   = this
+  implicit protected def effectCompat = MonixBIOUnsafeRun
+  final implicit protected def scheduler: Scheduler =
+    MonixBIOUnsafeRun.scheduler
+  def getSuite: EffectSuite[Task] = this
 }
