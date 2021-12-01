@@ -5,7 +5,7 @@ import cats.effect.Resource
 import weaver.framework.{ DogFood, Monix }
 
 import monix.eval.Task
-import sbt.testing.Status
+import sbt.testing.Status.{ Error, Failure }
 
 object TaskSuiteTest extends MutableTaskSuite {
 
@@ -28,7 +28,7 @@ object TaskSuiteTest extends MutableTaskSuite {
         val maybeStatus = maybeEvent.map(_.status())
 
         expect.all(
-          maybeStatus.contains(Status.Error),
+          maybeStatus.contains(Error),
           maybeThrowable.map(_.getMessage).contains("oh no")
         )
 
@@ -40,7 +40,7 @@ object TaskSuiteTest extends MutableTaskSuite {
     dogfood.runSuite(TestWithFailedExpectation).map { case (_, events) =>
       val maybeEvent  = events.headOption
       val maybeStatus = maybeEvent.map(_.status())
-      expect(maybeStatus.contains(Status.Failure))
+      expect(maybeStatus.contains(Failure))
     }
   }
 
