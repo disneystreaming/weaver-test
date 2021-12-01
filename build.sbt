@@ -304,7 +304,7 @@ lazy val coreMonix = projectMatrix
 
 lazy val coreMonixBio = projectMatrix
   .in(file("modules/core/monixBio"))
-  .sparse(withCE3 = false, withJS = true, withScala3 = false)
+  .sparse(withCE3 = false, withJS = true, withScala3 = true)
   .dependsOn(core)
   .settings(WeaverPlugin.simpleLayout)
   .settings(
@@ -366,7 +366,7 @@ lazy val monix = projectMatrix
 
 lazy val monixBio = projectMatrix
   .in(file("modules/framework/monix-bio"))
-  .sparse(withCE3 = false, withJS = true, withScala3 = false)
+  .sparse(withCE3 = false, withJS = true, withScala3 = true)
   .dependsOn(framework, coreMonixBio)
   .settings(WeaverPlugin.simpleLayout)
   .settings(
