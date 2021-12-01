@@ -5,7 +5,7 @@ import cats.effect.Resource
 import weaver.framework.{ DogFood, MonixBIO }
 
 import monix.bio.Task
-import sbt.testing.Status
+import sbt.testing.Status.{ Error, Failure }
 
 object IOSuiteTest extends MutableIOSuite {
   override type Res = DogFood[Task]
@@ -25,7 +25,7 @@ object IOSuiteTest extends MutableIOSuite {
           else None
         }
         val maybeStatus = maybeEvent.map(_.status())
-        expect(maybeStatus.contains(Status.Error)) &&
+        expect(maybeStatus.contains(Error)) &&
         expect(maybeThrowable.map(_.getMessage).contains("oh no"))
       }
     }
@@ -35,7 +35,7 @@ object IOSuiteTest extends MutableIOSuite {
     dogfood.runSuite(TestWithFailedExpectation).map { case (_, events) =>
       val maybeEvent  = events.headOption
       val maybeStatus = maybeEvent.map(_.status())
-      expect(maybeStatus.contains(Status.Failure))
+      expect(maybeStatus.contains(Failure))
     }
   }
 
