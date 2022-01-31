@@ -13,7 +13,7 @@ A test-framework built on [cats-effect](https://github.com/typelevel/cats-effect
 
 ## Installation
 
-Weaver-test is currently published for **Scala 2.12, 2.13, and 3.0.x**
+Weaver-test is currently published for **Scala 2.12, 2.13, and 3.0**
 
 ### SBT
 
