@@ -11,6 +11,7 @@ private[framework] class SbtTask(
     val taskDef: TaskDef,
     isDone: AtomicBoolean,
     stillRunning: AtomicInteger,
+    waitForResourcesShutdown: java.util.concurrent.Semaphore,
     start: scala.concurrent.Promise[Unit],
     queue: java.util.concurrent.ConcurrentLinkedQueue[SuiteEvent],
     loggerPermit: java.util.concurrent.Semaphore,
@@ -36,6 +37,7 @@ private[framework] class SbtTask(
           case SuiteFinished(_) =>
             finished = true
             if (stillRunning.decrementAndGet == 0) {
+              waitForResourcesShutdown.acquire()
               log(RunFinished(readFailed()))
             }
           case t @ TestFinished(outcome) =>
