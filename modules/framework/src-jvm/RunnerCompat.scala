@@ -45,13 +45,18 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
 
   private def runBackground(
       globalResources: List[GlobalResourceF[F]],
+      waitForResourcesShutdown: java.util.concurrent.Semaphore,
       tasks: List[IOTask],
       gate: Promise[Unit]): Unit = {
-    cancelToken = Some(unsafeRun.background(run(globalResources, tasks, gate)))
+    cancelToken = Some(unsafeRun.background(run(globalResources,
+                                                waitForResourcesShutdown,
+                                                tasks,
+                                                gate)))
   }
 
   def tasks(taskDefs: Array[TaskDef]): Array[Task] = {
-    val stillRunning = new AtomicInteger(0)
+    val stillRunning             = new AtomicInteger(0)
+    val waitForResourcesShutdown = new java.util.concurrent.Semaphore(0)
 
     val tasksAndSuites = taskDefs.toList.map { taskDef =>
       taskDef -> suiteLoader(taskDef)
@@ -86,6 +91,7 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
         new SbtTask(taskDef,
                     isDone,
                     stillRunning,
+                    waitForResourcesShutdown,
                     promise,
                     queue,
                     loggerPermit,
@@ -107,7 +113,10 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
     // Passing a promise to the FP side that needs to be fulfilled
     // when the global resources have been allocated.
     val gate = Promise[Unit]()
-    runBackground(globalResources, ioTasks.toList, gate)
+    runBackground(globalResources,
+                  waitForResourcesShutdown,
+                  ioTasks.toList,
+                  gate)
     stillRunning.set(sbtTasks.size)
 
     // Waiting for the resources to be allocated.
@@ -128,6 +137,7 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
 
   private def run(
       globalResources: List[GlobalResourceF[F]],
+      waitForResourcesShutdown: java.util.concurrent.Semaphore,
       tasks: List[IOTask],
       gate: Promise[Unit]): F[Unit] = {
 
@@ -140,7 +150,13 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
       }
     }
 
-    preventDeadlock(resourceMap(globalResources)).use { read =>
+    val cleanupResource = Resource.make(effect.unit)(_ =>
+      effect.delay(waitForResourcesShutdown.release()))
+
+    val globalResourcesWithCompletion =
+      cleanupResource.flatMap(_ => resourceMap(globalResources))
+
+    preventDeadlock(globalResourcesWithCompletion).use { read =>
       for {
         _   <- effect.delay(gate.success(()))
         ref <- Ref.of[F, Chain[(SuiteName, TestOutcome)]](Chain.empty)
