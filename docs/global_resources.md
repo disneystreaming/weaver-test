@@ -87,6 +87,8 @@ Some build tools provide a "testOnly" (or equivalent) command that lets you test
 An example of how to do this:
 
 ```scala mdoc
+package weaver.example
+
 import cats.effect.{ IO, Resource }
 import weaver._
 
@@ -115,6 +117,24 @@ class MySuite(global: GlobalRead) extends IOSuite {
     IO(expect(sharedString == "hello world!"))
   }
 }
+
+class MyOtherSuite(global: GlobalRead) extends IOSuite {
+  import MyResources._
+
+  override type Res = String
+
+  def sharedResource: Resource[IO, String] = sharedResourceOrFallback(global)
+
+  test("oops, forgot something here") { sharedString =>    
+    IO(expect(sharedString == "hello world!"))
+  }
+}
+```
+
+Run through SBT with:
+
+```
+sbt testOnly *My*Suite weaver.example.MyResources
 ```
 
 ## Regarding global resource indexing
