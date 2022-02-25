@@ -120,11 +120,10 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
                   gate)
     stillRunning.set(sbtTasks.size)
 
-    val maybeTimeout: Option[FiniteDuration] = Try(System.getProperty("weaver.test.startupTimeout"))
-      .toOption
-      .flatMap(Option(_))
-      .flatMap(timeoutString => Try(timeoutString.toInt).toOption)
-      .map(_.seconds)
+    val maybeTimeout: Option[FiniteDuration] =
+      sys.props.get("weaver.test.startupTimeout")
+        .flatMap(timeoutString => Try(timeoutString.toInt).toOption)
+        .map(_.seconds)
 
     // Waiting for the resources to be allocated.
     scala.concurrent.blocking {
