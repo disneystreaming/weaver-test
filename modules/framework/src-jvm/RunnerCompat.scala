@@ -127,7 +127,8 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
 
     // Waiting for the resources to be allocated.
     scala.concurrent.blocking {
-      scala.concurrent.Await.result(gate.future, maybeTimeout.getOrElse(120.second))
+      scala.concurrent.Await.result(gate.future,
+                                    maybeTimeout.getOrElse(120.second))
     }
     sbtTasks.toArray
   }
