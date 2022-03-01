@@ -7,6 +7,7 @@ import java.util.concurrent.atomic.{ AtomicBoolean, AtomicInteger }
 
 import scala.concurrent.duration._
 import scala.concurrent.{ ExecutionContext, Promise }
+import scala.util.Try
 
 import cats.data.Chain
 import cats.effect.{ Sync, _ }
@@ -119,9 +120,14 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
                   gate)
     stillRunning.set(sbtTasks.size)
 
+    val maybeTimeout: Option[FiniteDuration] =
+      sys.props.get("weaver.test.startupTimeout")
+        .flatMap(timeoutString => Try(timeoutString.toInt).toOption)
+        .map(_.seconds)
+
     // Waiting for the resources to be allocated.
     scala.concurrent.blocking {
-      scala.concurrent.Await.result(gate.future, 120.second)
+      scala.concurrent.Await.result(gate.future, maybeTimeout.getOrElse(120.second))
     }
     sbtTasks.toArray
   }
