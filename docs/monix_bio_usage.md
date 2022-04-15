@@ -25,7 +25,7 @@ object test extends Tests {
   def ivyDeps = Agg(
     ivy"com.disneystreaming::weaver-monix-bio:@VERSION@"
   )
-  def testFrameworks = Seq("weaver.framework.MonixBIO")
+  def testFramework = "weaver.framework.MonixBIO"
 }
 ```
 
