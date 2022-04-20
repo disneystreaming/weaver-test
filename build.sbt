@@ -48,7 +48,7 @@ val Version = new {
   }
 
   val expecty         = "0.15.4"
-  val portableReflect = "1.1.1"
+  val portableReflect = "1.1.2"
   val junit           = "4.13.2"
   val scalajsStubs    = "1.1.0"
   val specs2          = "4.14.1"
