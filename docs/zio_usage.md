@@ -19,7 +19,7 @@ object test extends Tests {
   def ivyDeps = Agg(
     ivy"com.disneystreaming::weaver-zio:@VERSION@"
   )
-  def testFrameworks = Seq("weaver.framework.ZIO")
+  def testFramework = "weaver.framework.ZIO"
 }
 ```
 

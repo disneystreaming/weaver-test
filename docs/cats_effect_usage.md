@@ -19,7 +19,7 @@ object test extends Tests {
   def ivyDeps = Agg(
     ivy"com.disneystreaming::weaver-cats:@VERSION@"
   )
-  def testFrameworks = Seq("weaver.framework.CatsEffect")
+  def testFramework = "weaver.framework.CatsEffect"
 }
 ```
 
