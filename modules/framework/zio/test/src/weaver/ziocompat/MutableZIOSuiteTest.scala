@@ -1,11 +1,15 @@
 package weaver.ziocompat
 
+import java.time.{ DateTimeException, OffsetDateTime }
+import java.util.concurrent.TimeUnit
+
 import weaver.Log
 import weaver.framework.DogFood
 import weaver.ziocompat.modules._
 
 import sbt.testing.Status
 import zio._
+import zio.clock.Clock
 import zio.duration._
 import zio.interop.catz._
 
@@ -100,6 +104,12 @@ object ZIOSuiteTest extends ZIOSuite[KVStore with DogFoodz] {
           "two",
           "three",
           "four"))).compile.foldMonoid
+  }
+
+  test("live clock") {
+    TestLiveSharedLayer.spec(List.empty).map(outcome =>
+      expect(!outcome.status.isFailed) and
+        expect(outcome.duration.length > 0)).compile.foldMonoid
   }
 
   object LogAdapterTest extends ZIOSuite[Has[SomeApp.Service]] {
@@ -221,6 +231,21 @@ object ZIOSuiteTest extends ZIOSuite[KVStore with DogFoodz] {
 
     test("example test") {
       ZIO.succeed(expect(true))
+    }
+  }
+  object TestLiveSharedLayer extends MutableZIOSuite[Clock] {
+    override val sharedLayer: ZLayer[zio.ZEnv, Throwable, Clock] =
+      ZLayer.succeed(new Clock.Service {
+        def currentTime(unit: TimeUnit)                            = ???
+        def currentDateTime: IO[DateTimeException, OffsetDateTime] = ???
+        def nanoTime: UIO[Long]                                    = UIO(42)
+        def sleep(duration: Duration): UIO[Unit]                   = ???
+      })
+
+    test("can allow overriding of the clock whilst still having correct test timings") {
+      // Ensure the test duration is longer than 0ms so test duration can be asserted when the suite is run
+      Live.live(clock.sleep(1.millis)) *> clock.nanoTime.map(time =>
+        expect(time == 42))
     }
   }
 }
