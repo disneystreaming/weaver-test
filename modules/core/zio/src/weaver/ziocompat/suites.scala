@@ -10,7 +10,7 @@ import zio._
 import zio.clock.Clock
 import zio.interop.catz._
 
-trait BaseZIOSuite extends EffectSuite[T] with EffectSuite.Provider[T]
+trait BaseZIOSuite extends RunnableSuite[T] with EffectSuite.Provider[T]
 
 abstract class BaseMutableZIOSuite[Res <: Has[_]](implicit tag: Tag[Res])
     extends BaseZIOSuite {
@@ -30,6 +30,8 @@ abstract class BaseMutableZIOSuite[Res <: Has[_]](implicit tag: Tag[Res])
     }
 
   def getSuite: EffectSuite[T] = this
+
+  def plan: List[TestName] = testSeq.map(_._1).toList
 
   def pureTest(name: TestName)(run: => Expectations): Unit =
     registerTest(name)(Test(name.name, ZIO(run)))
