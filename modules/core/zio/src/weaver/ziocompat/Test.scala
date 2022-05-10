@@ -16,11 +16,11 @@ object Test {
       f: ZIO[Env[R], Throwable, Expectations]
   ): ZIO[Env[R], Nothing, TestOutcome] =
     for {
-      start <- zio.clock.currentTime(TimeUnit.MILLISECONDS)
+      start <- Live.live(zio.clock.currentTime(TimeUnit.MILLISECONDS))
       res <- f
         .unrefine { case NonFatal(e) => e }
         .fold(Result.from, Result.fromAssertion)
-      end  <- zio.clock.currentTime(TimeUnit.MILLISECONDS)
+      end  <- Live.live(zio.clock.currentTime(TimeUnit.MILLISECONDS))
       logs <- LogModule.logs
     } yield TestOutcome(name, (end - start).millis, res, logs)
 

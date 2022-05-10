@@ -18,9 +18,10 @@ package object ziocompat {
     def logs: URIO[LogModule, Chain[Log.Entry]] = ZIO.accessM(_.get.logs)
   }
   type LogModule = Has[LogModule.Service]
+  type Live      = Has[Live.Service]
 
   type T[A]             = RIO[ZEnv, A]
-  type Env[R <: Has[_]] = ZEnv with R with LogModule
+  type Env[R <: Has[_]] = ZEnv with Live with R with LogModule
 
   val unitTag = implicitly[Tag[Unit]]
   type ZIOSuite[R <: Has[_]] = MutableZIOSuite[R]

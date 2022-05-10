@@ -49,9 +49,10 @@ abstract class BaseMutableZIOSuite[Res <: Has[_]](implicit tag: Tag[Res])
       else {
         for {
           ref <- Stream.eval(FiberRef.make(Chain.empty[Log.Entry]))
-          testLayer: RLayer[ZEnv, LogModule with ZEnv] =
-            ZEnv.any ++ ZLayer.fromService[Clock.Service, LogModule.Service](
-              FiberRefLog(ref, _))
+          testLayer: RLayer[ZEnv, Live with LogModule with ZEnv] =
+            ZEnv.any >+> Live() ++ ZLayer.fromService[
+              Clock.Service,
+              LogModule.Service](FiberRefLog(ref, _))
           suiteLayer =
             (testLayer >+> sharedLayer).passthrough
           resource <- Stream.resource(suiteLayer.build.toResourceZIO)
