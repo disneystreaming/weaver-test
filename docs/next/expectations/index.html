@@ -218,36 +218,36 @@ conditions</p>
 </code></pre>
 <div class='terminal'><pre><code class = 'nohighlight'>
 <span style='color: cyan'>ExpectationsSuite</span>
-<span style='color: green'>+&nbsp;</span>Simple&nbsp;expectations&nbsp;(success)&nbsp;<span style='color: lightgray'><b>24ms</span></b>
-<span style='color: green'>+&nbsp;</span>And/Or&nbsp;composition&nbsp;(success)&nbsp;<span style='color: lightgray'><b>10ms</span></b>
+<span style='color: green'>+&nbsp;</span>Simple&nbsp;expectations&nbsp;(success)&nbsp;<span style='color: lightgray'><b>26ms</span></b>
+<span style='color: green'>+&nbsp;</span>And/Or&nbsp;composition&nbsp;(success)&nbsp;<span style='color: lightgray'><b>7ms</span></b>
 <span style='color: green'>+&nbsp;</span>Varargs&nbsp;composition&nbsp;(success)&nbsp;<span style='color: lightgray'><b>0ms</span></b>
-<span style='color: green'>+&nbsp;</span>Working&nbsp;with&nbsp;collections&nbsp;(success)&nbsp;<span style='color: lightgray'><b>26ms</span></b>
-<span style='color: green'>+&nbsp;</span>Strict&nbsp;equality&nbsp;(success)&nbsp;<span style='color: lightgray'><b>9ms</span></b>
-<span style='color: green'>+&nbsp;</span>Relaxed&nbsp;equality&nbsp;comparison&nbsp;(success)&nbsp;<span style='color: lightgray'><b>2ms</span></b>
-<span style='color: red'>-&nbsp;</span>Simple&nbsp;expectations&nbsp;(failure)&nbsp;<span style='color: lightgray'><b>40ms</span></b>
-<span style='color: red'>-&nbsp;</span>And/Or&nbsp;composition&nbsp;(failure&nbsp;<span style='color: lightgray'><b>3ms</span></b>
+<span style='color: green'>+&nbsp;</span>Working&nbsp;with&nbsp;collections&nbsp;(success)&nbsp;<span style='color: lightgray'><b>24ms</span></b>
+<span style='color: green'>+&nbsp;</span>Strict&nbsp;equality&nbsp;(success)&nbsp;<span style='color: lightgray'><b>4ms</span></b>
+<span style='color: green'>+&nbsp;</span>Relaxed&nbsp;equality&nbsp;comparison&nbsp;(success)&nbsp;<span style='color: lightgray'><b>40ms</span></b>
+<span style='color: red'>-&nbsp;</span>Simple&nbsp;expectations&nbsp;(failure)&nbsp;<span style='color: lightgray'><b>44ms</span></b>
+<span style='color: red'>-&nbsp;</span>And/Or&nbsp;composition&nbsp;(failure&nbsp;<span style='color: lightgray'><b>6ms</span></b>
 <span style='color: red'>-&nbsp;</span>Varargs&nbsp;composition&nbsp;(failure)&nbsp;<span style='color: lightgray'><b>0ms</span></b>
-<span style='color: red'>-&nbsp;</span>Working&nbsp;with&nbsp;collections&nbsp;(failure&nbsp;1)&nbsp;<span style='color: lightgray'><b>16ms</span></b>
+<span style='color: red'>-&nbsp;</span>Working&nbsp;with&nbsp;collections&nbsp;(failure&nbsp;1)&nbsp;<span style='color: lightgray'><b>36ms</span></b>
 <span style='color: red'>-&nbsp;</span>Working&nbsp;with&nbsp;collections&nbsp;(failure&nbsp;2)&nbsp;<span style='color: lightgray'><b>2ms</span></b>
-<span style='color: red'>-&nbsp;</span>Strict&nbsp;equality&nbsp;(failure&nbsp;1)&nbsp;<span style='color: lightgray'><b>1ms</span></b>
-<span style='color: red'>-&nbsp;</span>Strict&nbsp;equality&nbsp;(failure&nbsp;2)&nbsp;<span style='color: lightgray'><b>10ms</span></b>
-<span style='color: red'>-&nbsp;</span>Strict&nbsp;equality&nbsp;(failure&nbsp;3)&nbsp;<span style='color: lightgray'><b>13ms</span></b>
-<span style='color: red'>-&nbsp;</span>Relaxed&nbsp;equality&nbsp;comparison&nbsp;(failure)&nbsp;<span style='color: lightgray'><b>10ms</span></b>
+<span style='color: red'>-&nbsp;</span>Strict&nbsp;equality&nbsp;(failure&nbsp;1)&nbsp;<span style='color: lightgray'><b>0ms</span></b>
+<span style='color: red'>-&nbsp;</span>Strict&nbsp;equality&nbsp;(failure&nbsp;2)&nbsp;<span style='color: lightgray'><b>19ms</span></b>
+<span style='color: red'>-&nbsp;</span>Strict&nbsp;equality&nbsp;(failure&nbsp;3)&nbsp;<span style='color: lightgray'><b>11ms</span></b>
+<span style='color: red'>-&nbsp;</span>Relaxed&nbsp;equality&nbsp;comparison&nbsp;(failure)&nbsp;<span style='color: lightgray'><b>41ms</span></b>
 <span style='color: red'>-&nbsp;</span>Non&nbsp;macro-based&nbsp;expectations&nbsp;<span style='color: lightgray'><b>0ms</span></b>
-<span style='color: red'>-&nbsp;</span>Failing&nbsp;fast&nbsp;expectations&nbsp;<span style='color: lightgray'><b>12ms</span></b>
+<span style='color: red'>-&nbsp;</span>Failing&nbsp;fast&nbsp;expectations&nbsp;<span style='color: lightgray'><b>24ms</span></b>
 <p><span style='color: red'>*************</span>FAILURES<span style='color: red'>*************</span>
 <span style='color: cyan'>ExpectationsSuite</span>
-<span style='color: red'>- </span>Simple expectations (failure) <span style='color: lightgray'><b>40ms</span></b><br /><span style='color: red'>  assertion failed (expectations.md:33)<br /><br />  expect(A.B.C.test(z) % 7 == 0)<br />               |    |  |   |<br />               20   15 6   false</span>
-<span style='color: red'>- </span>And/Or composition (failure <span style='color: lightgray'><b>3ms</span></b><br /><span style='color: red'> [0] assertion failed (expectations.md:42)<br /> [0] <br /> [0] (expect(1 != 2) and expect(2 == 1)) or expect(2 == 3)</span><br /><br /><span style='color: red'> [1] assertion failed (expectations.md:42)<br /> [1] <br /> [1] (expect(1 != 2) and expect(2 == 1)) or expect(2 == 3)</span>
+<span style='color: red'>- </span>Simple expectations (failure) <span style='color: lightgray'><b>44ms</span></b><br /><span style='color: red'>  assertion failed (expectations.md:33)<br /><br />  expect(A.B.C.test(z) % 7 == 0)<br />               |    |  |   |<br />               20   15 6   false</span>
+<span style='color: red'>- </span>And/Or composition (failure <span style='color: lightgray'><b>6ms</span></b><br /><span style='color: red'> [0] assertion failed (expectations.md:42)<br /> [0] <br /> [0] (expect(1 != 2) and expect(2 == 1)) or expect(2 == 3)</span><br /><br /><span style='color: red'> [1] assertion failed (expectations.md:42)<br /> [1] <br /> [1] (expect(1 != 2) and expect(2 == 1)) or expect(2 == 3)</span>
 <span style='color: red'>- </span>Varargs composition (failure) <span style='color: lightgray'><b>0ms</span></b><br /><span style='color: red'>  assertion failed (expectations.md:52)<br /><br />  expect.all(1 + 1 == 2, 2 + 2 == 5, 4 * 2 == 8)</span>
-<span style='color: red'>- </span>Working with collections (failure 1) <span style='color: lightgray'><b>16ms</span></b><br /><span style='color: red'>  Values not equal: (expectations.md:63)<br /><br />  </span><span style='color: green'><b>[world]</span></b>  |  <span style='color: red'><b>[hello]</span></b>
+<span style='color: red'>- </span>Working with collections (failure 1) <span style='color: lightgray'><b>36ms</span></b><br /><span style='color: red'>  Values not equal: (expectations.md:63)<br /><br />  </span><span style='color: green'><b>[world]</span></b>  |  <span style='color: red'><b>[hello]</span></b>
 <span style='color: red'>- </span>Working with collections (failure 2) <span style='color: lightgray'><b>2ms</span></b><br /><span style='color: red'>  assertion failed (expectations.md:67)<br /><br />  exists(Option(39))(i =&gt; expect(i &gt; 50))<br />                                 | |<br />                                 | false<br />                                 39</span>
-<span style='color: red'>- </span>Strict equality (failure 1) <span style='color: lightgray'><b>1ms</span></b><br /><span style='color: red'>  Values not equal: (expectations.md:82)<br /><br />  </span><span style='color: green'><b>[hello]</span></b>  |  <span style='color: red'><b>[world]</span></b>
-<span style='color: red'>- </span>Strict equality (failure 2) <span style='color: lightgray'><b>10ms</span></b><br /><span style='color: red'>  Values not equal: (expectations.md:86)<br /><br />  </span>List(1, <span style='color: green'><b>[2]</span></b>, 3)  |  List(1, <span style='color: red'><b>[19]</span></b>, 3)
-<span style='color: red'>- </span>Strict equality (failure 3) <span style='color: lightgray'><b>13ms</span></b><br /><span style='color: red'>  Values not equal: (expectations.md:90)<br /><br />  </span>Test(<span style='color: green'><b>[25]</span></b>.0)  |  Test(<span style='color: red'><b>[50]</span></b>.0)
-<span style='color: red'>- </span>Relaxed equality comparison (failure) <span style='color: lightgray'><b>10ms</span></b><br /><span style='color: red'>  Values not equal: (expectations.md:110)<br /><br />  </span>Hello to <span style='color: green'><b>[25]</span></b>.0  |  Hello to <span style='color: red'><b>[50]</span></b>.0
+<span style='color: red'>- </span>Strict equality (failure 1) <span style='color: lightgray'><b>0ms</span></b><br /><span style='color: red'>  Values not equal: (expectations.md:82)<br /><br />  </span><span style='color: green'><b>[hello]</span></b>  |  <span style='color: red'><b>[world]</span></b>
+<span style='color: red'>- </span>Strict equality (failure 2) <span style='color: lightgray'><b>19ms</span></b><br /><span style='color: red'>  Values not equal: (expectations.md:86)<br /><br />  </span>List(1, <span style='color: green'><b>[2]</span></b>, 3)  |  List(1, <span style='color: red'><b>[19]</span></b>, 3)
+<span style='color: red'>- </span>Strict equality (failure 3) <span style='color: lightgray'><b>11ms</span></b><br /><span style='color: red'>  Values not equal: (expectations.md:90)<br /><br />  </span>Test(<span style='color: green'><b>[25]</span></b>.0)  |  Test(<span style='color: red'><b>[50]</span></b>.0)
+<span style='color: red'>- </span>Relaxed equality comparison (failure) <span style='color: lightgray'><b>41ms</span></b><br /><span style='color: red'>  Values not equal: (expectations.md:110)<br /><br />  </span>Hello to <span style='color: green'><b>[25]</span></b>.0  |  Hello to <span style='color: red'><b>[50]</span></b>.0
 <span style='color: red'>- </span>Non macro-based expectations <span style='color: lightgray'><b>0ms</span></b><br /><span style='color: red'>  Condition failed (expectations.md:115)</span>
-<span style='color: red'>- </span>Failing fast expectations <span style='color: lightgray'><b>12ms</span></b><br /><span style='color: red'>  assertion failed (expectations.md:121)<br /><br />  _ &lt;- expect(h.isEmpty).failFast<br />              | |<br />              | false<br />              hello</span></p>
+<span style='color: red'>- </span>Failing fast expectations <span style='color: lightgray'><b>24ms</span></b><br /><span style='color: red'>  assertion failed (expectations.md:121)<br /><br />  _ &lt;- expect(h.isEmpty).failFast<br />              | |<br />              | false<br />              hello</span></p>
 <p>Total 17, Failed 11, Passed 6, Ignored 0, Cancelled 0
 </code></pre></div></p>
 <h2><a class="anchor" aria-hidden="true" id="tracing-locations-of-failed-expectations"></a><a href="#tracing-locations-of-failed-expectations" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Tracing locations of failed expectations</h2>

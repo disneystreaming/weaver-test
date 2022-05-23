@@ -58,12 +58,12 @@
 <h2><a class="anchor" aria-hidden="true" id="installation"></a><a href="#installation" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Installation</h2>
 <p>You'll need to install an additional dependency in order to use Discipline with Weaver.</p>
 <h3><a class="anchor" aria-hidden="true" id="sbt"></a><a href="#sbt" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>SBT</h3>
-<pre><code class="hljs css language-scala">libraryDependencies +=  <span class="hljs-string">"com.disneystreaming"</span> %% <span class="hljs-string">"weaver-discipline"</span> % <span class="hljs-string">"0.6.11"</span> % <span class="hljs-type">Test</span>
+<pre><code class="hljs css language-scala">libraryDependencies +=  <span class="hljs-string">"com.disneystreaming"</span> %% <span class="hljs-string">"weaver-discipline"</span> % <span class="hljs-string">"0.6.12"</span> % <span class="hljs-type">Test</span>
 </code></pre>
 <h3><a class="anchor" aria-hidden="true" id="mill"></a><a href="#mill" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Mill</h3>
 <pre><code class="hljs css language-scala"><span class="hljs-class"><span class="hljs-keyword">object</span> <span class="hljs-title">test</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">Tests</span> </span>{
   <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">ivyDeps</span> </span>= <span class="hljs-type">Agg</span>(
-    <span class="hljs-string">ivy"com.disneystreaming::weaver-discipline:0.6.11"</span>
+    <span class="hljs-string">ivy"com.disneystreaming::weaver-discipline:0.6.12"</span>
   )
 }
 </code></pre>
@@ -80,14 +80,14 @@
 </code></pre>
 <div class='terminal'><pre><code class = 'nohighlight'>
 <span style='color: cyan'>DisciplineTests</span>
-<span style='color: green'>+&nbsp;</span>Int:&nbsp;eq.antisymmetry&nbsp;eq&nbsp;<span style='color: lightgray'><b>40ms</span></b>
-<span style='color: green'>+&nbsp;</span>Int:&nbsp;eq.reflexivity&nbsp;eq&nbsp;<span style='color: lightgray'><b>5ms</span></b>
-<span style='color: green'>+&nbsp;</span>Int:&nbsp;eq.symmetry&nbsp;eq&nbsp;<span style='color: lightgray'><b>5ms</span></b>
+<span style='color: green'>+&nbsp;</span>Int:&nbsp;eq.antisymmetry&nbsp;eq&nbsp;<span style='color: lightgray'><b>61ms</span></b>
+<span style='color: green'>+&nbsp;</span>Int:&nbsp;eq.reflexivity&nbsp;eq&nbsp;<span style='color: lightgray'><b>9ms</span></b>
+<span style='color: green'>+&nbsp;</span>Int:&nbsp;eq.symmetry&nbsp;eq&nbsp;<span style='color: lightgray'><b>6ms</span></b>
 <span style='color: green'>+&nbsp;</span>Int:&nbsp;eq.transitivity&nbsp;eq&nbsp;<span style='color: lightgray'><b>6ms</span></b>
-<span style='color: green'>+&nbsp;</span>Boolean:&nbsp;eq.antisymmetry&nbsp;eq&nbsp;<span style='color: lightgray'><b>5ms</span></b>
+<span style='color: green'>+&nbsp;</span>Boolean:&nbsp;eq.antisymmetry&nbsp;eq&nbsp;<span style='color: lightgray'><b>6ms</span></b>
 <span style='color: green'>+&nbsp;</span>Boolean:&nbsp;eq.reflexivity&nbsp;eq&nbsp;<span style='color: lightgray'><b>1ms</span></b>
-<span style='color: green'>+&nbsp;</span>Boolean:&nbsp;eq.symmetry&nbsp;eq&nbsp;<span style='color: lightgray'><b>2ms</span></b>
-<span style='color: green'>+&nbsp;</span>Boolean:&nbsp;eq.transitivity&nbsp;eq&nbsp;<span style='color: lightgray'><b>2ms</span></b>
+<span style='color: green'>+&nbsp;</span>Boolean:&nbsp;eq.symmetry&nbsp;eq&nbsp;<span style='color: lightgray'><b>3ms</span></b>
+<span style='color: green'>+&nbsp;</span>Boolean:&nbsp;eq.transitivity&nbsp;eq&nbsp;<span style='color: lightgray'><b>3ms</span></b>
 <p>Total 8, Failed 0, Passed 8, Ignored 0, Cancelled 0
 </code></pre></div></p>
 </span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/weaver-test/docs/next/specs2"><span class="arrow-prev">← </span><span>specs2 integration</span></a><a class="docs-next button" href="/weaver-test/docs/next/parallelism"><span>Configuring parallelism</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#installation">Installation</a><ul class="toc-headings"><li><a href="#sbt">SBT</a></li><li><a href="#mill">Mill</a></li></ul></li><li><a href="#usage">Usage</a></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/weaver-test/" class="nav-home"></a><div><h5>Community</h5><a href="https://twitter.com/disneystreaming" target="_blank" rel="noreferrer noopener">Twitter</a></div><div><h5>More</h5><a href="https://github.com/disneystreaming/weaver-test">GitHub</a><a class="github-button" href="https://github.com/disneystreaming/weaver-test" data-icon="octicon-star" data-count-href="/facebook/docusaurus/stargazers" data-show-count="true" data-count-aria-label="# stargazers on GitHub" aria-label="Star this project on GitHub">Star</a><div class="social"><a href="https://twitter.com/disneystreaming" class="twitter-follow-button">Follow @disneystreaming</a></div></div></section><a href="https://github.com/disneystreaming" target="_blank" rel="noreferrer noopener" class="dssOpenSource"><img src="/weaver-test/img/dss-white-transparent.svg" alt="Disney Streaming Services Open Source" width="204" height="54"/></a><section class="copyright">Copyright © 2022 Disney Streaming Services</section></footer></div><script>window.twttr=(function(d,s, id){var js,fjs=d.getElementsByTagName(s)[0],t=window.twttr||{};if(d.getElementById(id))return t;js=d.createElement(s);js.id=id;js.src='https://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js, fjs);t._e = [];t.ready = function(f) {t._e.push(f);};return t;}(document, 'script', 'twitter-wjs'));</script></body></html>
