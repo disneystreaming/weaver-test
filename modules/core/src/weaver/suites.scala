@@ -66,10 +66,9 @@ abstract class RunnableSuite[F[_]] extends EffectSuite[F] {
     effectCompat.sync(run(args)(outcome => effectCompat.effect.delay(report(outcome))))
 }
 
-abstract class MutableFSuite[F[_]] extends RunnableSuite[F]  {
+abstract class MutableBaseFSuite[F[_]] extends RunnableSuite[F]  {
 
   type Res
-  def sharedResource : Resource[F, Res]
 
   def maxParallelism : Int = 10000
 
@@ -92,26 +91,6 @@ abstract class MutableFSuite[F[_]] extends RunnableSuite[F]  {
     def usingRes(run : Res => F[Expectations]) : Unit = apply(run)
   }
 
-  override def spec(args: List[String]) : Stream[F, TestOutcome] =
-    synchronized {
-      if (!isInitialized) isInitialized = true
-      val argsFilter = Filters.filterTests(this.name)(args)
-      val filteredTests = if (testSeq.exists(_._1.tags(TestName.Tags.only))){
-        testSeq.filter(_._1.tags(TestName.Tags.only)).map { case (_, test) => (res: Res) => test(res)}
-      } else testSeq.collect {
-        case (name, test) if argsFilter(name) => (res : Res) => test(res)
-      }
-      val parallism = math.max(1, maxParallelism)
-      if (filteredTests.isEmpty) Stream.empty // no need to allocate resources
-      else for {
-        resource <- Stream.resource(sharedResource)
-        tests = filteredTests.map(_.apply(resource))
-        testStream = Stream.emits(tests).lift[F](effectCompat.effect)
-        result <- if (parallism > 1 ) testStream.parEvalMap(parallism)(identity)(effectCompat.effect)
-                  else testStream.evalMap(identity)
-      } yield result
-    }
-
   private[this] var testSeq = Seq.empty[(TestName, Res => F[TestOutcome])]
 
   def plan: List[TestName] = testSeq.map(_._1).toList
@@ -123,6 +102,52 @@ abstract class MutableFSuite[F[_]] extends RunnableSuite[F]  {
       "Cannot define new tests after TestSuite was initialized"
     )
 
+
+  private[weaver] def getTests(args: List[String]) = {
+    if (!isInitialized) isInitialized = true
+    val argsFilter = Filters.filterTests(this.name)(args)
+    val filteredTests = if (testSeq.exists(_._1.tags(TestName.Tags.only))){
+      testSeq.filter(_._1.tags(TestName.Tags.only)).map { case (_, test) => (res: Res) => test(res)}
+    } else testSeq.collect {
+      case (name, test) if argsFilter(name) => (res : Res) => test(res)
+    }
+    val parallism = math.max(1, maxParallelism)
+
+    (filteredTests, parallism)
+  }
+}
+
+abstract class MutableFSuite[F[_]] extends MutableBaseFSuite[F]{
+  def sharedResource : Resource[F, Res]
+  override def spec(args: List[String]) : Stream[F, TestOutcome] =
+    synchronized {
+      val (filteredTests, parallism) = getTests(args)
+      if (filteredTests.isEmpty) Stream.empty // no need to allocate resources
+      else for {
+        resource <- Stream.resource(sharedResource)
+        tests = filteredTests.map(_.apply(resource))
+        testStream = Stream.emits(tests).lift[F](effectCompat.effect)
+        result <- if (parallism > 1 ) testStream.parEvalMap(parallism)(identity)(effectCompat.effect)
+        else testStream.evalMap(identity)
+      } yield result
+    }
+}
+abstract class MutableForEachSuite[F[_]] extends MutableBaseFSuite[F]{
+  def uniqueResource : Resource[F, Res]
+
+  override def spec(args: List[String]) : Stream[F, TestOutcome] =
+    synchronized {
+      val (filteredTests, parallism) = getTests(args)
+
+      if (filteredTests.isEmpty) Stream.empty // no need to allocate resources
+      else {
+        val testStream = Stream.emits(filteredTests).lift[F](effectCompat.effect)
+
+        if (parallism > 1 )
+          testStream.parEvalMap(parallism)(test => uniqueResource.use(test(_)))(effectCompat.effect)
+        else testStream.evalMap(test => uniqueResource.use(test(_)))
+      }
+    }
 }
 
 trait FunSuiteAux {

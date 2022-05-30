@@ -23,6 +23,10 @@ abstract class MutableIOSuite
     with BaseIOSuite
     with Expectations.Helpers
 
+abstract class MutableForEachIOSuite extends MutableForEachSuite[IO]
+  with BaseIOSuite
+  with Expectations.Helpers
+
 abstract class SimpleMutableIOSuite extends MutableIOSuite {
   type Res = Unit
   def sharedResource: Resource[IO, Unit] = Resource.pure[IO, Unit](())
