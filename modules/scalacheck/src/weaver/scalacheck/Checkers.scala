@@ -7,8 +7,6 @@ import cats.{ Applicative, Defer, Show }
 import org.scalacheck.rng.Seed
 import org.scalacheck.{ Arbitrary, Gen }
 
-import CECompat.Ref
-
 trait Checkers {
   self: EffectSuiteAux =>
   import Checkers._
@@ -104,15 +102,24 @@ trait Checkers {
 
     def apply[A: Show, B: PropF](gen: Gen[A])(f: A => B)(
         implicit loc: SourceLocation): F[Expectations] =
-      Ref[F].of(Status.start[A]).flatMap(forall_(gen, liftProp(f)))
+      forall_(gen, liftProp(f))
 
     private def forall_[A: Show](gen: Gen[A], f: A => F[Expectations])(
-        state: Ref[F, Status[A]])(
         implicit loc: SourceLocation): F[Expectations] = {
       paramStream
-        .parEvalMapUnordered(config.perPropertyParallelism) {
-          testOneTupled(gen, state, f)
+        .parEvalMap(config.perPropertyParallelism) {
+          testOneTupled(gen, f)
         }
+        .mapAccumulate(Status.start[A]) { case (oldStatus, testResult) =>
+          val newStatus = testResult match {
+            case TestResult.Success => oldStatus.addSuccess
+            case TestResult.Discard => oldStatus.addDiscard
+            case TestResult.Failure(input, seed, exp) =>
+              oldStatus.addFailure(input, seed, exp)
+          }
+          (newStatus, newStatus)
+        }
+        .map(_._1)
         .takeWhile(_.shouldContinue, takeFailure = true)
         .takeRight(1) // getting the first error (which finishes the stream)
         .compile
@@ -144,27 +151,24 @@ trait Checkers {
 
   private def testOneTupled[T: Show](
       gen: Gen[T],
-      state: Ref[F, Status[T]],
       f: T => F[Expectations])(ps: (Gen.Parameters, Seed)) =
-    testOne(gen, state, f)(ps._1, ps._2)
+    testOne(gen, f)(ps._1, ps._2)
 
   private def testOne[T: Show](
       gen: Gen[T],
-      state: Ref[F, Status[T]],
       f: T => F[Expectations])(
       params: Gen.Parameters,
-      seed: Seed): F[Status[T]] = {
+      seed: Seed): F[TestResult] = {
     Defer[F](self.effect).defer {
       gen(params, seed)
         .traverse(x => f(x).map(x -> _))
-        .flatTap { (x: Option[(T, Expectations)]) =>
+        .map { (x: Option[(T, Expectations)]) =>
           x match {
-            case Some((_, ex)) if ex.run.isValid => state.update(_.addSuccess)
-            case Some((t, ex)) => state.update(_.addFailure(t.show, seed, ex))
-            case None          => state.update(_.addDiscard)
+            case Some((_, ex)) if ex.run.isValid => TestResult.Success
+            case Some((t, ex)) => TestResult.Failure(t.show, seed, ex)
+            case None          => TestResult.Discard
           }
         }
-        .productR(state.get)
     }
   }
 
@@ -233,4 +237,11 @@ object Checkers {
       }
   }
 
+  private sealed trait TestResult
+  private object TestResult {
+    case object Success extends TestResult
+    case object Discard extends TestResult
+    case class Failure(input: String, seed: Seed, exp: Expectations)
+        extends TestResult
+  }
 }
