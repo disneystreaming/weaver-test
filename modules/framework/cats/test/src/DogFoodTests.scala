@@ -130,7 +130,7 @@ object DogFoodTests extends IOSuite {
 
         // HONESTLY.
         val (location, capturedExpression) =
-          if (Platform.isScala3) (27, "1 == 2") else (28, "expect(1 == 2)")
+          if (Platform.isScala3) (31, "1 == 2") else (32, "expect(1 == 2)")
 
         val expected = s"""
         |- lots 0ms
