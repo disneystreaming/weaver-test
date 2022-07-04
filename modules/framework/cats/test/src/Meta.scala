@@ -2,6 +2,8 @@ package weaver
 package framework
 package test
 
+import scala.annotation.nowarn
+
 import cats.effect._
 
 // The build tool will only detect and run top-level test suites. We can however nest objects
@@ -11,6 +13,8 @@ object Meta {
   object MutableSuiteTest extends MutableSuiteTest
 
   object Boom extends Error("Boom") with scala.util.control.NoStackTrace
+
+  @nowarn("cat=w-flag-dead-code")
   object CrashingSuite extends SimpleIOSuite {
     throw Boom
   }
