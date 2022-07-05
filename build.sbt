@@ -53,7 +53,7 @@ val Version = new {
   val scalajsStubs    = "1.1.0"
   val specs2          = "4.15.0"
   val discipline      = "1.4.0"
-  val catsLaws        = "2.7.0"
+  val catsLaws        = "2.8.0"
   val scalacheck      = "1.15.4"
   val monix           = "3.4.0"
   val monixBio        = "1.2.0"
@@ -246,7 +246,9 @@ lazy val scalacheck = projectMatrix
     testFrameworks := Seq(new TestFramework("weaver.framework.CatsEffect")),
     libraryDependencies ++= Seq(
       "org.scalacheck" %%% "scalacheck" % Version.scalacheck
-    ) ++ Seq("org.typelevel" %%% "cats-effect-testkit" % Version.CE3.cats % Test).filter(_ => virtualAxes.value.contains(CatsEffect3Axis))
+    ) ++ Seq(
+      "org.typelevel" %%% "cats-effect-testkit" % Version.CE3.cats % Test).filter(
+      _ => virtualAxes.value.contains(CatsEffect3Axis))
   )
 
 lazy val specs2 = projectMatrix
