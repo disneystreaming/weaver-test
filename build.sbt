@@ -44,7 +44,7 @@ val Version = new {
   object CE2 {
     val fs2        = "2.5.11"
     val cats       = "2.5.5"
-    val zioInterop = "2.5.1.0"
+    val zioInterop = "2.5.1.1"
   }
 
   val expecty         = "0.15.4"
@@ -246,7 +246,9 @@ lazy val scalacheck = projectMatrix
     testFrameworks := Seq(new TestFramework("weaver.framework.CatsEffect")),
     libraryDependencies ++= Seq(
       "org.scalacheck" %%% "scalacheck" % Version.scalacheck
-    ) ++ Seq("org.typelevel" %%% "cats-effect-testkit" % Version.CE3.cats % Test).filter(_ => virtualAxes.value.contains(CatsEffect3Axis))
+    ) ++ Seq(
+      "org.typelevel" %%% "cats-effect-testkit" % Version.CE3.cats % Test).filter(
+      _ => virtualAxes.value.contains(CatsEffect3Axis))
   )
 
 lazy val specs2 = projectMatrix
