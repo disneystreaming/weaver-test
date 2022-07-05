@@ -246,7 +246,9 @@ lazy val scalacheck = projectMatrix
     testFrameworks := Seq(new TestFramework("weaver.framework.CatsEffect")),
     libraryDependencies ++= Seq(
       "org.scalacheck" %%% "scalacheck" % Version.scalacheck
-    ) ++ Seq("org.typelevel" %%% "cats-effect-testkit" % Version.CE3.cats % Test).filter(_ => virtualAxes.value.contains(CatsEffect3Axis))
+    ) ++ Seq(
+      "org.typelevel" %%% "cats-effect-testkit" % Version.CE3.cats % Test).filter(
+      _ => virtualAxes.value.contains(CatsEffect3Axis))
   )
 
 lazy val specs2 = projectMatrix
