@@ -37,7 +37,7 @@ Assuming the following module :
 
 ```scala mdoc
 import zio._
-import org.http4s.client.blaze._
+import org.http4s.blaze.client._
 import org.http4s.client._
 
 object modules {
@@ -67,9 +67,8 @@ object HttpSuite extends ZIOSuite[Http] {
   // Sharing a single layer across all tests
   override val sharedLayer : ZLayer[ZEnv, Throwable, Http] =
     ZLayer.fromManaged {
-      val makeHttpClient = ZIO.runtime[Any].map { implicit rts =>
-        val exec = rts.platform.executor.asEC
-        BlazeClientBuilder[Task](exec).resource.toManagedZIO
+      val makeHttpClient = ZIO.runtime[ZEnv].map { implicit runtime =>
+        BlazeClientBuilder[Task].resource.toManagedZIO
       }
       Managed.fromEffect(makeHttpClient).flatten
     }

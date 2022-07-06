@@ -26,14 +26,13 @@ object MySuite extends SimpleIOSuite {
 }
 
 object MyAnotherSuite extends SimpleIOSuite {
-  import java.util.concurrent.TimeUnit
   import scala.util.Random.alphanumeric
 
   val randomString = IO(alphanumeric.take(10).mkString(""))
 
   loggedTest("failure should print logs") { log =>
     for {
-      currentTime <- timer.clock.realTime(TimeUnit.SECONDS)
+      currentTime <- IO.realTime.map(_.toSeconds)
       context = Map("time" -> currentTime.toString, "purpose" -> "docs")
       _ <- log.info("Starting the test...", context)
       x <- randomString
@@ -46,5 +45,5 @@ object MyAnotherSuite extends SimpleIOSuite {
 The report would look something like this:
 
 ```scala mdoc:passthrough
-println(weaver.docs.Output.runSuites(MySuite, MyAnotherSuite).unsafeRunSync())
+println(weaver.docs.Output.runSuites(MySuite, MyAnotherSuite))
 ```
