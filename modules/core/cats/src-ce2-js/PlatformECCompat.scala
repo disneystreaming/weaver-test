@@ -4,6 +4,6 @@ import scala.concurrent.ExecutionContext
 
 import org.scalajs.macrotaskexecutor.MacrotaskExecutor
 
-object PlatformECCompat {
+private[weaver] object PlatformECCompat {
   val ec: ExecutionContext = MacrotaskExecutor
 }

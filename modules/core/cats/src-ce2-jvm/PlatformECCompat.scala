@@ -2,6 +2,6 @@ package weaver
 
 import scala.concurrent.ExecutionContext
 
-object PlatformECCompat {
+private[weaver] object PlatformECCompat {
   val ec: ExecutionContext = ExecutionContext.global
 }
