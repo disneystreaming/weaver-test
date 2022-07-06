@@ -35,12 +35,6 @@ Global / (Test / fork) := true
 Global / (Test / testOptions) += Tests.Argument("--quickstart")
 
 val Version = new {
-  object CE3 {
-    val fs2        = "3.2.9"
-    val cats       = "3.3.13"
-    val zioInterop = "3.2.9.1"
-  }
-
   object CE2 {
     val fs2        = "2.5.11"
     val cats       = "2.5.5"
@@ -80,18 +74,11 @@ lazy val allModules = Seq(
 
 def catsEffectDependencies(proj: Project): Project = {
   proj.settings(
-    libraryDependencies ++= {
-      if (virtualAxes.value.contains(CatsEffect2Axis))
-        Seq(
-          "co.fs2"        %%% "fs2-core"    % Version.CE2.fs2,
-          "org.typelevel" %%% "cats-effect" % Version.CE2.cats
-        )
-      else
-        Seq(
-          "co.fs2"        %%% "fs2-core"    % Version.CE3.fs2,
-          "org.typelevel" %%% "cats-effect" % Version.CE3.cats
-        )
-    }
+    libraryDependencies ++=
+      Seq(
+        "co.fs2"        %%% "fs2-core"    % Version.CE2.fs2,
+        "org.typelevel" %%% "cats-effect" % Version.CE2.cats
+      )
   )
 }
 
@@ -173,17 +160,11 @@ lazy val docs = projectMatrix
             case a: VirtualAxis.ScalaVersionAxis => a
           }.get.scalaVersion
 
-          val CE = axes.collectFirst {
-            case CatsEffect2Axis => "CE2"
-            case CatsEffect3Axis => "CE3"
-          }.get
-
           List(
             s"name = ${q(name)}",
             s"jvm = $isJVM",
             s"js = $isJS",
             s"scalaVersion = ${q(scalaVersion)}",
-            s"catsEffect = $CE",
             s"version = ${q(ver)}"
           ).mkString("Artifact(", ",", ")")
       }.mkString("List(", ",\n", ")")
@@ -192,13 +173,7 @@ lazy val docs = projectMatrix
       val integrations =
         process(projectsWithAxes.all(allIntegrationsCoresFilter).value)
 
-      val artifactsCE2Version = (cats.finder(
-        VirtualAxis.jvm,
-        CatsEffect2Axis).apply(scala213) / version).value
-
-      val artifactsCE3Version = (cats.finder(
-        VirtualAxis.jvm,
-        CatsEffect3Axis).apply(scala213) / version).value
+      val artifactsCE2Version = (cats.jvm(scala213) / version).value
 
       IO.write(
         filePath,
@@ -206,9 +181,7 @@ lazy val docs = projectMatrix
         | package weaver.docs
         |
         | object BuildMatrix {
-        |    val catsEffect3Version = ${q(Version.CE3.cats)}
         |    val artifactsCE2Version = ${q(artifactsCE2Version)}
-        |    val artifactsCE3Version = ${q(artifactsCE3Version)}
         |    val effects = $effects
         |    val integrations = $integrations
         | }
@@ -247,14 +220,11 @@ lazy val scalacheck = projectMatrix
     testFrameworks := Seq(new TestFramework("weaver.framework.CatsEffect")),
     libraryDependencies ++= Seq(
       "org.scalacheck" %%% "scalacheck" % Version.scalacheck
-    ) ++ Seq(
-      "org.typelevel" %%% "cats-effect-testkit" % Version.CE3.cats % Test).filter(
-      _ => virtualAxes.value.contains(CatsEffect3Axis))
-  )
+    ))
 
 lazy val specs2 = projectMatrix
   .in(file("modules/specs2"))
-  .sparse(withCE3 = true, withJS = true, withScala3 = false)
+  .sparse(withJS = true, withScala3 = false)
   .dependsOn(core, cats % "test->compile")
   .settings(
     name           := "specs2",
@@ -267,7 +237,7 @@ lazy val specs2 = projectMatrix
 
 lazy val discipline = projectMatrix
   .in(file("modules/discipline"))
-  .sparse(withCE3 = true, withJS = true, withScala3 = true)
+  .sparse(withJS = true, withScala3 = true)
   .dependsOn(core, cats)
   .settings(
     name           := "discipline",
@@ -296,7 +266,7 @@ lazy val coreCats = projectMatrix
 
 lazy val coreMonix = projectMatrix
   .in(file("modules/core/monix"))
-  .sparse(withCE3 = false, withJS = true, withScala3 = true)
+  .sparse(withJS = true, withScala3 = true)
   .dependsOn(core)
   .settings(WeaverPlugin.simpleLayout)
   .settings(
@@ -308,7 +278,7 @@ lazy val coreMonix = projectMatrix
 
 lazy val coreMonixBio = projectMatrix
   .in(file("modules/core/monixBio"))
-  .sparse(withCE3 = false, withJS = true, withScala3 = true)
+  .sparse(withJS = true, withScala3 = true)
   .dependsOn(core)
   .settings(WeaverPlugin.simpleLayout)
   .settings(
@@ -320,20 +290,15 @@ lazy val coreMonixBio = projectMatrix
 
 lazy val coreZio = projectMatrix
   .in(file("modules/core/zio"))
-  .sparse(withCE3 = true, withJS = true, withScala3 = false)
+  .sparse(withJS = true, withScala3 = false)
   .dependsOn(core)
   .settings(WeaverPlugin.simpleLayout)
   .settings(
     name := "zio-core",
     libraryDependencies ++= {
-      if (virtualAxes.value.contains(CatsEffect3Axis))
-        Seq(
-          "dev.zio" %%% "zio-interop-cats" % Version.CE3.zioInterop
-        )
-      else
-        Seq(
-          "dev.zio" %%% "zio-interop-cats" % Version.CE2.zioInterop
-        )
+      Seq(
+        "dev.zio" %%% "zio-interop-cats" % Version.CE2.zioInterop
+      )
     }
   )
 
@@ -360,7 +325,7 @@ lazy val cats = projectMatrix
 
 lazy val monix = projectMatrix
   .in(file("modules/framework/monix"))
-  .sparse(withCE3 = false, withJS = true, withScala3 = true)
+  .sparse(withJS = true, withScala3 = true)
   .dependsOn(framework, coreMonix)
   .settings(WeaverPlugin.simpleLayout)
   .settings(
@@ -370,7 +335,7 @@ lazy val monix = projectMatrix
 
 lazy val monixBio = projectMatrix
   .in(file("modules/framework/monix-bio"))
-  .sparse(withCE3 = false, withJS = true, withScala3 = true)
+  .sparse(withJS = true, withScala3 = true)
   .dependsOn(framework, coreMonixBio)
   .settings(WeaverPlugin.simpleLayout)
   .settings(
@@ -380,7 +345,7 @@ lazy val monixBio = projectMatrix
 
 lazy val zio = projectMatrix
   .in(file("modules/framework/zio"))
-  .sparse(withCE3 = true, withJS = true, withScala3 = false)
+  .sparse(withJS = true, withScala3 = false)
   .dependsOn(framework, coreZio, scalacheck % "test->compile")
   .settings(WeaverPlugin.simpleLayout)
   .settings(
@@ -394,7 +359,7 @@ lazy val zio = projectMatrix
 // #################################################################################################
 
 lazy val intellijRunner = projectMatrix
-  .sparse(withCE3 = false, withJS = false, withScala3 = false)
+  .sparse(withJS = false, withScala3 = false)
   .in(file("modules/intellij-runner"))
   .dependsOn(core, framework, framework % "test->compile")
   .settings(WeaverPlugin.simpleLayout)

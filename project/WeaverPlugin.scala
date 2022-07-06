@@ -17,30 +17,26 @@ import sbt.VirtualAxis.ScalaVersionAxis
 import _root_.scalafix.sbt.ScalafixPlugin
 import org.scalafmt.sbt.ScalafmtPlugin
 
-case class CatsEffectAxis(idSuffix: String, directorySuffix: String)
-    extends VirtualAxis.WeakAxis
+// case class CatsEffectAxis(idSuffix: String, directorySuffix: String)
+//     extends VirtualAxis.WeakAxis
 
 /**
  * Common project settings.
  */
 object WeaverPlugin extends AutoPlugin {
 
-  val CatsEffect2Axis = CatsEffectAxis("_CE2", "ce2")
-  val CatsEffect3Axis = CatsEffectAxis("_CE3", "ce3")
-
   implicit final class ProjectMatrixOps(pmx: ProjectMatrix) {
     type ConfigureX = ProjectMatrix => ProjectMatrix
     type Configure  = Project => Project
 
     val defaults = Seq[VirtualAxis](
-      CatsEffect2Axis,
       VirtualAxis.jvm,
       VirtualAxis.scalaVersionAxis(WeaverPlugin.scala213, "2.13"))
 
     def addOne(
         scalaVersion: String,
-        platform: VirtualAxis.PlatformAxis,
-        catsEffectAxis: CatsEffectAxis): ConfigureX = {
+        platform: VirtualAxis.PlatformAxis
+    ): ConfigureX = {
       projectMatrix =>
         val addScalafix: Configure =
           if (scalaVersion == scala213)
@@ -55,47 +51,38 @@ object WeaverPlugin extends AutoPlugin {
         val scalaJSSettings: Configure =
           if (platform == VirtualAxis.js) configureScalaJSProject else identity
 
-        val ce3VersionOverride: Configure =
-          if (catsEffectAxis == CatsEffect3Axis)
-            _.settings(versionOverrideForCE3)
-          else identity
-
         val configureProject =
-          addScalafix andThen addScalafmt andThen scalaJSSettings andThen ce3VersionOverride
+          addScalafix andThen addScalafmt andThen scalaJSSettings
 
         projectMatrix.defaultAxes(defaults: _*).customRow(
           scalaVersions = List(scalaVersion),
-          axisValues = Seq(catsEffectAxis, platform),
+          axisValues = Seq(platform),
           configureProject
         )
     }
 
     def add(
         scalaVersions: Iterable[String],
-        platform: VirtualAxis.PlatformAxis,
-        catsEffectAxis: CatsEffectAxis): ConfigureX = {
-      scalaVersions.map(addOne(_, platform, catsEffectAxis)).reduce(_ andThen _)
+        platform: VirtualAxis.PlatformAxis
+    ): ConfigureX = {
+      scalaVersions.map(addOne(_, platform)).reduce(_ andThen _)
     }
-    def full = sparse(true, true, true)
+    def full = sparse(true, true)
 
     def sparse(
-        withCE3: Boolean,
         withJS: Boolean,
         withScala3: Boolean
     ): ProjectMatrix = {
       val defaultScalaVersions = supportedScala2Versions
       val defaultPlatform      = List(VirtualAxis.jvm)
-      val defaultCE            = List(CatsEffect2Axis)
 
       val addJs     = if (withJS) List(VirtualAxis.js) else Nil
       val addScala3 = if (withScala3) List(scala3) else Nil
-      val addCE3    = if (withCE3) List(CatsEffect3Axis) else Nil
 
       val configurators = for {
         scalaVersion <- defaultScalaVersions ++ addScala3
         platform     <- defaultPlatform ++ addJs
-        catsEffect   <- defaultCE ++ addCE3
-      } yield addOne(scalaVersion, platform, catsEffect)
+      } yield addOne(scalaVersion, platform)
 
       val configure: ConfigureX = configurators.reduce(_ andThen _)
 
@@ -103,23 +90,6 @@ object WeaverPlugin extends AutoPlugin {
     }
 
   }
-
-  lazy val versionOverrideForCE3: Seq[Def.Setting[_]] = Seq(
-    version := {
-      val regex = "^(\\d+).(\\d+).(\\d+).*$".r
-
-      val original = version.value
-
-      original match {
-        case regex(major, minor, patch) =>
-          original.replaceFirst(s"$major.$minor.$patch",
-                                s"$major.${minor.toInt + 1}.$patch")
-        case _ =>
-          throw new RuntimeException(
-            s"Version $original doesn't match SemVer format")
-      }
-    }
-  )
 
   def configureScalaJSProject(proj: Project): Project = {
 
@@ -310,8 +280,6 @@ object WeaverPlugin extends AutoPlugin {
     def suffixes(axes: Seq[VirtualAxis]) = axes.collect {
       case VirtualAxis.js  => List("", "-js")
       case VirtualAxis.jvm => List("", "-jvm")
-      case CatsEffect3Axis => List("", "-ce3")
-      case CatsEffect2Axis => List("", "-ce2")
       case ScalaVersionAxis(ver, _) =>
         if (ver.startsWith("3.")) List("", "-scala-3")
         else List("", "-scala-2")
@@ -386,23 +354,20 @@ object WeaverPlugin extends AutoPlugin {
   )
 
   def createBuildCommands(projects: Seq[ProjectReference]) = {
-    case class Triplet(ce: String, scala: String, platform: String)
+    case class Duplet(scala: String, platform: String)
 
     val scala3Suffix   = VirtualAxis.scalaABIVersion(scala3).idSuffix
     val scala213Suffix = VirtualAxis.scalaABIVersion(scala213).idSuffix
     val scala212Suffix = VirtualAxis.scalaABIVersion(scala212).idSuffix
     val jsSuffix       = VirtualAxis.js.idSuffix
-    val ce3Suffix      = CatsEffect3Axis.idSuffix
-    val ce2Suffix      = CatsEffect2Axis.idSuffix
 
-    val all: List[(Triplet, Seq[String])] =
+    val all: List[(Duplet, Seq[String])] =
       projects.collect {
         case lp: LocalProject =>
           var projectId = lp.project
 
           val scalaAxis =
-            if (projectId.endsWith(scala3Suffix) && !projectId.endsWith(
-                ce3Suffix)) {
+            if (projectId.endsWith(scala3Suffix)) {
               projectId = projectId.dropRight(scala3Suffix.length)
               "3"
             } else if (projectId.endsWith(scala212Suffix)) {
@@ -414,25 +379,18 @@ object WeaverPlugin extends AutoPlugin {
           val platformAxis =
             if (projectId.endsWith(jsSuffix)) {
               projectId = projectId.dropRight(jsSuffix.length)
-
               "js"
             } else "jvm"
 
-          val ceAxis =
-            if (projectId.endsWith(ce3Suffix)) {
-              projectId = projectId.dropRight(ce3Suffix.length)
-              "CE3"
-            } else "CE2"
-
-          Triplet(ceAxis, scalaAxis, platformAxis) -> lp.project
+          Duplet(scalaAxis, platformAxis) -> lp.project
       }.groupBy(_._1).mapValues(_.map(_._2)).toList
 
     // some commands, like test and compile, are setup for all modules
-    val any = (t: Triplet) => true
+    val any = (t: Duplet) => true
     // things like scalafix and scalafmt are only enabled on jvm 2.13 projects
-    val jvm2_13 = (t: Triplet) => t.scala == "2_13" && t.platform == "jvm"
+    val jvm2_13 = (t: Duplet) => t.scala == "2_13" && t.platform == "jvm"
 
-    val desiredCommands: Map[String, (String, Triplet => Boolean)] = Map(
+    val desiredCommands: Map[String, (String, Duplet => Boolean)] = Map(
       "test"            -> ("test", any),
       "compile"         -> ("compile", any),
       "publishLocal"    -> ("publishLocal", any),
@@ -443,10 +401,10 @@ object WeaverPlugin extends AutoPlugin {
     )
 
     val cmds = all.flatMap {
-      case (triplet, projects) =>
-        desiredCommands.filter(_._2._2(triplet)).map { case (name, (cmd, _)) =>
+      case (duplet, projects) =>
+        desiredCommands.filter(_._2._2(duplet)).map { case (name, (cmd, _)) =>
           Command.command(
-            s"${name}_${triplet.ce}_${triplet.scala}_${triplet.platform}") {
+            s"${name}_${duplet.scala}_${duplet.platform}") {
             state =>
               projects.foldLeft(state) { case (st, proj) =>
                 s"$proj/$cmd" :: st

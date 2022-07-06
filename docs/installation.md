@@ -5,7 +5,6 @@ title: Installation
 
 All of the artifacts below are available for both **JVM and Scala.js**.
 
-Note, that artifacts that use Cats Effect 3 are published under a different version to those published for Cats Effect 2 (minor version bump), because they're binary incompatible.
 
 ```scala mdoc:passthrough
 import weaver.docs._
@@ -14,11 +13,11 @@ import BuildMatrix._
 
 val effectsTable = Table
     .create("Effect types", effects)
-    .render(catsEffect3Version, artifactsCE2Version, artifactsCE3Version)
+    .render(artifactsCE2Version)
 
 val integrationsTable = Table
     .create("Integrations", integrations)
-    .render(catsEffect3Version, artifactsCE2Version, artifactsCE3Version)
+    .render(artifactsCE2Version)
 
 println(effectsTable)
 println(integrationsTable)
