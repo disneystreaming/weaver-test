@@ -1,7 +1,5 @@
 package weaver
 
-import scala.concurrent.ExecutionContext
-
 import cats.effect.{ ContextShift, IO, Timer }
 
 object CatsUnsafeRun extends CatsUnsafeRun
@@ -11,9 +9,10 @@ trait CatsUnsafeRun extends UnsafeRun[IO] {
   type CancelToken = IO[Unit]
 
   override implicit val contextShift: ContextShift[IO] =
-    IO.contextShift(ExecutionContext.global)
+    IO.contextShift(PlatformECCompat.ec)
+
   override implicit val timer: Timer[IO] =
-    IO.timer(ExecutionContext.global)
+    IO.timer(PlatformECCompat.ec)
 
   override implicit val effect   = IO.ioConcurrentEffect(contextShift)
   override implicit val parallel = IO.ioParallel(contextShift)
