@@ -2,12 +2,14 @@ package weaver
 
 import cats.Monoid
 import cats.data.Chain
+import cats.effect.std.Queue
+import cats.effect.{ Async, Ref }
 import cats.syntax.all._
 
 import TestOutcome.{ Summary, Verbose }
 import Colours._
 
-class Runner[F[_]: CECompat.Effect](
+class Runner[F[_]: Async](
     args: List[String],
     maxConcurrentSuites: Int)(
     printLine: String => F[Unit]) {
@@ -15,14 +17,19 @@ class Runner[F[_]: CECompat.Effect](
   import Runner._
 
   // Signaling option, because we need to detect completion
-  private type Channel[A] = CECompat.Queue[F, Option[A]]
+  private type Channel[A] = Queue[F, Option[A]]
+
+  private[this] def background[A, B](fa: F[A], default: A)(
+      f: F[A] => F[B]): F[B] =
+    Async[F].background(fa).use(fOutcome =>
+      f(fOutcome.flatMap(_.embed(onCancel = Async[F].pure(default)))))
 
   def run(suites: fs2.Stream[F, Suite[F]]): F[Outcome] =
     for {
-      buffer  <- CECompat.Ref[F].of(Chain.empty[SpecEvent])
-      channel <- CECompat.Queue.unbounded[F, Option[SpecEvent]]
+      buffer  <- Ref[F].of(Chain.empty[SpecEvent])
+      channel <- Queue.unbounded[F, Option[SpecEvent]]
       outcome <-
-        CECompat.background(consume(channel, buffer), Outcome.empty) { res =>
+        background(consume(channel, buffer), Outcome.empty) { res =>
           suites
             .parEvalMap(math.max(1, maxConcurrentSuites)) { suite =>
               suite
@@ -38,16 +45,16 @@ class Runner[F[_]: CECompat.Effect](
     } yield outcome
 
   private def produce(ch: Channel[SpecEvent])(event: SpecEvent): F[Unit] =
-    ch.enqueue(Some(event))
+    ch.offer(Some(event))
 
   private def complete(channel: Channel[SpecEvent]): F[Unit] =
-    channel.enqueue(None) // We are done !
+    channel.offer(None) // We are done !
 
   // Recursively consumes from a channel until a "None" gets produced,
   // indicating the end of the stream.
   private def consume(
       ch: Channel[SpecEvent],
-      buffer: CECompat.Ref[F, Chain[SpecEvent]]): F[Outcome] = {
+      buffer: Ref[F, Chain[SpecEvent]]): F[Outcome] = {
 
     val stars = "*************"
 
@@ -73,21 +80,22 @@ class Runner[F[_]: CECompat.Effect](
       } yield outcome
     }
 
-    ch.dequeueStream.unNoneTerminate.evalMap(
-      handle).compile.foldMonoid.flatMap {
-      outcome =>
-        for {
-          failures <- buffer.get
-          _ <- (printLine(red(stars) + "FAILURES" + red(stars)) *> failures
-            .traverse[F, Unit] { specEvent =>
-              printLine(cyan(specEvent.name)) *>
-                specEvent.events.traverse(printTestEvent(Verbose)) *>
-                newLine
-            }
-            .void).whenA(failures.nonEmpty)
-          _ <- printLine(outcome.formatted)
-        } yield outcome
-    }
+    fs2.Stream.repeatEval(ch.take)
+      .unNoneTerminate.evalMap(handle)
+      .compile.foldMonoid.flatMap {
+        outcome =>
+          for {
+            failures <- buffer.get
+            _ <- (printLine(red(stars) + "FAILURES" + red(stars)) *> failures
+              .traverse[F, Unit] { specEvent =>
+                printLine(cyan(specEvent.name)) *>
+                  specEvent.events.traverse(printTestEvent(Verbose)) *>
+                  newLine
+              }
+              .void).whenA(failures.nonEmpty)
+            _ <- printLine(outcome.formatted)
+          } yield outcome
+      }
   }
 
 }

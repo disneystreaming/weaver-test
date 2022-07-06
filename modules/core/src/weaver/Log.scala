@@ -1,9 +1,8 @@
 package weaver
 
+import cats.effect.Ref
 import cats.syntax.all._
 import cats.{ Applicative, FlatMap, Monoid, MonoidK, Show, ~> }
-
-import CECompat.Ref
 
 abstract class Log[F[_]: FlatMap](timestamp: F[Long]) { self =>
   def log(l: => Log.Entry): F[Unit]

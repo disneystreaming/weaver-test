@@ -50,8 +50,8 @@ object MetaJVM {
   class LazyState(
       initialised: IO[Int],
       finalised: IO[Int],
-      totalUses: CECompat.Ref[IO, Int],
-      uses: CECompat.Ref[IO, Int]) {
+      totalUses: Ref[IO, Int],
+      uses: Ref[IO, Int]) {
     val getState: IO[(Int, Int, Int, Int)] = for {
       i <- initialised
       f <- finalised
@@ -62,13 +62,13 @@ object MetaJVM {
 
   object LazyGlobal extends GlobalResource {
     def sharedResources(global: weaver.GlobalWrite): Resource[IO, Unit] =
-      CECompat.resourceLift {
+      Resource.eval {
         for {
-          initialised <- CECompat.Ref[IO].of(0)
-          finalised   <- CECompat.Ref[IO].of(0)
-          totalUses   <- CECompat.Ref[IO].of(0)
+          initialised <- Ref[IO].of(0)
+          finalised   <- Ref[IO].of(0)
+          totalUses   <- Ref[IO].of(0)
           resource =
-            CECompat.resourceLift(CECompat.Ref[IO].of(0)).flatMap { uses =>
+            Resource.eval(Ref[IO].of(0)).flatMap { uses =>
               Resource.make(initialised.update(_ + 1))(_ =>
                 finalised.update(_ + 1)).map(_ =>
                 new LazyState(initialised.get, finalised.get, totalUses, uses))
@@ -101,7 +101,7 @@ object MetaJVM {
       extends IOSuite {
     type Res = LazyState
     def sharedResource: Resource[IO, Res] =
-      CECompat.resourceLift(IO.sleep(index * 500.millis)).flatMap(_ =>
+      Resource.eval(IO.sleep(index * 500.millis)).flatMap(_ =>
         global.getOrFailR[LazyState]())
 
     test("Lazy resources should be instantiated several times") { state =>
