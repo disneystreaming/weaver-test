@@ -36,8 +36,8 @@ Global / (Test / testOptions) += Tests.Argument("--quickstart")
 
 val Version = new {
   object CE3 {
-    val fs2        = "3.1.6"
-    val cats       = "3.3.12"
+    val fs2        = "3.2.9"
+    val cats       = "3.3.13"
     val zioInterop = "3.2.9.1"
   }
 
@@ -47,18 +47,19 @@ val Version = new {
     val zioInterop = "2.5.1.0"
   }
 
-  val expecty         = "0.15.4"
-  val portableReflect = "1.1.2"
-  val junit           = "4.13.2"
-  val scalajsStubs    = "1.1.0"
-  val specs2          = "4.15.0"
-  val discipline      = "1.4.0"
-  val catsLaws        = "2.7.0"
-  val scalacheck      = "1.15.4"
-  val monix           = "3.4.0"
-  val monixBio        = "1.2.0"
-  val testInterface   = "1.0"
-  val scalaJavaTime   = "2.3.0"
+  val expecty          = "0.15.4"
+  val portableReflect  = "1.1.2"
+  val junit            = "4.13.2"
+  val scalajsStubs     = "1.1.0"
+  val specs2           = "4.16.1"
+  val discipline       = "1.5.1"
+  val catsLaws         = "2.8.0"
+  val scalacheck       = "1.16.0"
+  val monix            = "3.4.1"
+  val monixBio         = "1.2.0"
+  val testInterface    = "1.0"
+  val scalaJavaTime    = "2.4.0"
+  val scalajsMacroTask = "1.0.0"
 }
 
 lazy val root = project
@@ -246,7 +247,9 @@ lazy val scalacheck = projectMatrix
     testFrameworks := Seq(new TestFramework("weaver.framework.CatsEffect")),
     libraryDependencies ++= Seq(
       "org.scalacheck" %%% "scalacheck" % Version.scalacheck
-    ) ++ Seq("org.typelevel" %%% "cats-effect-testkit" % Version.CE3.cats % Test).filter(_ => virtualAxes.value.contains(CatsEffect3Axis))
+    ) ++ Seq(
+      "org.typelevel" %%% "cats-effect-testkit" % Version.CE3.cats % Test).filter(
+      _ => virtualAxes.value.contains(CatsEffect3Axis))
   )
 
 lazy val specs2 = projectMatrix
@@ -288,6 +291,7 @@ lazy val coreCats = projectMatrix
   .full
   .dependsOn(core)
   .settings(WeaverPlugin.simpleLayout)
+  .settings(scalaJSMacroTask)
   .settings(name := "cats-core")
 
 lazy val coreMonix = projectMatrix
@@ -418,3 +422,12 @@ ThisBuild / concurrentRestrictions ++= {
     )
   } else Seq.empty
 }
+
+lazy val scalaJSMacroTask: Seq[Def.Setting[_]] = Seq(
+  libraryDependencies ++= {
+    if (virtualAxes.value.contains(VirtualAxis.js))
+      Seq("org.scala-js" %%% "scala-js-macrotask-executor" % Version.scalajsMacroTask)
+    else
+      Seq.empty
+  }
+)

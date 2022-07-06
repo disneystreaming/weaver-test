@@ -148,9 +148,9 @@ object WeaverPlugin extends AutoPlugin {
   override def requires = plugins.JvmPlugin
   override def trigger  = allRequirements
 
-  lazy val scala212               = "2.12.15"
-  lazy val scala213               = "2.13.7"
-  lazy val scala3                 = "3.0.2"
+  lazy val scala212               = "2.12.16"
+  lazy val scala213               = "2.13.8"
+  lazy val scala3                 = "3.1.3"
   lazy val supportedScalaVersions = List(scala212, scala213, scala3)
 
   lazy val supportedScala2Versions = List(scala212, scala213)
@@ -404,7 +404,7 @@ object WeaverPlugin extends AutoPlugin {
             if (projectId.endsWith(scala3Suffix) && !projectId.endsWith(
                 ce3Suffix)) {
               projectId = projectId.dropRight(scala3Suffix.length)
-              "3_0"
+              "3"
             } else if (projectId.endsWith(scala212Suffix)) {
               projectId = projectId.dropRight(scala212Suffix.length)
               "2_12"
