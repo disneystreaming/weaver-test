@@ -19,17 +19,14 @@ class Runner[F[_]: Async](
   // Signaling option, because we need to detect completion
   private type Channel[A] = Queue[F, Option[A]]
 
-  private[this] def background[A, B](fa: F[A], default: A)(
-      f: F[A] => F[B]): F[B] =
-    Async[F].background(fa).use(fOutcome =>
-      f(fOutcome.flatMap(_.embed(onCancel = Async[F].pure(default)))))
-
   def run(suites: fs2.Stream[F, Suite[F]]): F[Outcome] =
     for {
       buffer  <- Ref[F].of(Chain.empty[SpecEvent])
       channel <- Queue.unbounded[F, Option[SpecEvent]]
       outcome <-
-        background(consume(channel, buffer), Outcome.empty) { res =>
+        Async[F].background(consume(channel, buffer)).use { outcome =>
+          val res = outcome.flatMap(_.embed(onCancel = Outcome.empty.pure[F]))
+
           suites
             .parEvalMap(math.max(1, maxConcurrentSuites)) { suite =>
               suite
