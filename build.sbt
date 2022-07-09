@@ -59,7 +59,7 @@ val Version = new {
   val monixBio         = "1.2.0"
   val testInterface    = "1.0"
   val scalaJavaTime    = "2.4.0"
-  val scalajsMacroTask = "1.0.0"
+  val scalajsMacroTask = "1.1.0"
 }
 
 lazy val root = project
