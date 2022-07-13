@@ -35,7 +35,17 @@ trait DisciplineFSuite[F[_]] extends EffectSuite[F] {
   type Res
   def sharedResource: Resource[F, Res]
 
-  def maxParallelism: Int = 10000
+  /**
+   * Defines max parallelism within whole suite (maxSuiteParallelism = 1 means
+   * each checkAll will be run sequentially)
+   */
+  def maxSuiteParallelism: Int = 10000
+
+  /**
+   * Defines max parallelism within single rule set (maxRuleSetParallelism = 1
+   * means each property of a law will be run sequentially)
+   */
+  def maxRuleSetParallelism: Int = 10000
 
   protected def registerTest(tests: Res => F[List[F[TestOutcome]]]): Unit =
     synchronized {
@@ -73,12 +83,16 @@ trait DisciplineFSuite[F[_]] extends EffectSuite[F] {
   override def spec(args: List[String]): Stream[F, TestOutcome] =
     synchronized {
       if (!isInitialized) isInitialized = true
-      val parallism = math.max(1, maxParallelism)
-      Stream.resource(sharedResource).flatMap { res =>
+      val suiteParallelism   = math.max(1, maxSuiteParallelism)
+      val ruleSetParallelism = math.max(1, maxRuleSetParallelism)
+      Stream.resource(sharedResource).flatMap { resource =>
         Stream.emits(testsSeq).covary[F]
-          .parEvalMap(parallism)(_.apply(res))
-          .flatMap(Stream.emits)
-          .parEvalMap(parallism)(identity)
+          .parEvalMap(suiteParallelism)(_.apply(resource))
+          .map { ruleSet =>
+            Stream.emits(ruleSet).covary[F]
+              .parEvalMap(ruleSetParallelism)(identity)
+          }
+          .parJoin(suiteParallelism)
       }
     }
 
