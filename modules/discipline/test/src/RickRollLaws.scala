@@ -2,6 +2,7 @@ package weaver.discipline
 
 import cats.kernel.Eq
 import cats.laws.discipline._
+
 import org.scalacheck.Arbitrary
 import org.typelevel.discipline.Laws
 

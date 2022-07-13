@@ -1,20 +1,21 @@
 package weaver
 package discipline
 
+import scala.collection.concurrent.TrieMap
 import scala.util.control.NoStackTrace
 
 import cats.data.Kleisli
 import cats.effect.Resource
 import cats.implicits._
+
 import fs2.Stream
 import org.scalacheck.Prop.Arg
-import org.scalacheck.{ Test => ScalaCheckTest }
 import org.scalacheck.Test._
 import org.scalacheck.util.Pretty
+import org.scalacheck.{ Prop, Test => ScalaCheckTest }
 import org.typelevel.discipline.Laws
-import org.scalacheck.Prop
+
 import Discipline._
-import scala.collection.concurrent.TrieMap
 
 trait Discipline { self: FunSuiteAux =>
 

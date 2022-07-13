@@ -1,9 +1,8 @@
 package weaver.discipline
 
-import weaver.SimpleIOSuite
-import weaver.BaseIOSuite
-import cats.effect.IO
-import cats.effect.Resource
+import cats.effect.{ IO, Resource }
+
+import weaver.{ BaseIOSuite, SimpleIOSuite }
 
 object DisciplineFSuiteIntegrationTest extends SimpleIOSuite {
 
