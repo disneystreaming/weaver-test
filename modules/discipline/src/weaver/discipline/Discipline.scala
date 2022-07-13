@@ -14,6 +14,7 @@ import org.scalacheck.util.Pretty
 import org.typelevel.discipline.Laws
 import org.scalacheck.Prop
 import Discipline._
+import scala.collection.concurrent.TrieMap
 
 trait Discipline { self: FunSuiteAux =>
 
@@ -30,7 +31,7 @@ trait Discipline { self: FunSuiteAux =>
 
 }
 
-trait DisciplineFSuite[F[_]] extends EffectSuite[F] {
+trait DisciplineFSuite[F[_]] extends RunnableSuite[F] {
 
   type Res
   def sharedResource: Resource[F, Res]
@@ -62,17 +63,19 @@ trait DisciplineFSuite[F[_]] extends EffectSuite[F] {
       name: TestName,
       parameters: Parameters => Parameters) {
     def apply(run: => F[Laws#RuleSet]): Unit = apply(_ => run)
-    def apply(run: Res => F[Laws#RuleSet]): Unit =
+    def apply(run: Res => F[Laws#RuleSet]): Unit = {
       registerTest(
         Kleisli(run).map(_.all.properties.toList.map {
-          case (id, prop) => Test(
-              s"${name.name}: $id",
-              effectCompat.effect.delay(
-                executeProp(prop, name.location, parameters)
-              )
+          case (id, prop) =>
+            val propTestName = s"${name.name}: $id"
+            val runProp = effectCompat.effect.delay(
+              executeProp(prop, name.location, parameters)
             )
+            planMap.put(name.copy(propTestName), ())
+            Test(propTestName, runProp)
         }).run
       )
+    }
 
     // this alias helps using pattern matching on `Res`
     def usingRes(run: Res => F[Laws#RuleSet]): Unit = apply(run)
@@ -96,8 +99,11 @@ trait DisciplineFSuite[F[_]] extends EffectSuite[F] {
       }
     }
 
-  private[this] var testsSeq =
-    Seq.empty[Res => F[List[F[TestOutcome]]]]
+  override def plan: List[TestName] = planMap.keySet.toList
+
+  private[this] val planMap = TrieMap.empty[TestName, Unit]
+
+  private[this] var testsSeq = Seq.empty[Res => F[List[F[TestOutcome]]]]
 
   private[this] var isInitialized = false
 
