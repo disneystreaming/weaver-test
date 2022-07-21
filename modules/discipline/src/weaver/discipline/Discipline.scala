@@ -1,7 +1,6 @@
 package weaver
 package discipline
 
-import scala.collection.concurrent.TrieMap
 import scala.util.control.NoStackTrace
 
 import cats.data.Kleisli
@@ -50,7 +49,7 @@ trait DisciplineFSuite[F[_]] extends RunnableSuite[F] {
   def maxRuleSetParallelism: Int = 10000
 
   protected def registerTest(tests: Res => F[List[F[TestOutcome]]]): Unit =
-    synchronized {
+    testsSeq.synchronized {
       if (isInitialized) throw initError()
       testsSeq = testsSeq :+ tests
     }
@@ -72,7 +71,9 @@ trait DisciplineFSuite[F[_]] extends RunnableSuite[F] {
             val runProp = effectCompat.effect.delay(
               executeProp(prop, name.location, parameters)
             )
-            planMap.put(name.copy(propTestName), ())
+            foundProps.synchronized {
+              foundProps = foundProps :+ name.copy(propTestName)
+            }
             Test(propTestName, runProp)
         }).run
       )
@@ -85,7 +86,7 @@ trait DisciplineFSuite[F[_]] extends RunnableSuite[F] {
   }
 
   override def spec(args: List[String]): Stream[F, TestOutcome] =
-    synchronized {
+    testsSeq.synchronized {
       if (!isInitialized) isInitialized = true
       val suiteParallelism   = math.max(1, maxSuiteParallelism)
       val ruleSetParallelism = math.max(1, maxRuleSetParallelism)
@@ -100,9 +101,10 @@ trait DisciplineFSuite[F[_]] extends RunnableSuite[F] {
       }
     }
 
-  override def plan: List[TestName] = planMap.keySet.toList
+  override def plan: List[TestName] =
+    foundProps.synchronized { foundProps.toList }
 
-  private[this] val planMap = TrieMap.empty[TestName, Unit]
+  private[this] var foundProps = Seq.empty[TestName]
 
   private[this] var testsSeq = Seq.empty[Res => F[List[F[TestOutcome]]]]
 
