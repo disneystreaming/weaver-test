@@ -18,7 +18,7 @@ class WeaverRunner(cls: Class[_], dummy: Boolean)
     Reflection.loadRunnableSuite(cls.getName(), getClass().getClassLoader())
   }
 
-  lazy val testDescriptions: Map[String, Description] = {
+  def testDescriptions: Map[String, Description] = {
     suite.plan.map(name =>
       name.name -> Description.createTestDescription(cls, name.name)).toMap
   }
