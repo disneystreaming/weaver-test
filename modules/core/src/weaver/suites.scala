@@ -95,12 +95,13 @@ abstract class MutableFSuite[F[_]] extends RunnableSuite[F]  {
   override def spec(args: List[String]) : Stream[F, TestOutcome] =
     synchronized {
       if (!isInitialized) isInitialized = true
-      val argsFilter = Filters.filterTests(this.name)(args)
-      val filteredTests = if (testSeq.exists(_._1.tags(TestName.Tags.only))){
-        testSeq.filter(_._1.tags(TestName.Tags.only)).map { case (_, test) => (res: Res) => test(res)}
-      } else testSeq.collect {
-        case (name, test) if argsFilter(name) => (res : Res) => test(res)
-      }
+      val testsTaggedOnly = testSeq.filter(_._1.tags(TestName.Tags.only))
+      val filteredTests = if (testsTaggedOnly.isEmpty) {
+        val argsFilter = Filters.filterTests(this.name)(args)
+        testSeq.collect {
+          case (name, test) if argsFilter(name) => test
+        }
+      } else testsTaggedOnly.map(_._2)
       val parallism = math.max(1, maxParallelism)
       if (filteredTests.isEmpty) Stream.empty // no need to allocate resources
       else for {
