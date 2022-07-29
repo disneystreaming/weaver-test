@@ -1,6 +1,7 @@
 package weaver
 package discipline
 
+import scala.collection.mutable
 import scala.util.control.NoStackTrace
 
 import cats.data.Kleisli
@@ -49,9 +50,10 @@ trait DisciplineFSuite[F[_]] extends RunnableSuite[F] {
   def maxRuleSetParallelism: Int = 10000
 
   protected def registerTest(tests: Res => F[List[F[TestOutcome]]]): Unit =
-    testsSeq.synchronized {
+    registeredTests.synchronized {
       if (isInitialized) throw initError()
-      testsSeq = testsSeq :+ tests
+      registeredTests += tests
+      ()
     }
 
   def checkAll(
@@ -72,7 +74,7 @@ trait DisciplineFSuite[F[_]] extends RunnableSuite[F] {
               executeProp(prop, name.location, parameters)
             )
             foundProps.synchronized {
-              foundProps = foundProps :+ name.copy(propTestName)
+              foundProps += name.copy(propTestName)
             }
             Test(propTestName, runProp)
         }).run
@@ -86,12 +88,12 @@ trait DisciplineFSuite[F[_]] extends RunnableSuite[F] {
   }
 
   override def spec(args: List[String]): Stream[F, TestOutcome] =
-    testsSeq.synchronized {
+    registeredTests.synchronized {
       if (!isInitialized) isInitialized = true
       val suiteParallelism   = math.max(1, maxSuiteParallelism)
       val ruleSetParallelism = math.max(1, maxRuleSetParallelism)
       Stream.resource(sharedResource).flatMap { resource =>
-        Stream.emits(testsSeq).covary[F]
+        Stream.emits(registeredTests).covary[F]
           .parEvalMap(suiteParallelism)(_.apply(resource))
           .map { ruleSet =>
             Stream.emits(ruleSet).covary[F]
@@ -104,9 +106,10 @@ trait DisciplineFSuite[F[_]] extends RunnableSuite[F] {
   override def plan: List[TestName] =
     foundProps.synchronized { foundProps.toList }
 
-  private[this] var foundProps = Seq.empty[TestName]
+  private[this] val foundProps = mutable.Buffer.empty[TestName]
 
-  private[this] var testsSeq = Seq.empty[Res => F[List[F[TestOutcome]]]]
+  private[this] val registeredTests =
+    mutable.Buffer.empty[Res => F[List[F[TestOutcome]]]]
 
   private[this] var isInitialized = false
 
