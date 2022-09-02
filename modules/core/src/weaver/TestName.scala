@@ -9,6 +9,7 @@ package weaver
 case class TestName(name: String, location: SourceLocation, tags: Set[String]) {
   def tagged(str: String): TestName = this.copy(tags = tags + str)
   def only: TestName                = tagged(TestName.Tags.only)
+  def ignored: TestName             = tagged(TestName.Tags.ignored)
 }
 
 object TestName {
@@ -18,5 +19,6 @@ object TestName {
 
   object Tags {
     val only = "only"
+    val ignored = "ignored"
   }
 }
