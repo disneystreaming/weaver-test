@@ -150,8 +150,8 @@ object Expectations {
     }
 
     implicit class StringOps(str: String) {
-      def ignored(implicit loc: SourceLocation): TestName =
-        new TestName(str, loc, Set.empty).ignored
+      def ignore(implicit loc: SourceLocation): TestName =
+        new TestName(str, loc, Set.empty).ignore
       def only(implicit loc: SourceLocation): TestName =
         new TestName(str, loc, Set.empty).only
       def tagged(tag: String)(implicit loc: SourceLocation): TestName =

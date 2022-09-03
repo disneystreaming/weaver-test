@@ -95,7 +95,7 @@ abstract class MutableFSuite[F[_]] extends RunnableSuite[F]  {
   override def spec(args: List[String]) : Stream[F, TestOutcome] =
     synchronized {
       if (!isInitialized) isInitialized = true
-      val testsNotIgnored = testSeq.filterNot(_._1.tags(TestName.Tags.ignored))
+      val testsNotIgnored = testSeq.filterNot(_._1.tags(TestName.Tags.ignore))
       val testsTaggedOnly = testsNotIgnored.filter(_._1.tags(TestName.Tags.only))
       val filteredTests = if (testsTaggedOnly.isEmpty) {
         val argsFilter = Filters.filterTests(this.name)(args)
