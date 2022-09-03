@@ -59,7 +59,8 @@ class WeaverRunner(cls: Class[_], dummy: Boolean)
   }
 
   private def notifyIgnored(notifier: RunNotifier): Unit = {
-    val (taggedIgnored, rest) = suite.plan.partition(_.tags(TestName.Tags.ignore))
+    val (taggedIgnored, rest) =
+      suite.plan.partition(_.tags(TestName.Tags.ignore))
     val (only, ignored) = rest.partition(_.tags(TestName.Tags.only))
     val toNotifyIgnored = if (only.nonEmpty) {
       taggedIgnored ++ ignored

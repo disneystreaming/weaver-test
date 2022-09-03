@@ -54,19 +54,20 @@ object JUnitRunnerTests extends IOSuite {
     }
   }
 
-  test("Only tests tagged with only are ran (unless also tagged ignored)") { blocker =>
-    run(blocker, Meta.IgnoreAndOnly).map { notifications =>
-      val expected = List(
-        TestSuiteStarted("weaver.junit.Meta$IgnoreAndOnly$"),
-        TestIgnored("only and ignored(weaver.junit.Meta$IgnoreAndOnly$)"),
-        TestIgnored("is ignored(weaver.junit.Meta$IgnoreAndOnly$)"),
-        TestIgnored("not tagged(weaver.junit.Meta$IgnoreAndOnly$)"),
-        TestStarted("only(weaver.junit.Meta$IgnoreAndOnly$)"),
-        TestFinished("only(weaver.junit.Meta$IgnoreAndOnly$)"),
-        TestSuiteFinished("weaver.junit.Meta$IgnoreAndOnly$")
-      )
-      expect.same(notifications, expected)
-    }
+  test("Only tests tagged with only are ran (unless also tagged ignored)") {
+    blocker =>
+      run(blocker, Meta.IgnoreAndOnly).map { notifications =>
+        val expected = List(
+          TestSuiteStarted("weaver.junit.Meta$IgnoreAndOnly$"),
+          TestIgnored("only and ignored(weaver.junit.Meta$IgnoreAndOnly$)"),
+          TestIgnored("is ignored(weaver.junit.Meta$IgnoreAndOnly$)"),
+          TestIgnored("not tagged(weaver.junit.Meta$IgnoreAndOnly$)"),
+          TestStarted("only(weaver.junit.Meta$IgnoreAndOnly$)"),
+          TestFinished("only(weaver.junit.Meta$IgnoreAndOnly$)"),
+          TestSuiteFinished("weaver.junit.Meta$IgnoreAndOnly$")
+        )
+        expect.same(notifications, expected)
+      }
   }
 
   test("Tests tagged with ignore are ignored") { blocker =>
