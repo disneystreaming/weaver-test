@@ -29,7 +29,7 @@ An `.ignore` extension method is provided on strings, and can be used when decla
 import weaver._
 import cats.effect._
 
-object MySuite extends SimpleIOSuite {
+object MyIgnoreSuite extends SimpleIOSuite {
 
   test("test this") {
     IO(success)
@@ -50,7 +50,7 @@ A `.only` extension method is provided on strings, and can be used when declarin
 import weaver._
 import cats.effect._
 
-object MySuite extends SimpleIOSuite {
+object MyOnlySuite extends SimpleIOSuite {
 
   test("test this".only) {
     IO(success)
