@@ -21,15 +21,36 @@ When test suites are open in IntelliJ, buttons appear to the left of the editor 
 
 ![](../img/intellij_usage.png)
 
-### Running individual tests
+### Ignorning individual tests
 
-A `.only` extension method is provided on strings, and can be used when declaring tests. When at least one test is "tagged" as such in a suite, weaver will ignore all tests but the ones that have the "only" tag.
+An `.ignore` extension method is provided on strings, and can be used when declaring tests. All tests that are tagged with `.ignore` will be ignored in the test suite, including any that are tagged with `.only`.
 
 ```scala mdoc  
 import weaver._
 import cats.effect._
 
-object MySuite extends SimpleIOSuite {
+object MyIgnoreSuite extends SimpleIOSuite {
+
+  test("test this") {
+    IO(success)
+  }
+
+  test("do not test this".ignore) {
+    IO.raiseError(new Throwable("Boom"))
+  }
+
+}
+```
+
+### Running individual tests
+
+A `.only` extension method is provided on strings, and can be used when declaring tests. When at least one test is "tagged" as such in a suite, weaver will ignore all tests but the ones that have the "only" tag. Note: `.ignore` has precedence over `.only`.
+
+```scala mdoc  
+import weaver._
+import cats.effect._
+
+object MyOnlySuite extends SimpleIOSuite {
 
   test("test this".only) {
     IO(success)
