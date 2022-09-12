@@ -67,21 +67,23 @@ object WeaverPlugin extends AutoPlugin {
     ): ConfigureX = {
       scalaVersions.map(addOne(_, platform)).reduce(_ andThen _)
     }
-    def full = sparse(true, true)
+    def full = sparse(true, true, true)
 
     def sparse(
-        withJS: Boolean,
-        withScala3: Boolean
+        withJS: Boolean = false,
+        withNative: Boolean = false,
+        withScala3: Boolean = false
     ): ProjectMatrix = {
       val defaultScalaVersions = supportedScala2Versions
       val defaultPlatform      = List(VirtualAxis.jvm)
 
       val addJs     = if (withJS) List(VirtualAxis.js) else Nil
+      val addNative = if (withNative) List(VirtualAxis.native) else Nil
       val addScala3 = if (withScala3) List(scala3) else Nil
 
       val configurators = for {
         scalaVersion <- defaultScalaVersions ++ addScala3
-        platform     <- defaultPlatform ++ addJs
+        platform     <- defaultPlatform ++ addJs ++ addNative
       } yield addOne(scalaVersion, platform)
 
       val configure: ConfigureX = configurators.reduce(_ andThen _)
@@ -298,8 +300,9 @@ object WeaverPlugin extends AutoPlugin {
       Def.setting((Compile / scalaSource).value.getParentFile().getParentFile().getParentFile())
 
     def suffixes(axes: Seq[VirtualAxis]) = axes.collect {
-      case VirtualAxis.js  => List("", "-js")
-      case VirtualAxis.jvm => List("", "-jvm")
+      case VirtualAxis.js     => List("", "-js")
+      case VirtualAxis.jvm    => List("", "-jvm")
+      case VirtualAxis.native => List("", "-native")
       case ScalaVersionAxis(ver, _) =>
         if (ver.startsWith("3.")) List("", "-scala-3")
         else List("", "-scala-2")
