@@ -3,8 +3,6 @@ package framework
 
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration._
-import scala.scalajs.js
-import scala.scalajs.js.JSON
 
 import cats.data.Chain
 import cats.effect.kernel.Async
@@ -12,6 +10,7 @@ import cats.effect.{ Ref, Sync }
 import cats.syntax.all._
 
 import sbt.testing.{ EventHandler, Logger, Task, TaskDef }
+import java.nio.ByteBuffer
 
 trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
   protected val args: Array[String]
@@ -23,15 +22,22 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
 
   private[weaver] val failedTests = ListBuffer.empty[(SuiteName, TestOutcome)]
 
-  def reportDone(out: TestOutcomeJS): Unit = {
-    val serialised = JSON.stringify(out, null)
+  def reportDone(out: TestOutcomeNative): Unit = {
+    val serialised = Wonky.writer { p =>
+      p.writeString(out.suiteName)
+      p.writeString(out.testName)
+      p.writeDouble(out.durationMs)
+      p.writeString(out.verboseFormatting)
+      ()
+    }
     channel match {
       case Some(send) => send(serialised)
-      case None       => failedTests.append(TestOutcomeJS.rehydrate(out))
+      case None       => failedTests.append(TestOutcomeNative.rehydrate(out))
     }
   }
 
-  def reportDoneF(out: TestOutcomeJS): F[Unit] = Sync[F].delay(reportDone(out))
+  def reportDoneF(out: TestOutcomeNative): F[Unit] =
+    Sync[F].delay(reportDone(out))
 
   override def deserializeTask(
       task: String,
@@ -64,7 +70,17 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
   }
 
   override def receiveMessage(msg: String): Option[String] = {
-    val outcome = JSON.parse(msg).asInstanceOf[TestOutcomeJS]
+    val outcome = Wonky.reader(msg) { p =>
+      val suite = p.readString()
+      val test  = p.readString()
+      val dur   = p.readDouble()
+      val verb  = p.readString()
+
+      new TestOutcomeNative(suiteName = suite,
+                            testName = test,
+                            durationMs = dur,
+                            verboseFormatting = verb)
+    }
     reportDone(outcome)
     None
   }
@@ -82,11 +98,6 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
   private case class SbtTask(td: TaskDef, loader: Option[suiteLoader.SuiteRef])
       extends Task {
     override def tags(): Array[String] = Array()
-
-    override def execute(
-        eventHandler: EventHandler,
-        loggers: Array[Logger],
-        continuation: Array[Task] => Unit): Unit = ()
 
     override def execute(
         eventHandler: EventHandler,
@@ -115,9 +126,9 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
         failedF.flatMap {
           case c if c.isEmpty => effect.unit
           case failed => {
-            val ots: Chain[TestOutcomeJS] =
+            val ots: Chain[TestOutcomeNative] =
               failed.map { case (SuiteName(name), to) =>
-                TestOutcomeJS.from(name)(to)
+                TestOutcomeNative.from(name)(to)
               }
 
             ots.traverse(reportDoneF).void
@@ -134,7 +145,7 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
                       Result.from(error),
                       Chain.empty)
         reportTest(outcome)
-          .productR(reportDoneF(TestOutcomeJS.from(fqn)(outcome)))
+          .productR(reportDoneF(TestOutcomeNative.from(fqn)(outcome)))
       }
 
       val action = loader match {
@@ -165,16 +176,54 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
 
 }
 
-class TestOutcomeJS(
+object Wonky {
+  class Pointer(bytes: ByteBuffer, private var pt: Int) {
+    def readString() = {
+      val stringSize = bytes.getInt()
+      val ar         = new Array[Byte](stringSize)
+      bytes.get(ar)
+
+      new String(ar)
+    }
+
+    def readDouble() = bytes.getDouble
+  }
+
+  class Punter(bb: ByteBuffer) {
+
+    def writeString(s: String) = {
+      bb.putInt(s.getBytes.size)
+      bb.put(s.getBytes())
+    }
+
+    def writeDouble(d: Double) = bb.putDouble(d)
+  }
+
+  def reader[A](s: String)(f: Pointer => A) = {
+    val buf = ByteBuffer.wrap(s.getBytes)
+    f(new Pointer(buf, 0))
+  }
+
+  def writer(f: Punter => Unit): String = {
+    val buf = ByteBuffer.allocate(2048)
+
+    f(new Punter(buf))
+
+    new String(buf.array())
+
+  }
+}
+
+class TestOutcomeNative(
     val suiteName: String,
     val testName: String,
     val durationMs: Double,
     val verboseFormatting: String
-) extends js.Object {}
+)
 
-object TestOutcomeJS {
-  def from(suiteName: String)(outcome: TestOutcome): TestOutcomeJS = {
-    TestOutcomeJS(
+object TestOutcomeNative {
+  def from(suiteName: String)(outcome: TestOutcome): TestOutcomeNative = {
+    TestOutcomeNative(
       suiteName,
       outcome.name,
       outcome.duration.toMillis.toDouble,
@@ -185,14 +234,14 @@ object TestOutcomeJS {
       suiteName: String,
       testName: String,
       durationMs: Double,
-      verboseFormatting: String): TestOutcomeJS =
-    js.Dynamic.literal(
+      verboseFormatting: String): TestOutcomeNative =
+    TestOutcomeNative(
       suiteName = suiteName,
       testName = testName,
       durationMs = durationMs,
-      verboseFormatting = verboseFormatting).asInstanceOf[TestOutcomeJS]
+      verboseFormatting = verboseFormatting)
 
-  def rehydrate(t: TestOutcomeJS): (SuiteName, TestOutcome) = {
+  def rehydrate(t: TestOutcomeNative): (SuiteName, TestOutcome) = {
     SuiteName(t.suiteName) -> DecodedOutcome(
       t.testName,
       t.durationMs.millis,
