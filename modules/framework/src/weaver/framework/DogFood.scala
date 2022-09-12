@@ -28,8 +28,8 @@ abstract class DogFood[F[_]](
   // for some time before getting the logs back. On JVM platform
   // we do not need to wait, since the suite will run synchronously
   private val patience: Option[FiniteDuration] = PlatformCompat.platform match {
-    case JS  => 2.seconds.some
-    case JVM => none
+    case JS | Native => 2.seconds.some
+    case JVM         => none
   }
 
   def runSuites(

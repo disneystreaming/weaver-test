@@ -8,6 +8,7 @@ import sbtprojectmatrix.ProjectMatrixKeys.virtualAxes
 import sbt.internal.ProjectMatrix
 
 import org.scalajs.sbtplugin.ScalaJSPlugin.autoImport.scalaJSLinkerConfig
+import scala.scalanative.sbtplugin.ScalaNativePlugin
 import org.scalajs.linker.interface.ModuleKind
 import org.scalajs.sbtplugin.ScalaJSPlugin
 import scala.collection.immutable.Nil
@@ -48,11 +49,15 @@ object WeaverPlugin extends AutoPlugin {
         val scalaJSSettings: Configure =
           if (platform == VirtualAxis.js) configureScalaJSProject else identity
 
+        val scalaNativeSettings: Configure =
+          if (platform == VirtualAxis.native) configureScalaNativeProject
+          else identity
+
         val ce3VersionOverride: Configure =
           _.settings(versionOverrideForCE3)
 
         val configureProject =
-          addScalafix andThen addScalafmt andThen scalaJSSettings andThen ce3VersionOverride
+          addScalafix andThen addScalafmt andThen scalaJSSettings andThen scalaNativeSettings andThen ce3VersionOverride
 
         projectMatrix.defaultAxes(defaults: _*).customRow(
           scalaVersions = List(scalaVersion),
@@ -132,6 +137,13 @@ object WeaverPlugin extends AutoPlugin {
 
     proj.enablePlugins(ScalaJSPlugin)
       .settings((linkerConfig ++ batchOnCi): _*)
+      .settings(
+        Test / fork := false
+      )
+  }
+
+  def configureScalaNativeProject(proj: Project): Project = {
+    proj.enablePlugins(ScalaNativePlugin)
       .settings(
         Test / fork := false
       )
