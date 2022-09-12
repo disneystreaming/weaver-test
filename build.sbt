@@ -202,10 +202,15 @@ lazy val framework = projectMatrix
           "org.scala-sbt" % "test-interface" % Version.testInterface,
           "org.scala-js" %%% "scalajs-stubs" % Version.scalajsStubs % "provided" cross CrossVersion.for3Use2_13
         )
-      else
+      else if (virtualAxes.value.contains(VirtualAxis.js))
         Seq(
           "org.scala-js" %% "scalajs-test-interface" % scalaJSVersion cross CrossVersion.for3Use2_13
         )
+      else if (virtualAxes.value.contains(VirtualAxis.native))
+        Seq(
+          "org.scala-native" %%% "test-interface" % nativeVersion
+        )
+      else Seq.empty
     } ++ Seq("junit" % "junit" % Version.junit)
   )
   .settings(WeaverPlugin.simpleLayout)
