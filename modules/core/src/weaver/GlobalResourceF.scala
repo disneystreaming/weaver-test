@@ -9,8 +9,6 @@ import cats.syntax.all._
 
 import org.portablescala.reflect.annotation.EnableReflectiveInstantiation
 
-import CECompat.Ref
-
 /**
  * Top-level instances of this trait are detected by the framework and used to
  * manage the lifecycle of shared resources.
@@ -33,7 +31,7 @@ trait GlobalResourceF[F[_]] extends GlobalResourceBase {
 object GlobalResourceF {
 
   trait Write[F[_]] {
-    protected implicit def F: CECompat.Effect[F]
+    protected implicit def F: Async[F]
     protected def rawPut[A](
         pureOrLazy: Either[A, Resource[F, A]],
         label: Option[String])(implicit rt: ResourceTag[A]): F[Unit]
@@ -42,7 +40,7 @@ object GlobalResourceF {
         implicit rt: ResourceTag[A]): F[Unit] = rawPut(Left(value), label)
     def putR[A](value: A, label: Option[String] = None)(
         implicit rt: ResourceTag[A]): Resource[F, Unit] =
-      CECompat.resourceLift(put(value, label))
+      Resource.eval(put(value, label))
 
     /**
      * Memoises a resource so to optimise its sharing. The memoised resource
@@ -66,7 +64,7 @@ object GlobalResourceF {
         resource: Resource[F, A],
         label: Option[String] = None)(implicit
     rt: ResourceTag[A]): Resource[F, Unit] =
-      CECompat.resourceLift(putLazy(resource, label))
+      Resource.eval(putLazy(resource, label))
   }
 
   trait Read[F[_]] {
@@ -83,7 +81,7 @@ object GlobalResourceF {
 
     def getR[A](label: Option[String] = None)(
         implicit rt: ResourceTag[A]): Resource[F, Option[A]] =
-      CECompat.resourceLift {
+      Resource.eval {
         rawGet[A](label)
       }.flatMap {
         case Some(Left(value))     => Resource.pure(Some(value))
@@ -105,14 +103,14 @@ object GlobalResourceF {
       getR[A](label).flatMap {
         case Some(value) => Resource.pure[F, A](value)
         case None =>
-          CECompat.resourceLift(F.raiseError(GlobalResourceF.ResourceNotFound(
+          Resource.eval(F.raiseError(GlobalResourceF.ResourceNotFound(
             label,
             rt.description)))
       }
   }
 
   object Read {
-    def empty[F[_]](effect: CECompat.Effect[F]): Read[F] = new Read[F] {
+    def empty[F[_]](effect: Async[F]): Read[F] = new Read[F] {
       implicit protected def F: MonadError[F, Throwable] = effect
 
       protected def rawGet[A](label: Option[String])(implicit
@@ -121,7 +119,7 @@ object GlobalResourceF {
     }
   }
 
-  def createMap[F[_]: CECompat.Effect]: F[Read[F] with Write[F]] =
+  def createMap[F[_]: Async]: F[Read[F] with Write[F]] =
     Ref[F]
       .of(Map.empty[(Option[String], ResourceTag[_]),
                     Either[Any, Resource[F, Any]]])
@@ -131,7 +129,7 @@ object GlobalResourceF {
       ref: Ref[
         F,
         Map[(Option[String], ResourceTag[_]), Either[Any, Resource[F, Any]]]])(
-      implicit val F: CECompat.Effect[F])
+      implicit val F: Async[F])
       extends Read[F]
       with Write[F] { self =>
 
@@ -150,7 +148,7 @@ object GlobalResourceF {
             case None =>
               F.raiseError(ResourceNotFound(label, rt.description))
             case Some(value) => F.pure(value)
-          }.flatMap(CECompat.resourceLift(_))))
+          }.flatMap(Resource.eval(_))))
       }
 
   }

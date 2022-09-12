@@ -1,6 +1,6 @@
 package weaver
 
-import cats.effect.Resource
+import cats.effect.{ Async, Resource }
 import cats.syntax.all._
 
 import fs2.Stream
@@ -19,7 +19,7 @@ trait Suite[F[_]] extends BaseSuiteClass {
 // A version of EffectSuite that has a type member instead of a type parameter.
 protected[weaver] trait EffectSuiteAux {
   type EffectType[A]
-  implicit protected def effect: CECompat.Effect[EffectType]
+  implicit protected def effect: Async[EffectType]
 }
 
 // format: off
@@ -27,7 +27,7 @@ trait EffectSuite[F[_]] extends Suite[F] with EffectSuiteAux with SourceLocation
 
   final type EffectType[A] = F[A]
   implicit protected def effectCompat: EffectCompat[F]
-  implicit final protected def effect: CECompat.Effect[F] = effectCompat.effect
+  implicit final protected def effect: Async[F] = effectCompat.effect
 
   /**
    * Raise an error that leads to the running test being tagged as "cancelled".

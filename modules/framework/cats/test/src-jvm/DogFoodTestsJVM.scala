@@ -13,6 +13,28 @@ object DogFoodTestsJVM extends IOSuite {
   def sharedResource: Resource[IO, DogFood[IO]] =
     DogFood.make(new CatsEffect)
 
+  def logState(logger: weaver.Log[IO])(st: DogFood.State): IO[Unit] = {
+    val (logs, events) = st
+    import weaver.framework.LoggedEvent._
+
+    val dumpLogs = logs.traverse { le =>
+      le match {
+        case Debug(msg) => logger.debug(s"LOG: $msg")
+        case Warn(msg)  => logger.debug(s"LOG: $msg")
+        case Trace(msg) => logger.debug(s"TRACE: $msg")
+        case Info(msg)  => logger.debug(s"LOG: $msg")
+        case Error(msg) => logger.error(s"LOG $msg")
+      }
+    }.void
+
+    val dumpOutcomes = events.traverse { ev =>
+      val t = if (ev.throwable().isDefined()) ev.throwable.get() else null
+      logger.info(s"SBT EVENT: ${ev.status()}", cause = t)
+    }.void
+
+    dumpLogs *> dumpOutcomes
+  }
+
   // This tests the global resource sharing mechanism by running a suite that
   // acquires a temporary file that gets created during global resource initialisation.
   // The suite contains a test which logs the location of the file and fails to ensure logs
@@ -20,11 +42,11 @@ object DogFoodTestsJVM extends IOSuite {
   // We then recover the location of the file, which happens after the dogfooding framework finishes
   // its run. At this point, the file should have been deleted by the global resource initialisation
   // mechanism, which we test for.
-  test("global sharing suites") { dogfood =>
+  test("global sharing suites") { (dogfood, log) =>
     import dogfood._
     runSuites(moduleSuite(Meta.MutableSuiteTest),
               sharingSuite[MetaJVM.TmpFileSuite],
-              globalInit(MetaJVM.GlobalStub)).flatMap {
+              globalInit(MetaJVM.GlobalStub)).flatTap(logState(log)).flatMap {
       case (logs, events) =>
         val file = logs.collectFirst {
           case LoggedEvent.Error(msg) if msg.contains("file:") =>
@@ -44,14 +66,14 @@ object DogFoodTestsJVM extends IOSuite {
     }
   }
 
-  test("global lazy resources (parallel)") { dogfood =>
+  test("global lazy resources (parallel)") { (dogfood, log) =>
     import dogfood._
     runSuites(
       globalInit(MetaJVM.LazyGlobal),
       sharingSuite[MetaJVM.LazyAccessParallel],
       sharingSuite[MetaJVM.LazyAccessParallel],
       sharingSuite[MetaJVM.LazyAccessParallel]
-    ).map {
+    ).flatTap(logState(log)).map {
       case (_, events) =>
         val successCount = events.toList.map(_.status()).count {
           case Status.Success => true; case _ => false
@@ -61,7 +83,7 @@ object DogFoodTestsJVM extends IOSuite {
 
   }
 
-  test("global lazy resources (sequential)") { dogfood =>
+  test("global lazy resources (sequential)") { (dogfood, log) =>
     import dogfood._
     runSuites(
       Seq(
@@ -71,7 +93,7 @@ object DogFoodTestsJVM extends IOSuite {
         sharingSuite[MetaJVM.LazyAccessSequential2]
       ),
       maxParallelism = 1
-    ).map {
+    ).flatTap(logState(log)).map {
       case (_, events) =>
         val successCount = events.toList.map(_.status()).count {
           case Status.Success => true; case _ => false

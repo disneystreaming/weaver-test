@@ -73,5 +73,5 @@ object MatchersSpec extends SimpleIOSuite with IOMatchers {
 ```
 
 ```scala mdoc:passthrough
-println(weaver.docs.Output.runSuites(MatchersSpec).unsafeRunSync())
+println(weaver.docs.Output.runSuites(MatchersSpec))
 ```

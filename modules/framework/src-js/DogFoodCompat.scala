@@ -34,7 +34,7 @@ private[weaver] trait DogFoodCompat[F[_]] { self: DogFood[F] =>
 private[weaver] trait DogFoodCompanion {
   def make[F[_]](framework: WeaverFramework[F]): Resource[F, DogFood[F]] = {
     import framework.unsafeRun.effect
-    CECompat.resourceLift(effect.delay(new DogFood(framework) {
+    Resource.eval(effect.delay(new DogFood(framework) {
       def blocker = new BlockerCompat[F] {
         // can't block on javascript obviously
         def block[A](thunk: => A): F[A] = effect.delay(thunk)

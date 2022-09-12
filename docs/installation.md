@@ -14,11 +14,11 @@ import BuildMatrix._
 
 val effectsTable = Table
     .create("Effect types", effects)
-    .render(catsEffect3Version, artifactsCE2Version, artifactsCE3Version)
+    .render(artifactsCE3Version)
 
 val integrationsTable = Table
     .create("Integrations", integrations)
-    .render(catsEffect3Version, artifactsCE2Version, artifactsCE3Version)
+    .render(artifactsCE3Version)
 
 println(effectsTable)
 println(integrationsTable)
@@ -30,6 +30,4 @@ the effect-type library you've elected to use (or test against).
 Refer yourself to the library specific pages to get the correct configuration.
 
 - [cats](cats_effect_usage.md)
-- [monix](monix_usage.md)
-- [monix-bio](monix_bio_usage.md)
 - [zio](zio_usage.md)

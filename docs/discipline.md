@@ -39,5 +39,5 @@ object DisciplineTests extends FunSuite with Discipline {
 ```
 
 ```scala mdoc:passthrough
-println(weaver.docs.Output.runSuites(DisciplineTests).unsafeRunSync())
+println(weaver.docs.Output.runSuites(DisciplineTests))
 ```

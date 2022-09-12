@@ -7,8 +7,6 @@ import scala.concurrent.duration._
 import cats.effect._
 import cats.syntax.all._
 
-import CECompat.Ref
-
 object MemoisedResourceTests extends SimpleIOSuite {
 
   test("""|Memoised resources should be:

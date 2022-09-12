@@ -5,9 +5,8 @@ import scala.util.{ Failure, Success, Try }
 
 import cats.Defer
 import cats.data.Chain
+import cats.effect.Ref
 import cats.syntax.all._
-
-import CECompat.Ref
 
 object Test {
 

@@ -3,8 +3,6 @@ package weaver
 import cats.effect._
 import cats.syntax.all._
 
-import CECompat.{ Deferred, Ref }
-
 object MemoisedResource {
   def apply[F[_]: Concurrent, A](
       resource: Resource[F, A]): F[Resource[F, A]] =

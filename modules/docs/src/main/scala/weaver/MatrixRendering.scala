@@ -1,15 +1,10 @@
 package weaver.docs
 
-sealed trait CatsEffect
-case object CE2 extends CatsEffect
-case object CE3 extends CatsEffect
-
 case class Artifact(
     name: String,
     jvm: Boolean,
     js: Boolean,
     scalaVersion: String,
-    catsEffect: CatsEffect,
     version: String
 )
 
@@ -21,8 +16,7 @@ case class Cell(
 
 case class Row(
     name: String,
-    ce2: Option[Cell],
-    ce3: Option[Cell]
+    ce: Option[Cell]
 )
 
 case class Table(
@@ -53,22 +47,18 @@ case class Table(
     }
   }
 
-  def render(
-      catsEffect3Version: String,
-      ce2ArtifactsVersion: String,
-      ce3ArtifactsVersion: String) = {
+  def render(version: String) = {
     val sb = new StringBuilder
     sb.append(_row(
       Seq(
         name,
-        s"Cats Effect 2 <br/><br/> Weaver version: `$ce2ArtifactsVersion`",
-        s"Cats Effect $catsEffect3Version <br/><br/> Weaver version: `$ce3ArtifactsVersion`"
+        s"Cats Effect 3 <br/><br/> Weaver version: `$version`"
       ),
       header = true
     ))
 
-    rows.map { case Row(name, ce2, ce3) =>
-      sb.append(_row(Seq(name, _cell(ce2), _cell(ce3))))
+    rows.map { case Row(name, ce) =>
+      sb.append(_row(Seq(name, _cell(ce))))
     }
     sb.result()
   }
@@ -78,8 +68,6 @@ object Table {
   def row_name(artif: String) = artif match {
     case "cats"       => "Cats-Effect"
     case "zio"        => "ZIO"
-    case "monix"      => "Monix"
-    case "monix-bio"  => "Monix BIO"
     case "scalacheck" => "ScalaCheck"
     case "specs2"     => "Specs2 matchers"
     case "discipline" => "Discipline law testing"
@@ -107,12 +95,7 @@ object Table {
       case (name, artifacts) =>
         val rowName = row_name(name)
 
-        val ce2Artifacts = artifacts.filter(_.catsEffect == CE2)
-        val ce3Artifacts = artifacts.filter(_.catsEffect == CE3)
-
-        Row(rowName,
-            artifactsToCell(ce2Artifacts),
-            artifactsToCell(ce3Artifacts))
+        Row(rowName, artifactsToCell(artifacts))
     }
 
     Table(

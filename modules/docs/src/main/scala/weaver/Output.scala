@@ -2,13 +2,10 @@ package weaver.docs
 
 import weaver._
 import cats.effect._
-import cats.effect.concurrent.Ref
+import cats.effect.Ref
 import cats.data.NonEmptyChain
-import scala.concurrent.ExecutionContext.Implicits.global
 
 object Output {
-  implicit val cs = IO.contextShift(global)
-
   def format(s: String) = {
     Ansi2Html(removeTrailingNewLine(
       removeTrailingNewLine(
@@ -20,11 +17,12 @@ object Output {
     if (s.endsWith("\n")) s.substring(0, s.length - 2) else s
   }
 
-  def runSuites(s: Suite[IO]*): IO[String] = {
+  def runSuites(s: Suite[IO]*): String = {
+    import cats.effect.unsafe.implicits.global
     val header = "<div class='terminal'><pre><code class = 'nohighlight'>"
     val footer = "</code></pre></div>"
 
-    for {
+    val program = for {
       buf <- Ref.of[IO, NonEmptyChain[String]](NonEmptyChain(header))
       printLine = (s: String) => buf.update(_.append(format(s)))
       runner    = new Runner[IO](Nil, 10)(s => printLine(s))
@@ -33,6 +31,8 @@ object Output {
       _     <- printLine(footer)
       value <- buf.get
     } yield value.reduceLeft(_ + "\n" + _)
+
+    program.unsafeRunSync()
   }
 }
 

@@ -7,12 +7,11 @@ import scala.scalajs.js
 import scala.scalajs.js.JSON
 
 import cats.data.Chain
-import cats.effect.Sync
+import cats.effect.kernel.Async
+import cats.effect.{ Ref, Sync }
 import cats.syntax.all._
 
 import sbt.testing.{ EventHandler, Logger, Task, TaskDef }
-
-import CECompat.Ref
 
 trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
   protected val args: Array[String]
@@ -143,12 +142,17 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
         case None => effect.unit
         case Some(loader) => for {
             outcomes <- Ref.of(Chain.empty[TestOutcome])
-            _ <- CECompat.guaranteeCase(loader.suite
-              .flatMap(runSuite(fqn, _, outcomes)))(
-              cancelled = effect.unit,
-              completed = finaliseCompleted(outcomes),
-              errored = finaliseError(outcomes)
-            )
+            _ <-
+              Async[F]
+                .guaranteeCase(loader.suite.flatMap(runSuite(fqn,
+                                                             _,
+                                                             outcomes)))(
+                  _.fold(
+                    canceled = effect.unit,
+                    completed = _ *> finaliseCompleted(outcomes),
+                    errored = finaliseError(outcomes)
+                  )
+                )
           } yield ()
       }
 

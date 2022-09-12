@@ -2,14 +2,14 @@ name: CI
 
 on:
   pull_request:
-    branches: ["*"]
+    branches: ["master"]
   push:
     branches: ["master"]
     tags: ["v*"]
 
 jobs:
   build:
-    name: Test ${{matrix.ceVersion}} ${{matrix.scalaVersion}} (${{matrix.scalaPlatform}})
+    name: Test ${{matrix.scalaVersion}} (${{matrix.scalaPlatform}})
     strategy:
       fail-fast: false
       matrix:
@@ -17,10 +17,9 @@ jobs:
         java: [adopt@1.8]
         scalaVersion: ["2_12", "2_13", "3"]
         scalaPlatform: ["jvm", "js"]
-        ceVersion: ["CE2", "CE3"]
     runs-on: ${{ matrix.os }}
     env:
-      BUILD_KEY: ${{matrix.ceVersion}}_${{matrix.scalaVersion}}_${{matrix.scalaPlatform}}
+      BUILD_KEY: ${{matrix.scalaVersion}}_${{matrix.scalaPlatform}}
     steps:
       - name: Checkout current branch
         uses: actions/checkout@v2
