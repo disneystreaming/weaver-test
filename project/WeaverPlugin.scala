@@ -312,9 +312,12 @@ object WeaverPlugin extends AutoPlugin {
       Def.setting((Compile / scalaSource).value.getParentFile().getParentFile().getParentFile())
 
     def suffixes(axes: Seq[VirtualAxis]) = axes.collect {
-      case VirtualAxis.js     => List("", "-js")
-      case VirtualAxis.jvm    => List("", "-jvm")
-      case VirtualAxis.native => List("", "-native")
+      case VirtualAxis.js =>
+        List("", "-js", "-jvm-js", "-js-native")
+      case VirtualAxis.jvm =>
+        List("", "-jvm", "-jvm-js", "-jvm-native")
+      case VirtualAxis.native =>
+        List("", "-native", "-jvm-native", "-js-native")
       case ScalaVersionAxis(ver, _) =>
         if (ver.startsWith("3.")) List("", "-scala-3")
         else List("", "-scala-2")

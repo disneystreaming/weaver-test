@@ -25,5 +25,6 @@ object ZIOUnsafeRun extends UnsafeRun[T] {
 
   def unsafeRunSync(task: T[Unit]): Unit = runtime.unsafeRun(task)
 
-  def runAsyncAndForget(task: T[Unit]): Unit = runtime.unsafeRunAsync(task)(_ => ())
+  def runAsyncAndForget(task: T[Unit]): Unit =
+    runtime.unsafeRunAsync(task)(_ => ())
 }

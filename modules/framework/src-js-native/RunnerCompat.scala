@@ -12,7 +12,6 @@ import cats.syntax.all._
 import sbt.testing.{ EventHandler, Logger, Task, TaskDef }
 import java.nio.ByteBuffer
 import scala.concurrent.Future
-import scala.concurrent.Await
 
 trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
   protected val args: Array[String]
@@ -98,22 +97,8 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
   }
 
   private case class SbtTask(td: TaskDef, loader: Option[suiteLoader.SuiteRef])
-      extends SNTask {
+      extends PlatformTask {
     override def tags(): Array[String] = Array()
-
-    def execute(
-        eventHandler: EventHandler,
-        loggers: Array[Logger],
-        continuation: Array[Task] => Unit): Unit = ()
-
-    override def execute(
-        eventHandler: EventHandler,
-        loggers: Array[Logger]): Array[Task] = {
-      val future = executeFuture(eventHandler, loggers)
-      scalanative.runtime.loop()
-      Await.result(future, 5.minutes)
-      Array.empty[Task]
-    }
 
     def executeFuture(
         eventHandler: EventHandler,
