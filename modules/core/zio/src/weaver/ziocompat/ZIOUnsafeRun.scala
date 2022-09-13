@@ -6,6 +6,7 @@ import cats.effect.Async
 
 import zio._
 import zio.interop.catz
+import scala.concurrent.Future
 
 object ZIOUnsafeRun extends UnsafeRun[T] {
 
@@ -25,6 +26,9 @@ object ZIOUnsafeRun extends UnsafeRun[T] {
 
   def unsafeRunSync(task: T[Unit]): Unit = runtime.unsafeRun(task)
 
-  def runAsyncAndForget(task: T[Unit]): Unit =
+  def unsafeRunAndForget(task: T[Unit]): Unit =
     runtime.unsafeRunAsync(task)(_ => ())
+
+  def unsafeRunToFuture(task: T[Unit]): Future[Unit] =
+    runtime.unsafeRunToFuture(task)
 }
