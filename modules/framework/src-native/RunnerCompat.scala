@@ -23,7 +23,7 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
   private[weaver] val failedTests = ListBuffer.empty[(SuiteName, TestOutcome)]
 
   def reportDone(out: TestOutcomeNative): Unit = {
-    val serialised = Wonky.writer { p =>
+    val serialised = ReadWriter.writer { p =>
       p.writeString(out.suiteName)
       p.writeString(out.testName)
       p.writeDouble(out.durationMs)
@@ -70,7 +70,7 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
   }
 
   override def receiveMessage(msg: String): Option[String] = {
-    val outcome = Wonky.reader(msg) { p =>
+    val outcome = ReadWriter.reader(msg) { p =>
       val suite = p.readString()
       val test  = p.readString()
       val dur   = p.readDouble()
@@ -157,17 +157,14 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
         case None => effect.unit
         case Some(loader) => for {
             outcomes <- Ref.of(Chain.empty[TestOutcome])
-            _ <-
-              Async[F]
-                .guaranteeCase(loader.suite.flatMap(runSuite(fqn,
-                                                             _,
-                                                             outcomes)))(
-                  _.fold(
-                    canceled = effect.unit,
-                    completed = _ *> finaliseCompleted(outcomes),
-                    errored = finaliseError(outcomes)
-                  )
-                )
+            loadAndRun = loader.suite.flatMap(runSuite(fqn, _, outcomes))
+            _ <- Async[F].guaranteeCase(loadAndRun)(
+              _.fold(
+                canceled = effect.unit,
+                completed = _ *> finaliseCompleted(outcomes),
+                errored = finaliseError(outcomes)
+              )
+            )
           } yield ()
       }
 
@@ -181,8 +178,8 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
 
 }
 
-object Wonky {
-  class Pointer(bytes: ByteBuffer, private var pt: Int) {
+private[weaver] object ReadWriter {
+  class Reader(bytes: ByteBuffer, private var pt: Int) {
     def readString() = {
       val stringSize = bytes.getInt()
       val ar         = new Array[Byte](stringSize)
@@ -194,7 +191,7 @@ object Wonky {
     def readDouble() = bytes.getDouble
   }
 
-  class Punter(bb: ByteBuffer) {
+  class Writer(bb: ByteBuffer) {
 
     def writeString(s: String) = {
       bb.putInt(s.getBytes.size)
@@ -204,15 +201,15 @@ object Wonky {
     def writeDouble(d: Double) = bb.putDouble(d)
   }
 
-  def reader[A](s: String)(f: Pointer => A) = {
+  def reader[A](s: String)(f: Reader => A) = {
     val buf = ByteBuffer.wrap(s.getBytes)
-    f(new Pointer(buf, 0))
+    f(new Reader(buf, 0))
   }
 
-  def writer(f: Punter => Unit): String = {
+  def writer(f: Writer => Unit): String = {
     val buf = ByteBuffer.allocate(2048)
 
-    f(new Punter(buf))
+    f(new Writer(buf))
 
     new String(buf.array())
 

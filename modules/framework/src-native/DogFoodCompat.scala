@@ -19,9 +19,12 @@ private[weaver] trait DogFoodCompat[F[_]] { self: DogFood[F] =>
     tasks.traverse { task =>
       self.framework.unsafeRun.async {
         (cb: (Either[Throwable, Unit] => Unit)) =>
-          task.execute(eventHandler, Array(logger))
-          scalanative.runtime.loop()
-          cb(Right(()))
+          try {
+            task.execute(eventHandler, Array(logger))
+            cb(Right(()))
+          } catch {
+            case e: Throwable => cb(Left(e))
+          }
       }
     }.map { _ =>
       Reporter.logRunFinished(Array(logger))(
