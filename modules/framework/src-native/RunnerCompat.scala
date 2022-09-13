@@ -160,8 +160,8 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
                       0.seconds,
                       Result.from(error),
                       Chain.empty)
-        reportTest(outcome)
-          .productR(reportDoneF(TestOutcomeNative.from(fqn)(outcome)))
+        reportTest(outcome).productR(
+          reportDoneF(TestOutcomeNative.from(fqn)(outcome)))
       }
 
       val action = loader match {
@@ -169,13 +169,15 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
         case Some(loader) => for {
             outcomes <- Ref.of(Chain.empty[TestOutcome])
             loadAndRun = loader.suite.flatMap(runSuite(fqn, _, outcomes))
-            _ <- Async[F].guaranteeCase(loadAndRun)(
-              _.fold(
-                canceled = effect.unit,
-                completed = _ *> finaliseCompleted(outcomes),
-                errored = finaliseError(outcomes)
-              )
-            )
+            _ <- Async[F].background(loadAndRun).use {
+              _.flatMap {
+                _.fold(
+                  canceled = effect.unit,
+                  completed = _ *> finaliseCompleted(outcomes),
+                  errored = finaliseError(outcomes)
+                )
+              }
+            }
           } yield ()
       }
 
