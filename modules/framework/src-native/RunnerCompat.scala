@@ -99,6 +99,11 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
       extends Task {
     override def tags(): Array[String] = Array()
 
+    def execute(
+        eventHandler: EventHandler,
+        loggers: Array[Logger],
+        continuation: Array[Task] => Unit): Unit = ()
+
     override def execute(
         eventHandler: EventHandler,
         loggers: Array[Logger]): Array[Task] = {
@@ -214,32 +219,21 @@ object Wonky {
   }
 }
 
-class TestOutcomeNative(
-    val suiteName: String,
-    val testName: String,
-    val durationMs: Double,
-    val verboseFormatting: String
+case class TestOutcomeNative(
+    suiteName: String,
+    testName: String,
+    durationMs: Double,
+    verboseFormatting: String
 )
 
 object TestOutcomeNative {
   def from(suiteName: String)(outcome: TestOutcome): TestOutcomeNative = {
-    TestOutcomeNative(
+    new TestOutcomeNative(
       suiteName,
       outcome.name,
       outcome.duration.toMillis.toDouble,
       outcome.formatted(TestOutcome.Verbose))
   }
-
-  def apply(
-      suiteName: String,
-      testName: String,
-      durationMs: Double,
-      verboseFormatting: String): TestOutcomeNative =
-    TestOutcomeNative(
-      suiteName = suiteName,
-      testName = testName,
-      durationMs = durationMs,
-      verboseFormatting = verboseFormatting)
 
   def rehydrate(t: TestOutcomeNative): (SuiteName, TestOutcome) = {
     SuiteName(t.suiteName) -> DecodedOutcome(
