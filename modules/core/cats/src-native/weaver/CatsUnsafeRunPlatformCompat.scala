@@ -8,7 +8,7 @@ import cats.effect.unsafe.implicits.global
 private[weaver] trait CatsUnsafeRunPlatformCompat {
   self: CatsUnsafeRun =>
 
-  def sync(task: IO[Unit]): Unit = {
+  def unsafeRunSync(task: IO[Unit]): Unit = {
     val future = task.unsafeToFuture()
     scalanative.runtime.loop()
     Await.result(future, 1.minute)

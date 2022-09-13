@@ -156,7 +156,7 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
           } yield ()
       }
 
-      unsafeRun.async(action.attempt.map { exc =>
+      unsafeRun.unsafeRunAndForget(action.attempt.map { exc =>
         continuation(Array())
       })
     }
