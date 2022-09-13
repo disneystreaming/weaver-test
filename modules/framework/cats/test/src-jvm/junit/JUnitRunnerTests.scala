@@ -54,6 +54,37 @@ object JUnitRunnerTests extends IOSuite {
     }
   }
 
+  test("Only tests tagged with only are ran (unless also tagged ignored)") {
+    blocker =>
+      run(blocker, Meta.IgnoreAndOnly).map { notifications =>
+        val expected = List(
+          TestSuiteStarted("weaver.junit.Meta$IgnoreAndOnly$"),
+          TestIgnored("only and ignored(weaver.junit.Meta$IgnoreAndOnly$)"),
+          TestIgnored("is ignored(weaver.junit.Meta$IgnoreAndOnly$)"),
+          TestIgnored("not tagged(weaver.junit.Meta$IgnoreAndOnly$)"),
+          TestStarted("only(weaver.junit.Meta$IgnoreAndOnly$)"),
+          TestFinished("only(weaver.junit.Meta$IgnoreAndOnly$)"),
+          TestSuiteFinished("weaver.junit.Meta$IgnoreAndOnly$")
+        )
+        expect.same(notifications, expected)
+      }
+  }
+
+  test("Tests tagged with ignore are ignored") { blocker =>
+    run(blocker, Meta.Ignore).map { notifications =>
+      val expected = List(
+        TestSuiteStarted("weaver.junit.Meta$Ignore$"),
+        TestIgnored("is ignored(weaver.junit.Meta$Ignore$)"),
+        TestStarted("not ignored 1(weaver.junit.Meta$Ignore$)"),
+        TestFinished("not ignored 1(weaver.junit.Meta$Ignore$)"),
+        TestStarted("not ignored 2(weaver.junit.Meta$Ignore$)"),
+        TestFinished("not ignored 2(weaver.junit.Meta$Ignore$)"),
+        TestSuiteFinished("weaver.junit.Meta$Ignore$")
+      )
+      expect.same(notifications, expected)
+    }
+  }
+
   test("Works when suite asks for global resources") {
     blocker =>
       run(blocker, classOf[Meta.Sharing]).map { notifications =>
@@ -142,6 +173,46 @@ object Meta {
     }
 
     pureTest("not only") {
+      failure("foo")
+    }
+
+  }
+
+  object Ignore extends SimpleIOSuite {
+
+    override def maxParallelism: Int = 1
+
+    pureTest("not ignored 1") {
+      success
+    }
+
+    pureTest("not ignored 2") {
+      success
+    }
+
+    pureTest("is ignored".ignore) {
+      failure("foo")
+    }
+
+  }
+
+  object IgnoreAndOnly extends SimpleIOSuite {
+
+    override def maxParallelism: Int = 1
+
+    pureTest("only".only) {
+      success
+    }
+
+    pureTest("not tagged") {
+      failure("foo")
+    }
+
+    pureTest("only and ignored".only.ignore) {
+      failure("foo")
+    }
+
+    pureTest("is ignored".ignore) {
       failure("foo")
     }
 

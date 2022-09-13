@@ -350,8 +350,9 @@ object WeaverPlugin extends AutoPlugin {
       .filter(_.startsWith("refs/tags/v"))
       .map(_.drop("refs/tags/v".length))
       .getOrElse(version.value),
-    publishTo         := sonatypePublishToBundle.value,
-    publishMavenStyle := true,
+    publishTo              := sonatypePublishToBundle.value,
+    sonatypeCredentialHost := "s01.oss.sonatype.org",
+    publishMavenStyle      := true,
     licenses := Seq(
       "Apache" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
     homepage := Some(url("https://github.com/disneystreaming")),

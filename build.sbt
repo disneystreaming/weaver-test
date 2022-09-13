@@ -34,6 +34,8 @@ ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports"
 Global / (Test / fork) := true
 Global / (Test / testOptions) += Tests.Argument("--quickstart")
 
+sonatypeCredentialHost := "s01.oss.sonatype.org"
+
 val Version = new {
   object CE3 {
     val fs2        = "3.2.14-75-7902cbf"

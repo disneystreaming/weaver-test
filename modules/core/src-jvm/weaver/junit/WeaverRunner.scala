@@ -18,7 +18,7 @@ class WeaverRunner(cls: Class[_], dummy: Boolean)
     Reflection.loadRunnableSuite(cls.getName(), getClass().getClassLoader())
   }
 
-  lazy val testDescriptions: Map[String, Description] = {
+  def testDescriptions: Map[String, Description] = {
     suite.plan.map(name =>
       name.name -> Description.createTestDescription(cls, name.name)).toMap
   }
@@ -59,13 +59,18 @@ class WeaverRunner(cls: Class[_], dummy: Boolean)
   }
 
   private def notifyIgnored(notifier: RunNotifier): Unit = {
-    val (only, ignored) = suite.plan.partition(_.tags(TestName.Tags.only))
-    if (only.nonEmpty) {
-      ignored
-        .map(_.name)
-        .map(testDescriptions)
-        .foreach(notifier.fireTestIgnored)
+    val (taggedIgnored, rest) =
+      suite.plan.partition(_.tags(TestName.Tags.ignore))
+    val (only, ignored) = rest.partition(_.tags(TestName.Tags.only))
+    val toNotifyIgnored = if (only.nonEmpty) {
+      taggedIgnored ++ ignored
+    } else {
+      taggedIgnored
     }
+    toNotifyIgnored
+      .map(_.name)
+      .map(testDescriptions)
+      .foreach(notifier.fireTestIgnored)
   }
 
   private def desc(outcome: TestOutcome): Description =
