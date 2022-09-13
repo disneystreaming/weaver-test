@@ -54,6 +54,15 @@ jobs:
           name: compilation-${{env.BUILD_KEY}}.zip
           path: /tmp/remote-cache
 
+  # This is dummy stage to configure github checks in a way
+  # that is agnostic to the build matrix
+  build-success-checkpoint:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Build matrix completed
+        run: echo "Build result is a ${{ needs.build.result }}"
+
   documentation:
     name: Documentation
     runs-on: ubuntu-latest
