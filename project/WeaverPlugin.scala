@@ -399,6 +399,7 @@ object WeaverPlugin extends AutoPlugin {
     val scala213Suffix = VirtualAxis.scalaABIVersion(scala213).idSuffix
     val scala212Suffix = VirtualAxis.scalaABIVersion(scala212).idSuffix
     val jsSuffix       = VirtualAxis.js.idSuffix
+    val nativeSuffix   = VirtualAxis.native.idSuffix
 
     val all: List[(Duplet, Seq[String])] =
       projects.collect {
@@ -418,8 +419,10 @@ object WeaverPlugin extends AutoPlugin {
           val platformAxis =
             if (projectId.endsWith(jsSuffix)) {
               projectId = projectId.dropRight(jsSuffix.length)
-
               "js"
+            } else if (projectId.endsWith(nativeSuffix)) {
+              projectId = projectId.dropRight(nativeSuffix.length)
+              "native"
             } else "jvm"
 
           Duplet(scalaAxis, platformAxis) -> lp.project
