@@ -7,6 +7,8 @@ import java.io.File
 import scala.concurrent.duration._
 
 import cats.effect._
+import cats.effect.std.CyclicBarrier
+import cats.syntax.all._
 
 // The build tool will only detect and run top-level test suites. We can however nest objects
 // that contain failing tests, to allow for testing the framework without failing the build
@@ -51,8 +53,11 @@ object MetaJVM {
       initialised: IO[Int],
       finalised: IO[Int],
       totalUses: Ref[IO, Int],
-      uses: Ref[IO, Int]) {
-    val getState: IO[(Int, Int, Int, Int)] = for {
+      uses: Ref[IO, Int],
+      latch: IO[Unit]
+  ) {
+    def getState(parallelWait: Boolean): IO[(Int, Int, Int, Int)] = for {
+      _ <- latch.whenA(parallelWait)
       i <- initialised
       f <- finalised
       t <- totalUses.updateAndGet(_ + 1)
@@ -64,14 +69,24 @@ object MetaJVM {
     def sharedResources(global: weaver.GlobalWrite): Resource[IO, Unit] =
       Resource.eval {
         for {
-          initialised <- Ref[IO].of(0)
-          finalised   <- Ref[IO].of(0)
-          totalUses   <- Ref[IO].of(0)
+          initialised   <- Ref[IO].of(0)
+          finalised     <- Ref[IO].of(0)
+          totalUses     <- Ref[IO].of(0)
+          parallelLatch <- CyclicBarrier[IO](3)
           resource =
             Resource.eval(Ref[IO].of(0)).flatMap { uses =>
-              Resource.make(initialised.update(_ + 1))(_ =>
-                finalised.update(_ + 1)).map(_ =>
-                new LazyState(initialised.get, finalised.get, totalUses, uses))
+              val resourceInitialisation =
+                Resource.make(initialised.update(_ + 1))(_ =>
+                  finalised.update(_ + 1))
+
+              val synchronisation =
+                parallelLatch.await
+
+              resourceInitialisation.as(new LazyState(initialised.get,
+                                                      finalised.get,
+                                                      totalUses,
+                                                      uses,
+                                                      synchronisation))
             }
           _ <- global.putLazy(resource)
         } yield ()
@@ -83,7 +98,7 @@ object MetaJVM {
     def sharedResource: Resource[IO, Res] = global.getOrFailR[LazyState]()
 
     test("Lazy resources should be instantiated only once") { state =>
-      IO.sleep(100.millis) *> state.getState.map {
+      state.getState(parallelWait = true).map {
         case (initialised, finalised, totalUses, localUses) =>
           expect.all(
             initialised == 1, // resource is initialised only once and uses in parallel
@@ -105,7 +120,7 @@ object MetaJVM {
         global.getOrFailR[LazyState]())
 
     test("Lazy resources should be instantiated several times") { state =>
-      state.getState.map {
+      state.getState(parallelWait = false).map {
         case (initialised, finalised, totalUses, localUses) =>
           expect.all(
             initialised == totalUses, // lazy resource will get initialised for each suite
