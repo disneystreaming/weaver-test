@@ -18,6 +18,9 @@ import sbt.testing.{ Task, TaskDef }
 import CECompat.Ref
 import CECompat.Semaphore
 
+import java.util.ServiceLoader
+import scala.collection.mutable.ListBuffer
+
 trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
 
   protected val suiteLoader: SuiteLoader[F]
@@ -107,9 +110,9 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
         makeTasks(taskDef, mkSuite)
     }.unzip
 
-    val globalResources = tasksAndSuites.collect {
+    val globalResources = (tasksAndSuites.collect {
       case (_, suiteLoader.GlobalResourcesRef(init)) => init
-    }.toList
+    }.toSet ++ spiGlobalResources).toList
 
     // Passing a promise to the FP side that needs to be fulfilled
     // when the global resources have been allocated.
@@ -190,6 +193,13 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
     CECompat.resourceLift(GlobalResourceF.createMap[F]).flatTap { map =>
       globalResources.traverse(_.sharedResources(map)).void
     }
+
+  private def spiGlobalResources: List[GlobalResourceF[F]] = {
+    val result = ListBuffer.empty[GlobalResourceF[F]]
+    val loader: ServiceLoader[GlobalResourceF[F]] = ServiceLoader.load(classOf[GlobalResourceF[F]])
+    loader.iterator().forEachRemaining(result += _)
+    result.toList
+  }
 
   private case class IOTask(
       fqn: String,
