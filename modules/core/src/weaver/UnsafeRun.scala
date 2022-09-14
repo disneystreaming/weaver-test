@@ -1,11 +1,11 @@
 package weaver
 
+import scala.concurrent.Future
 import scala.concurrent.duration.FiniteDuration
 
 import cats.Parallel
 import cats.effect.{ Async, Resource }
 import cats.syntax.all._
-import scala.concurrent.Future
 
 trait EffectCompat[F[_]] {
   implicit def parallel: Parallel[F]

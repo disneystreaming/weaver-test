@@ -1,8 +1,8 @@
 package weaver
 
-import sbt.testing.Task
-import sbt.testing.{ EventHandler, Logger }
 import scala.concurrent.Future
+
+import sbt.testing.{EventHandler, Logger, Task}
 
 private[weaver] trait AsyncTask extends Task {
   def executeFuture(

@@ -1,8 +1,9 @@
 package weaver
 
-import cats.effect.IO
 import scala.concurrent.Await
 import scala.concurrent.duration._
+
+import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 
 private[weaver] trait CatsUnsafeRunPlatformCompat {

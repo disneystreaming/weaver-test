@@ -1,8 +1,9 @@
 package weaver
 
-import sbt.testing.{ EventHandler, Logger, Task }
 import scala.concurrent.Await
 import scala.concurrent.duration._
+
+import sbt.testing.{ EventHandler, Logger, Task }
 
 private[weaver] trait PlatformTask extends AsyncTask {
 

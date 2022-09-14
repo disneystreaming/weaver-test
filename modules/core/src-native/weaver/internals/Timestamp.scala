@@ -1,7 +1,8 @@
 package weaver.internals
 
-import scala.scalanative.unsafe._
 import scala.scalanative.posix
+import scala.scalanative.unsafe._
+
 import posix.time
 import posix.timeOps._
 

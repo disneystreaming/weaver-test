@@ -1,7 +1,10 @@
 package weaver
 package framework
 
+import java.nio.ByteBuffer
+
 import scala.collection.mutable.ListBuffer
+import scala.concurrent.Future
 import scala.concurrent.duration._
 
 import cats.data.Chain
@@ -10,8 +13,6 @@ import cats.effect.{ Ref, Sync }
 import cats.syntax.all._
 
 import sbt.testing.{ EventHandler, Logger, Task, TaskDef }
-import java.nio.ByteBuffer
-import scala.concurrent.Future
 
 trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
   protected val args: Array[String]

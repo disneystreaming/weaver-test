@@ -1,8 +1,9 @@
 package weaver
 
+import scala.concurrent.Future
+
 import cats.effect.unsafe.implicits.global
 import cats.effect.{ FiberIO, IO }
-import scala.concurrent.Future
 
 object CatsUnsafeRun extends CatsUnsafeRun
 

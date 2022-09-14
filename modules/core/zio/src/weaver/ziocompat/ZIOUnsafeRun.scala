@@ -1,12 +1,13 @@
 package weaver
 package ziocompat
 
+import scala.concurrent.Future
+
 import cats.Parallel
 import cats.effect.Async
 
 import zio._
 import zio.interop.catz
-import scala.concurrent.Future
 
 object ZIOUnsafeRun extends UnsafeRun[T] {
 
