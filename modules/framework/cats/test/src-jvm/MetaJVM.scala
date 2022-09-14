@@ -82,8 +82,9 @@ object MetaJVM {
            *   - Change the number of LazyAccessParallel suites in "global lazy
            *     resources (parallel)" test
            *
-           *   - Change the number below 3. Add another test to the
-           *     LazyAccessParallel spec below
+           *   - Change the number below
+           *
+           *   - Add another test to the LazyAccessParallel spec below
            *
            * You are very likely to face a very confusing non-deterministic
            * behaviour. Those numbers need to be kept in sync.
