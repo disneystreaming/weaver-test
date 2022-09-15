@@ -1,5 +1,6 @@
 package weaver
 
+import scala.concurrent.Future
 import scala.concurrent.duration.FiniteDuration
 
 import cats.Parallel
@@ -37,7 +38,8 @@ trait UnsafeRun[F[_]] extends EffectCompat[F] {
   def background(task: F[Unit]): CancelToken
   def cancel(token: CancelToken): Unit
 
-  def sync(task: F[Unit]): Unit
-  def async(task: F[Unit]): Unit
+  def unsafeRunSync(task: F[Unit]): Unit
+  def unsafeRunAndForget(task: F[Unit]): Unit
+  def unsafeRunToFuture(task: F[Unit]): Future[Unit]
 
 }

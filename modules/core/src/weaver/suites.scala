@@ -63,7 +63,7 @@ abstract class RunnableSuite[F[_]] extends EffectSuite[F] {
   private[weaver] def getEffectCompat: UnsafeRun[EffectType] = effectCompat
   def plan : List[TestName]
   private[weaver] def runUnsafe(args: List[String])(report: TestOutcome => Unit) : Unit =
-    effectCompat.sync(run(args)(outcome => effectCompat.effect.delay(report(outcome))))
+    effectCompat.unsafeRunSync(run(args)(outcome => effectCompat.effect.delay(report(outcome))))
 }
 
 abstract class MutableFSuite[F[_]] extends RunnableSuite[F]  {
@@ -164,4 +164,3 @@ abstract class FunSuiteF[F[_]] extends RunnableSuite[F] with FunSuiteAux { self 
 private[weaver] object initError extends AssertionError(
       "Cannot define new tests after TestSuite was initialized"
     )
-

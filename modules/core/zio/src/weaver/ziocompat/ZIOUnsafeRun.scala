@@ -1,6 +1,8 @@
 package weaver
 package ziocompat
 
+import scala.concurrent.Future
+
 import cats.Parallel
 import cats.effect.Async
 
@@ -23,7 +25,11 @@ object ZIOUnsafeRun extends UnsafeRun[T] {
   def cancel(token: Fiber.Id => Exit[Throwable, Unit]): Unit =
     discard[Exit[Throwable, Unit]](token(Fiber.Id.None))
 
-  def sync(task: T[Unit]): Unit = runtime.unsafeRun(task)
+  def unsafeRunSync(task: T[Unit]): Unit = runtime.unsafeRun(task)
 
-  def async(task: T[Unit]): Unit = runtime.unsafeRunAsync(task)(_ => ())
+  def unsafeRunAndForget(task: T[Unit]): Unit =
+    runtime.unsafeRunAsync(task)(_ => ())
+
+  def unsafeRunToFuture(task: T[Unit]): Future[Unit] =
+    runtime.unsafeRunToFuture(task)
 }

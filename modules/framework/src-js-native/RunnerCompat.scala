@@ -1,10 +1,11 @@
 package weaver
 package framework
 
+import java.nio.ByteBuffer
+
 import scala.collection.mutable.ListBuffer
+import scala.concurrent.Future
 import scala.concurrent.duration._
-import scala.scalajs.js
-import scala.scalajs.js.JSON
 
 import cats.data.Chain
 import cats.effect.kernel.Async
@@ -23,15 +24,22 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
 
   private[weaver] val failedTests = ListBuffer.empty[(SuiteName, TestOutcome)]
 
-  def reportDone(out: TestOutcomeJS): Unit = {
-    val serialised = JSON.stringify(out, null)
+  def reportDone(out: TestOutcomeNative): Unit = {
+    val serialised = ReadWriter.writer { p =>
+      p.writeString(out.suiteName)
+      p.writeString(out.testName)
+      p.writeDouble(out.durationMs)
+      p.writeString(out.verboseFormatting)
+      ()
+    }
     channel match {
       case Some(send) => send(serialised)
-      case None       => failedTests.append(TestOutcomeJS.rehydrate(out))
+      case None       => failedTests.append(TestOutcomeNative.rehydrate(out))
     }
   }
 
-  def reportDoneF(out: TestOutcomeJS): F[Unit] = Sync[F].delay(reportDone(out))
+  def reportDoneF(out: TestOutcomeNative): F[Unit] =
+    Sync[F].delay(reportDone(out))
 
   override def deserializeTask(
       task: String,
@@ -64,7 +72,17 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
   }
 
   override def receiveMessage(msg: String): Option[String] = {
-    val outcome = JSON.parse(msg).asInstanceOf[TestOutcomeJS]
+    val outcome = ReadWriter.reader(msg) { p =>
+      val suite = p.readString()
+      val test  = p.readString()
+      val dur   = p.readDouble()
+      val verb  = p.readString()
+
+      new TestOutcomeNative(suiteName = suite,
+                            testName = test,
+                            durationMs = dur,
+                            verboseFormatting = verb)
+    }
     reportDone(outcome)
     None
   }
@@ -80,18 +98,12 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
   }
 
   private case class SbtTask(td: TaskDef, loader: Option[suiteLoader.SuiteRef])
-      extends Task {
+      extends PlatformTask {
     override def tags(): Array[String] = Array()
 
-    override def execute(
+    def executeFuture(
         eventHandler: EventHandler,
-        loggers: Array[Logger]): Array[Task] = Array()
-
-    override def execute(
-        eventHandler: EventHandler,
-        loggers: Array[Logger],
-        continuation: Array[Task] => Unit): Unit = {
-
+        loggers: Array[Logger]): Future[Unit] = {
       val fqn = taskDef().fullyQualifiedName()
 
       def reportTest(outcome: TestOutcome) =
@@ -116,9 +128,9 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
         failedF.flatMap {
           case c if c.isEmpty => effect.unit
           case failed => {
-            val ots: Chain[TestOutcomeJS] =
+            val ots: Chain[TestOutcomeNative] =
               failed.map { case (SuiteName(name), to) =>
-                TestOutcomeJS.from(name)(to)
+                TestOutcomeNative.from(name)(to)
               }
 
             ots.traverse(reportDoneF).void
@@ -134,31 +146,28 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
                       0.seconds,
                       Result.from(error),
                       Chain.empty)
-        reportTest(outcome)
-          .productR(reportDoneF(TestOutcomeJS.from(fqn)(outcome)))
+        reportTest(outcome).productR(
+          reportDoneF(TestOutcomeNative.from(fqn)(outcome)))
       }
 
       val action = loader match {
         case None => effect.unit
         case Some(loader) => for {
             outcomes <- Ref.of(Chain.empty[TestOutcome])
-            _ <-
-              Async[F]
-                .guaranteeCase(loader.suite.flatMap(runSuite(fqn,
-                                                             _,
-                                                             outcomes)))(
-                  _.fold(
-                    canceled = effect.unit,
-                    completed = _ *> finaliseCompleted(outcomes),
-                    errored = finaliseError(outcomes)
-                  )
+            loadAndRun = loader.suite.flatMap(runSuite(fqn, _, outcomes))
+            _ <- Async[F].background(loadAndRun).use {
+              _.flatMap {
+                _.fold(
+                  canceled = effect.unit,
+                  completed = _ *> finaliseCompleted(outcomes),
+                  errored = finaliseError(outcomes)
                 )
+              }
+            }
           } yield ()
       }
 
-      unsafeRun.async(action.attempt.map { exc =>
-        continuation(Array())
-      })
+      unsafeRun.unsafeRunToFuture(action)
     }
 
     override def taskDef(): TaskDef = td
@@ -167,34 +176,61 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
 
 }
 
-class TestOutcomeJS(
-    val suiteName: String,
-    val testName: String,
-    val durationMs: Double,
-    val verboseFormatting: String
-) extends js.Object {}
+private[weaver] object ReadWriter {
+  class Reader(bytes: ByteBuffer, private var pt: Int) {
+    def readString() = {
+      val stringSize = bytes.getInt()
+      val ar         = new Array[Byte](stringSize)
+      bytes.get(ar)
 
-object TestOutcomeJS {
-  def from(suiteName: String)(outcome: TestOutcome): TestOutcomeJS = {
-    TestOutcomeJS(
+      new String(ar)
+    }
+
+    def readDouble() = bytes.getDouble
+  }
+
+  class Writer(bb: ByteBuffer) {
+
+    def writeString(s: String) = {
+      bb.putInt(s.getBytes.size)
+      bb.put(s.getBytes())
+    }
+
+    def writeDouble(d: Double) = bb.putDouble(d)
+  }
+
+  def reader[A](s: String)(f: Reader => A) = {
+    val buf = ByteBuffer.wrap(s.getBytes)
+    f(new Reader(buf, 0))
+  }
+
+  def writer(f: Writer => Unit): String = {
+    val buf = ByteBuffer.allocate(2048)
+
+    f(new Writer(buf))
+
+    new String(buf.array())
+
+  }
+}
+
+case class TestOutcomeNative(
+    suiteName: String,
+    testName: String,
+    durationMs: Double,
+    verboseFormatting: String
+)
+
+object TestOutcomeNative {
+  def from(suiteName: String)(outcome: TestOutcome): TestOutcomeNative = {
+    new TestOutcomeNative(
       suiteName,
       outcome.name,
       outcome.duration.toMillis.toDouble,
       outcome.formatted(TestOutcome.Verbose))
   }
 
-  def apply(
-      suiteName: String,
-      testName: String,
-      durationMs: Double,
-      verboseFormatting: String): TestOutcomeJS =
-    js.Dynamic.literal(
-      suiteName = suiteName,
-      testName = testName,
-      durationMs = durationMs,
-      verboseFormatting = verboseFormatting).asInstanceOf[TestOutcomeJS]
-
-  def rehydrate(t: TestOutcomeJS): (SuiteName, TestOutcome) = {
+  def rehydrate(t: TestOutcomeNative): (SuiteName, TestOutcome) = {
     SuiteName(t.suiteName) -> DecodedOutcome(
       t.testName,
       t.durationMs.millis,
