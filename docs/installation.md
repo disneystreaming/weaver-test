@@ -3,9 +3,7 @@ id: installation
 title: Installation
 ---
 
-All of the artifacts below are available for both **JVM and Scala.js**.
-
-Note, that artifacts that use Cats Effect 3 are published under a different version to those published for Cats Effect 2 (minor version bump), because they're binary incompatible.
+The artifacts below are available for **Scala JVM, Scala.js, Scala-native**.
 
 ```scala mdoc:passthrough
 import weaver.docs._
@@ -30,4 +28,3 @@ the effect-type library you've elected to use (or test against).
 Refer yourself to the library specific pages to get the correct configuration.
 
 - [cats](cats_effect_usage.md)
-- [zio](zio_usage.md)
