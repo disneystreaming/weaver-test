@@ -67,9 +67,7 @@ case class Table(
 object Table {
   def row_name(artif: String) = artif match {
     case "cats"       => "Cats-Effect"
-    case "zio"        => "ZIO"
     case "scalacheck" => "ScalaCheck"
-    case "specs2"     => "Specs2 matchers"
     case "discipline" => "Discipline law testing"
     case _            => throw new RuntimeException("Not another effect type!")
   }
