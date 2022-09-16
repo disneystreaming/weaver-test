@@ -11,7 +11,7 @@ We (the maintainers) had tried to build an IntelliJ plugin. It worked but its ma
 
 ## Installation
 
-Ensure the JUnit plugin is enabled in IntelliJ. Nothing else is needed (as long as weaver is declared correctly in your build). 
+Ensure the JUnit plugin is enabled in IntelliJ. Nothing else is needed (as long as weaver is declared correctly in your build).
 
 ## Usage
 
@@ -46,7 +46,7 @@ object MyIgnoreSuite extends SimpleIOSuite {
 
 A `.only` extension method is provided on strings, and can be used when declaring tests. When at least one test is "tagged" as such in a suite, weaver will ignore all tests but the ones that have the "only" tag. Note: `.ignore` has precedence over `.only`.
 
-```scala mdoc  
+```scala mdoc
 import weaver._
 import cats.effect._
 

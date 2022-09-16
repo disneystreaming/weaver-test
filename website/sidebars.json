@@ -6,9 +6,7 @@
     ],
     "Effect types": [
       "cats",
-      "monix",
-      "monix_bio",
-      "zio"
+      "other_effects"
     ],
     "Features": [
       "expectations",
@@ -17,7 +15,6 @@
       "logging",
       "tagging",
       "scalacheck",
-      "specs2",
       "discipline",
       "parallelism",
       "funsuite",

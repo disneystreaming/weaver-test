@@ -18,11 +18,6 @@ NB : the implementations have to be static objects.
 ```scala mdoc
 import weaver._
 
-// The same API / developer experience is offered with any of the following imports :
-// import weaver.monixcompat._
-// import weaver.monixbiocompat._
-// import weaver.ziocompat._
-
 import cats.effect.IO
 import cats.effect.Resource
 
@@ -129,7 +124,7 @@ class MyOtherSuite(global: GlobalRead) extends IOSuite {
 
   def sharedResource: Resource[IO, String] = sharedResourceOrFallback(global)
 
-  test("oops, forgot something here") { sharedString =>    
+  test("oops, forgot something here") { sharedString =>
     IO(expect(sharedString == "hello world!"))
   }
 }

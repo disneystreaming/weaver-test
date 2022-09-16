@@ -38,16 +38,14 @@ sonatypeCredentialHost := "s01.oss.sonatype.org"
 
 val Version = new {
   object CE3 {
-    val fs2        = "3.3.0"
-    val cats       = "3.3.14"
-    val zioInterop = "3.2.9.1"
+    val fs2  = "3.3.0"
+    val cats = "3.3.14"
   }
 
   val expecty          = "0.16.0"
   val portableReflect  = "1.1.2"
   val junit            = "4.13.2"
   val scalajsStubs     = "1.1.0"
-  val specs2           = "4.16.1"
   val discipline       = "1.5.1"
   val catsLaws         = "2.8.0"
   val scalacheck       = "1.16.0"
@@ -65,7 +63,6 @@ lazy val allModules = Seq(
   core.projectRefs,
   framework.projectRefs,
   scalacheck.projectRefs,
-  specs2.projectRefs,
   discipline.projectRefs,
   intellijRunner.projectRefs,
   effectCores,
@@ -124,7 +121,7 @@ val allEffectCoresFilter: ScopeFilter =
 val allIntegrationsCoresFilter: ScopeFilter =
   ScopeFilter(
     inProjects(
-      (scalacheck.projectRefs ++ specs2.projectRefs ++ discipline.projectRefs): _*),
+      (scalacheck.projectRefs ++ discipline.projectRefs): _*),
     inConfigurations(Compile)
   )
 
@@ -132,7 +129,7 @@ lazy val docs = projectMatrix
   .in(file("modules/docs"))
   .jvmPlatform(Seq(WeaverPlugin.scala213))
   .enablePlugins(DocusaurusPlugin, MdocPlugin)
-  .dependsOn(core, scalacheck, cats, zio, specs2, discipline)
+  .dependsOn(core, scalacheck, cats, discipline)
   .settings(
     moduleName := "docs",
     watchSources += (ThisBuild / baseDirectory).value / "docs",
@@ -229,19 +226,6 @@ lazy val scalacheck = projectMatrix
       "org.typelevel"  %%% "cats-effect-testkit" % Version.CE3.cats % Test)
   )
 
-lazy val specs2 = projectMatrix
-  .in(file("modules/specs2"))
-  .sparse(withJS = true, withScala3 = false)
-  .dependsOn(core, cats % "test->compile")
-  .settings(
-    name           := "specs2",
-    testFrameworks := Seq(new TestFramework("weaver.framework.CatsEffect")),
-    libraryDependencies ++= Seq(
-      "org.specs2" %%% "specs2-matcher" % Version.specs2
-    )
-  )
-  .settings(WeaverPlugin.simpleLayout)
-
 lazy val discipline = projectMatrix
   .in(file("modules/discipline"))
   .sparse(withJS = true, withScala3 = true)
@@ -261,7 +245,7 @@ lazy val discipline = projectMatrix
 // #################################################################################################
 
 lazy val effectCores: Seq[ProjectReference] =
-  coreCats.projectRefs ++ coreZio.projectRefs
+  coreCats.projectRefs
 
 lazy val coreCats = projectMatrix
   .in(file("modules/core/cats"))
@@ -271,27 +255,11 @@ lazy val coreCats = projectMatrix
   .settings(scalaJSMacroTask)
   .settings(name := "cats-core")
 
-lazy val coreZio = projectMatrix
-  .in(file("modules/core/zio"))
-  .sparse(withJS = true, withScala3 = false)
-  .dependsOn(core)
-  .settings(WeaverPlugin.simpleLayout)
-  .settings(
-    name := "zio-core",
-    libraryDependencies ++=
-      Seq(
-        "dev.zio" %%% "zio-interop-cats" % Version.CE3.zioInterop
-      )
-  )
-
 // #################################################################################################
 // Effect-specific frameworks
 // #################################################################################################
 
-lazy val effectFrameworks: Seq[ProjectReference] = Seq(
-  cats.projectRefs,
-  zio.projectRefs
-).flatten
+lazy val effectFrameworks: Seq[ProjectReference] = cats.projectRefs
 
 lazy val cats = projectMatrix
   .in(file("modules/framework/cats"))
@@ -301,17 +269,6 @@ lazy val cats = projectMatrix
   .settings(
     name           := "cats",
     testFrameworks := Seq(new TestFramework("weaver.framework.CatsEffect"))
-  )
-
-lazy val zio = projectMatrix
-  .in(file("modules/framework/zio"))
-  .sparse(withJS = true, withScala3 = false)
-  .dependsOn(framework, coreZio, scalacheck % "test->compile")
-  .settings(WeaverPlugin.simpleLayout)
-  .settings(
-    name           := "zio",
-    testFrameworks := Seq(new TestFramework("weaver.framework.ZIO")),
-    libraryDependencies += "io.github.cquiroz" %%% "scala-java-time" % Version.scalaJavaTime % Test
   )
 
 // #################################################################################################

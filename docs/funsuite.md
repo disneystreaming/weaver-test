@@ -23,11 +23,3 @@ object CatsFunSuite extends weaver.FunSuite {
 ```scala mdoc:passthrough
 println(weaver.docs.Output.runSuites(CatsFunSuite))
 ```
-
-A `FunSuite` alias is provided in each of the frameworks supported by weaver:
-
-```scala mdoc
-object ZioBIOFunSuite extends weaver.ziocompat.FunSuite {
-  test("asserts") { expect(Some(5).contains(5)) }
-}
-```
