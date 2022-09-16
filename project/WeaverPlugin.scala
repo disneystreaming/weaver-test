@@ -375,21 +375,7 @@ object WeaverPlugin extends AutoPlugin {
         email = "anton.sviridov@disneystreaming.com",
         url = url("https://github.com/keynmol")
       )
-    ),
-    credentials ++=
-      sys.env
-        .get("SONATYPE_USER")
-        .zip(sys.env.get("SONATYPE_PASSWORD"))
-        .map {
-          case (username, password) =>
-            Credentials(
-              "Sonatype Nexus Repository Manager",
-              "oss.sonatype.org",
-              username,
-              password
-            )
-        }
-        .toSeq
+    )
   )
 
   def createBuildCommands(projects: Seq[ProjectReference]) = {
