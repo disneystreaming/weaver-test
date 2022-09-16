@@ -37,16 +37,17 @@ jobs:
 
       - name: Run tests
         run: |
-          sbt test_$BUILD_KEY \
-              pushRemoteCache_$BUILD_KEY
+          sbt --client test_$BUILD_KEY
+          sbt --client pushRemoteCache_$BUILD_KEY
 
       - name: Run checks
         if: matrix.scalaVersion == '2_13' && matrix.scalaPlatform == 'jvm'
         run: |
-          sbt scalafix_$BUILD_KEY \
-              scalafixTests_$BUILD_KEY \
-              scalafmt_$BUILD_KEY \
-              "docs/mdoc --in $PWD/README.md; docs/mdoc"
+          sbt --client scalafix_$BUILD_KEY
+          sbt --client scalafixTests_$BUILD_KEY
+          sbt --client scalafmt_$BUILD_KEY
+          sbt --client "docs/mdoc --in $PWD/README.md --out $(mktemp -d)/checked.README.md"
+          sbt --client docs/mdoc
 
       - name: Upload compilation cache
         uses: actions/upload-artifact@v2
