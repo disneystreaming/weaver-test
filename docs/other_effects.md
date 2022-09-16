@@ -12,7 +12,7 @@ to resurrect support for the effect types they use in repository they control.
 
 You can read about the rationale for decision [here](https://github.com/disneystreaming/weaver-test/discussions/570). Feel free to ping us via a github discussion, if you seek to resurrect support for a given effect-type.
 
-If you are looking for documentation of them maintenance branch of weaver that did support other effect types, you can find it [over there](https://disneystreaming.github.io/weaver-test/docs/0.6.15/installation).
+If you are looking for documentation of the maintenance branch of weaver that did support other effect types, you can find it [over there](https://disneystreaming.github.io/weaver-test/docs/0.6.15/installation).
 
 We will try to fix critical bugs on the 0.6/0.7 series, as they get found.
 
