@@ -1,0 +1,32 @@
+{
+  "version-0.8.0-docs": {
+    "Overview": [
+      "version-0.8.0-installation",
+      "version-0.8.0-motivation"
+    ],
+    "Effect types": [
+      "version-0.8.0-cats",
+      "version-0.8.0-other_effects"
+    ],
+    "Features": [
+      "version-0.8.0-expectations",
+      "version-0.8.0-resources",
+      "version-0.8.0-global_resources",
+      "version-0.8.0-logging",
+      "version-0.8.0-tagging",
+      "version-0.8.0-scalacheck",
+      "version-0.8.0-discipline",
+      "version-0.8.0-parallelism",
+      "version-0.8.0-funsuite",
+      "version-0.8.0-filtering"
+    ],
+    "Sample reports": [
+      "version-0.8.0-multiple_suites_success",
+      "version-0.8.0-multiple_suites_failures",
+      "version-0.8.0-multiple_suites_logging"
+    ],
+    "IDE integrations": [
+      "version-0.8.0-intellij"
+    ]
+  }
+}
