@@ -2,9 +2,9 @@ name: CI
 
 on:
   pull_request:
-    branches: ["master", "series/*"]
+    branches: ["main", "series/*"]
   push:
-    branches: ["master", "series/*"]
+    branches: ["main", "series/*"]
     tags: ["v*"]
 
 concurrency:
