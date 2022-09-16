@@ -1,5 +1,7 @@
 package weaver
 
+import scala.concurrent.Future
+
 import cats.effect.unsafe.implicits.global
 import cats.effect.{ FiberIO, IO }
 
@@ -12,8 +14,9 @@ trait CatsUnsafeRun extends UnsafeRun[IO] with CatsUnsafeRunPlatformCompat {
   override implicit val parallel = IO.parallelForIO
   override implicit val effect   = IO.asyncForIO
 
-  def cancel(token: CancelToken): Unit = sync(token.cancel)
+  def cancel(token: CancelToken): Unit = unsafeRunSync(token.cancel)
 
-  def async(task: IO[Unit]): Unit = task.unsafeRunAndForget()
+  def unsafeRunAndForget(task: IO[Unit]): Unit = task.unsafeRunAndForget()
+  def unsafeRunToFuture(task: IO[Unit]): Future[Unit] = task.unsafeToFuture()
 
 }

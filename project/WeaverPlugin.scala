@@ -8,6 +8,7 @@ import sbtprojectmatrix.ProjectMatrixKeys.virtualAxes
 import sbt.internal.ProjectMatrix
 
 import org.scalajs.sbtplugin.ScalaJSPlugin.autoImport.scalaJSLinkerConfig
+import scala.scalanative.sbtplugin.ScalaNativePlugin
 import org.scalajs.linker.interface.ModuleKind
 import org.scalajs.sbtplugin.ScalaJSPlugin
 import scala.collection.immutable.Nil
@@ -48,11 +49,15 @@ object WeaverPlugin extends AutoPlugin {
         val scalaJSSettings: Configure =
           if (platform == VirtualAxis.js) configureScalaJSProject else identity
 
+        val scalaNativeSettings: Configure =
+          if (platform == VirtualAxis.native) configureScalaNativeProject
+          else identity
+
         val ce3VersionOverride: Configure =
           _.settings(versionOverrideForCE3)
 
         val configureProject =
-          addScalafix andThen addScalafmt andThen scalaJSSettings andThen ce3VersionOverride
+          addScalafix andThen addScalafmt andThen scalaJSSettings andThen scalaNativeSettings andThen ce3VersionOverride
 
         projectMatrix.defaultAxes(defaults: _*).customRow(
           scalaVersions = List(scalaVersion),
@@ -67,21 +72,23 @@ object WeaverPlugin extends AutoPlugin {
     ): ConfigureX = {
       scalaVersions.map(addOne(_, platform)).reduce(_ andThen _)
     }
-    def full = sparse(true, true)
+    def full = sparse(true, true, true)
 
     def sparse(
-        withJS: Boolean,
-        withScala3: Boolean
+        withJS: Boolean = false,
+        withNative: Boolean = false,
+        withScala3: Boolean = false
     ): ProjectMatrix = {
       val defaultScalaVersions = supportedScala2Versions
       val defaultPlatform      = List(VirtualAxis.jvm)
 
       val addJs     = if (withJS) List(VirtualAxis.js) else Nil
+      val addNative = if (withNative) List(VirtualAxis.native) else Nil
       val addScala3 = if (withScala3) List(scala3) else Nil
 
       val configurators = for {
         scalaVersion <- defaultScalaVersions ++ addScala3
-        platform     <- defaultPlatform ++ addJs
+        platform     <- defaultPlatform ++ addJs ++ addNative
       } yield addOne(scalaVersion, platform)
 
       val configure: ConfigureX = configurators.reduce(_ andThen _)
@@ -130,6 +137,13 @@ object WeaverPlugin extends AutoPlugin {
 
     proj.enablePlugins(ScalaJSPlugin)
       .settings((linkerConfig ++ batchOnCi): _*)
+      .settings(
+        Test / fork := false
+      )
+  }
+
+  def configureScalaNativeProject(proj: Project): Project = {
+    proj.enablePlugins(ScalaNativePlugin)
       .settings(
         Test / fork := false
       )
@@ -298,8 +312,12 @@ object WeaverPlugin extends AutoPlugin {
       Def.setting((Compile / scalaSource).value.getParentFile().getParentFile().getParentFile())
 
     def suffixes(axes: Seq[VirtualAxis]) = axes.collect {
-      case VirtualAxis.js  => List("", "-js")
-      case VirtualAxis.jvm => List("", "-jvm")
+      case VirtualAxis.js =>
+        List("", "-js", "-jvm-js", "-js-native")
+      case VirtualAxis.jvm =>
+        List("", "-jvm", "-jvm-js", "-jvm-native")
+      case VirtualAxis.native =>
+        List("", "-native", "-jvm-native", "-js-native")
       case ScalaVersionAxis(ver, _) =>
         if (ver.startsWith("3.")) List("", "-scala-3")
         else List("", "-scala-2")
@@ -381,6 +399,7 @@ object WeaverPlugin extends AutoPlugin {
     val scala213Suffix = VirtualAxis.scalaABIVersion(scala213).idSuffix
     val scala212Suffix = VirtualAxis.scalaABIVersion(scala212).idSuffix
     val jsSuffix       = VirtualAxis.js.idSuffix
+    val nativeSuffix   = VirtualAxis.native.idSuffix
 
     val all: List[(Duplet, Seq[String])] =
       projects.collect {
@@ -400,8 +419,10 @@ object WeaverPlugin extends AutoPlugin {
           val platformAxis =
             if (projectId.endsWith(jsSuffix)) {
               projectId = projectId.dropRight(jsSuffix.length)
-
               "js"
+            } else if (projectId.endsWith(nativeSuffix)) {
+              projectId = projectId.dropRight(nativeSuffix.length)
+              "native"
             } else "jvm"
 
           Duplet(scalaAxis, platformAxis) -> lp.project

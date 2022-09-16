@@ -38,11 +38,11 @@ sonatypeCredentialHost := "s01.oss.sonatype.org"
 
 val Version = new {
   object CE3 {
-    val fs2  = "3.2.12"
+    val fs2  = "3.3.0"
     val cats = "3.3.14"
   }
 
-  val expecty          = "0.15.4"
+  val expecty          = "0.16.0"
   val portableReflect  = "1.1.2"
   val junit            = "4.13.2"
   val scalajsStubs     = "1.1.0"
@@ -201,10 +201,15 @@ lazy val framework = projectMatrix
           "org.scala-sbt" % "test-interface" % Version.testInterface,
           "org.scala-js" %%% "scalajs-stubs" % Version.scalajsStubs % "provided" cross CrossVersion.for3Use2_13
         )
-      else
+      else if (virtualAxes.value.contains(VirtualAxis.js))
         Seq(
           "org.scala-js" %% "scalajs-test-interface" % scalaJSVersion cross CrossVersion.for3Use2_13
         )
+      else if (virtualAxes.value.contains(VirtualAxis.native))
+        Seq(
+          "org.scala-native" %%% "test-interface" % nativeVersion
+        )
+      else Seq.empty
     } ++ Seq("junit" % "junit" % Version.junit)
   )
   .settings(WeaverPlugin.simpleLayout)

@@ -17,9 +17,8 @@ private[weaver] trait DogFoodCompat[F[_]] { self: DogFood[F] =>
       logger: sbt.testing.Logger,
       maxParallelism: Int)(tasks: List[sbt.testing.Task]): F[Unit] = {
     tasks.traverse { task =>
-      self.framework.unsafeRun.async {
-        (cb: (Either[Throwable, Unit] => Unit)) =>
-          task.execute(eventHandler, Array(logger), _ => cb(Right(())))
+      self.framework.unsafeRun.fromFuture {
+        task.asInstanceOf[AsyncTask].executeFuture(eventHandler, Array(logger))
       }
     }.map { _ =>
       Reporter.logRunFinished(Array(logger))(

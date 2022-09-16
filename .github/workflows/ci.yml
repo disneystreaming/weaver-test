@@ -7,6 +7,10 @@ on:
     branches: ["master", "series/*"]
     tags: ["v*"]
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     name: Test ${{matrix.scalaVersion}} (${{matrix.scalaPlatform}})
@@ -16,7 +20,7 @@ jobs:
         os: [ubuntu-latest]
         java: [adopt@1.8]
         scalaVersion: ["2_12", "2_13", "3"]
-        scalaPlatform: ["jvm", "js"]
+        scalaPlatform: ["jvm", "js", "native"]
     runs-on: ${{ matrix.os }}
     env:
       BUILD_KEY: ${{matrix.scalaVersion}}_${{matrix.scalaPlatform}}
