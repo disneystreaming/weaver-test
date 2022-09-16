@@ -53,11 +53,8 @@ object WeaverPlugin extends AutoPlugin {
           if (platform == VirtualAxis.native) configureScalaNativeProject
           else identity
 
-        val ce3VersionOverride: Configure =
-          _.settings(versionOverrideForCE3)
-
         val configureProject =
-          addScalafix andThen addScalafmt andThen scalaJSSettings andThen scalaNativeSettings andThen ce3VersionOverride
+          addScalafix andThen addScalafmt andThen scalaJSSettings andThen scalaNativeSettings
 
         projectMatrix.defaultAxes(defaults: _*).customRow(
           scalaVersions = List(scalaVersion),
@@ -97,26 +94,6 @@ object WeaverPlugin extends AutoPlugin {
     }
 
   }
-
-  lazy val versionOverrideForCE3: Seq[Def.Setting[_]] = Seq(
-    version := {
-      val regex = "^(\\d+).(\\d+).(\\d+).*$".r
-
-      val original = version.value
-
-      original match {
-        case regex(major, minor, patch) =>
-          if (minor == "6")
-            original.replaceFirst(s"$major.$minor.$patch",
-                                  s"$major.${minor.toInt + 1}.$patch")
-          else
-            original
-        case _ =>
-          throw new RuntimeException(
-            s"Version $original doesn't match SemVer format")
-      }
-    }
-  )
 
   def configureScalaJSProject(proj: Project): Project = {
 
