@@ -4,7 +4,7 @@ id: other_effects
 title: Other effects
 ---
 
-Starting with version 0.8.0, Weaver does no longer offer out-of-the-box support for other effect types
+Starting with version 0.8.0, Weaver no longer offers out-of-the-box support for other effect types
 than cats-effect.
 
 We (maintainers) are happy to keep the core of weaver effect-agnostic, in an effort to allow for third party
