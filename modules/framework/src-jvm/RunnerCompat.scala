@@ -10,13 +10,11 @@ import scala.concurrent.{ ExecutionContext, Promise }
 import scala.util.Try
 
 import cats.data.Chain
-import cats.effect.{ Sync, _ }
+import cats.effect.std.Semaphore
+import cats.effect.{ Ref, Sync, _ }
 import cats.syntax.all._
 
 import sbt.testing.{ Task, TaskDef }
-
-import CECompat.Ref
-import CECompat.Semaphore
 
 trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
 
@@ -142,6 +140,16 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
     tasks(Array(deserializer(task))).head
   }
 
+  private[this] def onErrorEnsure[A](r: Resource[F, A])(
+      f: Throwable => F[Unit]): Resource[F, A] = {
+    import Resource.ExitCase._
+    r.onFinalizeCase {
+      case Canceled   => Async[F].unit
+      case Succeeded  => Async[F].unit
+      case Errored(e) => f(e)
+    }
+  }
+
   private def run(
       globalResources: List[GlobalResourceF[F]],
       waitForResourcesShutdown: java.util.concurrent.Semaphore,
@@ -149,7 +157,7 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
       gate: Promise[Unit]): F[Unit] = {
 
     def preventDeadlock[A](resource: Resource[F, A]) = {
-      CECompat.onErrorEnsure(resource) {
+      onErrorEnsure(resource) {
         error =>
           effect.delay(isDone.set(true)) *>
             effect.delay(error.printStackTrace(errorStream)) *>
@@ -187,7 +195,7 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
   private def resourceMap(
       globalResources: List[GlobalResourceF[F]]
   ): Resource[F, GlobalResourceF.Read[F]] =
-    CECompat.resourceLift(GlobalResourceF.createMap[F]).flatTap { map =>
+    Resource.eval(GlobalResourceF.createMap[F]).flatTap { map =>
       globalResources.traverse(_.sharedResources(map)).void
     }
 
@@ -217,9 +225,9 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
       val finalizer =
         maybePublish.productR(broker.send(SuiteFinished(SuiteName(fqn))))
 
-      CECompat.guaranteeCase(runSuite)(
-        completed = finalizer,
-        cancelled = finalizer,
+      Async[F].guaranteeCase(runSuite)(_.fold(
+        completed = _ *> finalizer,
+        canceled = finalizer,
         errored = { (error: Throwable) =>
           val outcome =
             TestOutcome("Unexpected failure",
@@ -227,11 +235,12 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
                         Result.from(error),
                         Chain.empty)
 
-          CECompat.guarantee(outcomes
-            .update(_.append(SuiteName(fqn) -> outcome))
-            .productR(broker.send(TestFinished(outcome))))(finalizer)
+          Async[F].guarantee(outcomes
+                               .update(_.append(SuiteName(fqn) -> outcome))
+                               .productR(broker.send(TestFinished(outcome))),
+                             finalizer)
         }
-      ).handleErrorWith { case scala.util.control.NonFatal(_) =>
+      )).handleErrorWith { case scala.util.control.NonFatal(_) =>
         effect.unit // avoid non-fatal errors propagating up
       }
     }

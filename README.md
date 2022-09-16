@@ -9,7 +9,7 @@
 # Weaver-test
 
 A test-framework built on [cats-effect](https://github.com/typelevel/cats-effect) and
-[fs2](https://github.com/functional-streams-for-scala/fs2), with [zio](https://zio.dev) and [monix](https://monix.io) interop.
+[fs2](https://github.com/functional-streams-for-scala/fs2)
 
 ## Installation
 
@@ -23,24 +23,8 @@ Refer yourself to the [releases](https://github.com/disneystreaming/weaver-test/
 libraryDependencies += "com.disneystreaming" %% "weaver-cats" % "x.y.z" % Test
 testFrameworks += new TestFramework("weaver.framework.CatsEffect")
 
-// optionally (for ZIO usage)
-libraryDependencies +=  "com.disneystreaming" %% "weaver-zio" % "x.y.z" % Test
-testFrameworks += new TestFramework("weaver.framework.ZIO")
-
-// optionally (for Monix usage)
-libraryDependencies +=  "com.disneystreaming" %% "weaver-monix" % "x.y.z" % Test
-testFrameworks += new TestFramework("weaver.framework.Monix")
-
-// optionally (for Monix BIO usage)
-libraryDependencies +=  "com.disneystreaming" %% "weaver-monix-bio" % "x.y.z" % Test
-testFrameworks += new TestFramework("weaver.framework.MonixBIO")
-
 // optionally (for Scalacheck usage)
 libraryDependencies +=  "com.disneystreaming" %% "weaver-scalacheck" % "x.y.z" % Test
-
-// optionally (for specs2 interop)
-libraryDependencies +=  "com.disneystreaming" %% "weaver-specs2" % "x.y.z" % Test
-
 ```
 
 ## Motivation
@@ -132,20 +116,11 @@ object MySuite extends IOSuite {
 
 Weaver also includes support for
 
-- `ZIO`-based suites via the optional `weaver-zio` dependency
-- `Monix`-based suites via the optional `weaver-monix` dependency
-- `Monix BIO`-based suites via the optional `weaver-monix-bio` dependency
 
 | Alias             | Suite name               | Provided by        | Use case                                      |
 | ----------------- | ------------------------ | ------------------ | --------------------------------------------- |
 | `SimpleIOSuite`   | `SimpleMutableIOSuite`   | `weaver-cats`      | Each test is a standalone `IO` action         |
 | `IOSuite`         | `MutableIOSuite`         | `weaver-cats`      | Each test needs access to a shared `Resource` |
-| `SimpleZIOSuite`  | `SimpleMutableZIOSuite`  | `weaver-zio`       | Each test is a standalone `ZIO` action        |
-| `ZIOSuite[R]`     | `MutableZIOSuite[R]`     | `weaver-zio`       | Each test needs access to a shared `ZLayer`   |
-| `SimpleTaskSuite` | `SimpleMutableTaskSuite` | `weaver-monix`     | Each test is a standalone `Task` action       |
-| `TaskSuite`       | `MutableTaskSuite`       | `weaver-monix`     | Each test needs access to a shared `Resource` |
-| `SimpleIOSuite`   | `SimpleMutableIOSuite`   | `weaver-monix-bio` | Each test is a standalone `Task` action       |
-| `IOSuite`         | `MutableIOSuite`         | `weaver-monix-bio` | Each test needs access to a shared `Resource` |
 
 ### Expectations (assertions)
 

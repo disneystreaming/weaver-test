@@ -77,5 +77,5 @@ object ForallExamples extends SimpleIOSuite with Checkers {
 ```
 
 ```scala mdoc:passthrough
-println(weaver.docs.Output.runSuites(ForallExamples).unsafeRunSync())
+println(weaver.docs.Output.runSuites(ForallExamples))
 ```

@@ -5,7 +5,7 @@ title: Motivation
 
 ## A test framework for integration tests
 
-Weaver was built for integration/end-to-end tests. It aims at making tests faster and make issues easier to debug, by treating effect types (IO/Task/ZIO) as first-class citizens.
+Weaver was built for integration/end-to-end tests. It aims at making tests faster and make issues easier to debug, by treating effect types as first-class citizens.
 
 ## History
 

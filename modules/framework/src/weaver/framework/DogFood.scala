@@ -25,11 +25,11 @@ abstract class DogFood[F[_]](
   import DogFood.State
 
   // ScalaJS executes asynchronously, therefore we need to wait
-  // for some time before getting the logs back. On JVM platform
+  // for some time before getting the logs back. On JVM/Native platform
   // we do not need to wait, since the suite will run synchronously
   private val patience: Option[FiniteDuration] = PlatformCompat.platform match {
-    case JS  => 2.seconds.some
-    case JVM => none
+    case JS           => 2.seconds.some
+    case JVM | Native => none
   }
 
   def runSuites(

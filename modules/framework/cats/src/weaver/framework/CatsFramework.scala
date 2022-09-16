@@ -10,7 +10,9 @@ class CatsEffect(errorStream: PrintStream)
                             CatsFingerprints,
                             CatsUnsafeRun,
                             errorStream) {
-  def this() = this(System.err)
+  def this() = {
+    this(System.err)
+  }
 }
 
 object CatsFingerprints

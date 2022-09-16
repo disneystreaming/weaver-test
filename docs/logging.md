@@ -35,5 +35,5 @@ object LoggedTests extends IOSuite {
 ```
 
 ```scala mdoc:passthrough
-println(weaver.docs.Output.runSuites(LoggedTests).unsafeRunSync())
+println(weaver.docs.Output.runSuites(LoggedTests))
 ```

@@ -35,5 +35,5 @@ object MyAnotherSuite extends SimpleIOSuite {
 The report looks like this:
 
 ```scala mdoc:passthrough
-println(weaver.docs.Output.runSuites(MySuite, MyAnotherSuite).unsafeRunSync())
+println(weaver.docs.Output.runSuites(MySuite, MyAnotherSuite))
 ```

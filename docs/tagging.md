@@ -34,5 +34,5 @@ object TaggingSuite extends SimpleIOSuite {
 ```
 
 ```scala mdoc:passthrough
-println(weaver.docs.Output.runSuites(TaggingSuite).unsafeRunSync())
+println(weaver.docs.Output.runSuites(TaggingSuite))
 ```

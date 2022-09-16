@@ -198,7 +198,7 @@ object ExpectationsSuite extends SimpleIOSuite {
 ```
 
 ```scala mdoc:passthrough
-println(weaver.docs.Output.runSuites(ExpectationsSuite).unsafeRunSync())
+println(weaver.docs.Output.runSuites(ExpectationsSuite))
 ```
 
 ## Tracing locations of failed expectations
@@ -223,5 +223,5 @@ object TracingSuite extends SimpleIOSuite {
 ```
 
 ```scala mdoc:passthrough
-println(weaver.docs.Output.runSuites(TracingSuite).unsafeRunSync())
+println(weaver.docs.Output.runSuites(TracingSuite))
 ```

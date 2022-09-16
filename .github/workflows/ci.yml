@@ -2,25 +2,28 @@ name: CI
 
 on:
   pull_request:
-    branches: ["*"]
+    branches: ["main", "series/*"]
   push:
-    branches: ["main"]
+    branches: ["main", "series/*"]
     tags: ["v*"]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
-    name: Test ${{matrix.ceVersion}} ${{matrix.scalaVersion}} (${{matrix.scalaPlatform}})
+    name: Test ${{matrix.scalaVersion}} (${{matrix.scalaPlatform}})
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        java: [adopt@1.8]
+        java: [8]
         scalaVersion: ["2_12", "2_13", "3"]
-        scalaPlatform: ["jvm", "js"]
-        ceVersion: ["CE2", "CE3"]
+        scalaPlatform: ["jvm", "js", "native"]
     runs-on: ${{ matrix.os }}
     env:
-      BUILD_KEY: ${{matrix.ceVersion}}_${{matrix.scalaVersion}}_${{matrix.scalaPlatform}}
+      BUILD_KEY: ${{matrix.scalaVersion}}_${{matrix.scalaPlatform}}
     steps:
       - name: Checkout current branch
         uses: actions/checkout@v2
@@ -30,10 +33,11 @@ jobs:
         with:
           extraKey: ${{ env.BUILD_KEY }}
 
-      - name: Setup Java and Scala
-        uses: olafurpg/setup-scala@v10
+      - uses: actions/setup-java@v3
         with:
+          distribution: 'temurin' 
           java-version: ${{ matrix.java }}
+          cache: 'sbt'
 
       - name: Run tests
         run: |
@@ -68,15 +72,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout current branch
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
-      - name: Cache
-        uses: coursier/cache-action@v6
-
-      - name: Setup Java and Scala
-        uses: olafurpg/setup-scala@v10
+      - uses: actions/setup-java@v3
         with:
-          java-version: adopt@1.8
+          distribution: 'temurin' 
+          java-version: '8'
+          cache: 'sbt'
 
       - name: Run mdoc
         run: sbt "docs/mdoc"
@@ -84,21 +86,19 @@ jobs:
   publish:
     name: Publish
     needs: [documentation, build]
-    if: github.event_name != 'pull_request' && (startsWith(github.ref, 'refs/tags/v'))
+    if: github.event_name != 'pull_request' && (startsWith(github.ref, 'refs/tags/v') || (github.ref == 'refs/heads/main'))
     runs-on: ubuntu-latest
     steps:
       - name: Checkout current branch (full)
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
-      - name: Setup Java and Scala
-        uses: olafurpg/setup-scala@v10
+      - uses: actions/setup-java@v3
         with:
-          java-version: adopt@1.8
-
-      - name: Cache
-        uses: coursier/cache-action@v6
+          distribution: 'temurin' 
+          java-version: '8'
+          cache: 'sbt'
 
       - name: Download compilation cache
         uses: actions/download-artifact@v2
@@ -110,8 +110,7 @@ jobs:
 
       - name: Publish ${{ github.ref }}
         run: |
-          echo $PGP_SECRET | base64 --decode | gpg --import --no-tty --batch --yes
-          sbt 'pullRemoteCache; release'
+          sbt 'pullRemoteCache; ci-release'
         env:
           PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
           PGP_SECRET: ${{ secrets.PGP_SECRET }}
@@ -125,7 +124,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout current branch (full)
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
           lfs: true

@@ -68,7 +68,7 @@ abstract class WeaverFingerprints[F[_]](implicit F: Sync[F]) {
    * [[weaver.EffectSuite]].
    */
   object SuiteFingerprint extends WeaverFingerprint {
-    val isModule                           = true
+    def isModule()                         = true
     def requireNoArgConstructor(): Boolean = true
     def superclassName(): String           = SuiteClass.runtimeClass.getName
   }
@@ -79,13 +79,13 @@ abstract class WeaverFingerprints[F[_]](implicit F: Sync[F]) {
    * [[weaver.GlobalResources.Read]] parameter.
    */
   object ResourceSharingSuiteFingerprint extends WeaverFingerprint {
-    val isModule                           = false
+    def isModule()                         = false
     def requireNoArgConstructor(): Boolean = false
     def superclassName(): String           = SuiteClass.runtimeClass.getName
   }
 
   object GlobalResourcesFingerprint extends WeaverFingerprint {
-    val isModule                           = true
+    def isModule()                         = true
     def requireNoArgConstructor(): Boolean = true
     def superclassName(): String = GlobalResourcesInitClass.runtimeClass.getName
   }
