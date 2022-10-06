@@ -48,10 +48,10 @@ val Version = new {
   val scalajsStubs     = "1.1.0"
   val discipline       = "1.5.1"
   val catsLaws         = "2.8.0"
-  val scalacheck       = "1.16.0"
+  val scalacheck       = "1.17.0"
   val testInterface    = "1.0"
   val scalaJavaTime    = "2.4.0"
-  val scalajsMacroTask = "1.0.0"
+  val scalajsMacroTask = "1.1.0"
 }
 
 lazy val root = project
