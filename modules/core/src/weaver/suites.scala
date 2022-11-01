@@ -1,5 +1,8 @@
 package weaver
 
+import scala.concurrent.duration.FiniteDuration
+
+import cats.data.Chain
 import cats.effect.{ Async, Resource }
 import cats.syntax.all._
 
@@ -92,19 +95,28 @@ abstract class MutableFSuite[F[_]] extends RunnableSuite[F]  {
     def usingRes(run : Res => F[Expectations]) : Unit = apply(run)
   }
 
+  def isCI: Boolean = "true" == System.getenv("CI")
+
   override def spec(args: List[String]) : Stream[F, TestOutcome] =
     synchronized {
       if (!isInitialized) isInitialized = true
-      val testsNotIgnored = testSeq.filterNot(_._1.tags(TestName.Tags.ignore))
-      val testsTaggedOnly = testsNotIgnored.filter(_._1.tags(TestName.Tags.only))
-      val filteredTests = if (testsTaggedOnly.isEmpty) {
+      val testsNotIgnored: Seq[(TestName, Res => F[TestOutcome])] = testSeq.filterNot(_._1.tags(TestName.Tags.ignore))
+      val testsTaggedOnly: Seq[(TestName, Res => F[TestOutcome])]  = testSeq.filter(_._1.tags(TestName.Tags.only))
+      val onlyTestsNotIgnored = testsTaggedOnly.filter(taggedOnly => testsNotIgnored.contains(taggedOnly))
+      val filteredTests = if (onlyTestsNotIgnored.isEmpty) {
         val argsFilter = Filters.filterTests(this.name)(args)
         testsNotIgnored.collect {
           case (name, test) if argsFilter(name) => test
         }
-      } else testsTaggedOnly.map(_._2)
+      } else onlyTestsNotIgnored.map(_._2)
       val parallism = math.max(1, maxParallelism)
       if (filteredTests.isEmpty) Stream.empty // no need to allocate resources
+      else if (testsTaggedOnly.nonEmpty && isCI) {
+        val failureOutcomes = testsTaggedOnly
+          .map(_._1)
+          .map(onlyNotOnCiFailure)
+        Stream.emits(failureOutcomes).lift[F](effectCompat.effect)
+      }
       else for {
         resource <- Stream.resource(sharedResource)
         tests = filteredTests.map(_.apply(resource))
@@ -113,6 +125,20 @@ abstract class MutableFSuite[F[_]] extends RunnableSuite[F]  {
                   else testStream.evalMap(identity)
       } yield result
     }
+
+  private[this] def onlyNotOnCiFailure(test: TestName): TestOutcome = {
+    val result = Result.Failure(
+      msg = "'Only' tag is not allowed when `isCI=true`",
+      source = None,
+      location = List(test.location)
+    )
+    TestOutcome(
+      name = test.name,
+      duration = FiniteDuration(0, "ns"),
+      result = result,
+      log = Chain.empty
+    )
+  }
 
   private[this] var testSeq = Seq.empty[(TestName, Res => F[TestOutcome])]
 
