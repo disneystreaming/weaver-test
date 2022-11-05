@@ -110,13 +110,14 @@ abstract class MutableFSuite[F[_]] extends RunnableSuite[F]  {
         }
       } else onlyTestsNotIgnored.map(_._2)
       val parallism = math.max(1, maxParallelism)
-      if (filteredTests.isEmpty) Stream.empty // no need to allocate resources
-      else if (testsTaggedOnly.nonEmpty && isCI) {
+
+      if (testsTaggedOnly.nonEmpty && isCI) {
         val failureOutcomes = testsTaggedOnly
           .map(_._1)
           .map(onlyNotOnCiFailure)
         Stream.emits(failureOutcomes).lift[F](effectCompat.effect)
       }
+      else if (filteredTests.isEmpty) Stream.empty // no need to allocate resources
       else for {
         resource <- Stream.resource(sharedResource)
         tests = filteredTests.map(_.apply(resource))

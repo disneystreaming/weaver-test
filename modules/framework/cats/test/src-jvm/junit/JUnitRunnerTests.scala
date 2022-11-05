@@ -64,7 +64,7 @@ object JUnitRunnerTests extends IOSuite {
         TestFailure(
           name = name + "(weaver.junit.Meta$OnlyFailsOnCi$)",
           message =
-            s"$msgLine1\n$msgLine2\n\n" // should this really have all these new lines??
+            s"$msgLine1\n$msgLine2\n\n"
         )
       }
       val expected = List(
@@ -112,6 +112,36 @@ object JUnitRunnerTests extends IOSuite {
       )
       expect.same(notifications, expected)
     }
+  }
+
+  test(
+    "Even if all tests are ignored, will fail if a test is tagged with only") {
+    blocker =>
+      run(blocker, Meta.OnlyFailsOnCiEvenIfIgnored).map { notifications =>
+        def testFailure(name: String, lineNumber: Int) = {
+          val srcPath  = "modules/framework/cats/test/src-jvm/junit/Meta.scala"
+          val msgLine1 = s"- $name 0ms"
+          val msgLine2 =
+            s"  'Only' tag is not allowed when `isCI=true` ($srcPath:$lineNumber)"
+          TestFailure(
+            name = name + "(weaver.junit.Meta$OnlyFailsOnCiEvenIfIgnored$)",
+            message =
+              s"$msgLine1\n$msgLine2\n\n"
+          )
+        }
+        val expected = List(
+          TestSuiteStarted("weaver.junit.Meta$OnlyFailsOnCiEvenIfIgnored$"),
+          TestIgnored(
+            "only and ignored(weaver.junit.Meta$OnlyFailsOnCiEvenIfIgnored$)"),
+          TestStarted(
+            "only and ignored(weaver.junit.Meta$OnlyFailsOnCiEvenIfIgnored$)"),
+          testFailure("only and ignored", 110),
+          TestFinished(
+            "only and ignored(weaver.junit.Meta$OnlyFailsOnCiEvenIfIgnored$)"),
+          TestSuiteFinished("weaver.junit.Meta$OnlyFailsOnCiEvenIfIgnored$")
+        )
+        expect.same(notifications, expected)
+      }
   }
 
   test("Works when suite asks for global resources") {
