@@ -39,7 +39,7 @@ sonatypeCredentialHost := "s01.oss.sonatype.org"
 val Version = new {
   object CE3 {
     val fs2  = "3.3.0"
-    val cats = "3.3.14"
+    val ce = "3.4.0"
   }
 
   val expecty          = "0.16.0"
@@ -47,7 +47,7 @@ val Version = new {
   val junit            = "4.13.2"
   val scalajsStubs     = "1.1.0"
   val discipline       = "1.5.1"
-  val catsLaws         = "2.8.0"
+  val catsLaws         = "2.9.0"
   val scalacheck       = "1.17.0"
   val testInterface    = "1.0"
   val scalaJavaTime    = "2.4.0"
@@ -74,7 +74,7 @@ def catsEffectDependencies(proj: Project): Project = {
     libraryDependencies ++=
       Seq(
         "co.fs2"        %%% "fs2-core"    % Version.CE3.fs2,
-        "org.typelevel" %%% "cats-effect" % Version.CE3.cats
+        "org.typelevel" %%% "cats-effect" % Version.CE3.ce
       )
   )
 }
@@ -178,7 +178,7 @@ lazy val docs = projectMatrix
         | package weaver.docs
         |
         | object BuildMatrix {
-        |    val catsEffect3Version = ${q(Version.CE3.cats)}
+        |    val catsEffect3Version = ${q(Version.CE3.ce)}
         |    val artifactsCE3Version = ${q(artifactsCE3Version)}
         |    val effects = $effects
         |    val integrations = $integrations
@@ -223,7 +223,7 @@ lazy val scalacheck = projectMatrix
     testFrameworks := Seq(new TestFramework("weaver.framework.CatsEffect")),
     libraryDependencies ++= Seq(
       "org.scalacheck" %%% "scalacheck"          % Version.scalacheck,
-      "org.typelevel"  %%% "cats-effect-testkit" % Version.CE3.cats % Test)
+      "org.typelevel"  %%% "cats-effect-testkit" % Version.CE3.ce % Test)
   )
 
 lazy val discipline = projectMatrix
