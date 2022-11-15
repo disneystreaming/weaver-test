@@ -37,7 +37,7 @@ object JUnitRunnerTests extends IOSuite {
       expect.same(filteredNotifs, expected) and
         exists(failureMessage)(s =>
           expect(s.contains("oops")) && expect(
-            s.contains("JUnitRunnerTests.scala")))
+            s.contains("Meta.scala")))
     }
   }
 
@@ -49,6 +49,35 @@ object JUnitRunnerTests extends IOSuite {
         TestStarted("only(weaver.junit.Meta$Only$)"),
         TestFinished("only(weaver.junit.Meta$Only$)"),
         TestSuiteFinished("weaver.junit.Meta$Only$")
+      )
+      expect.same(notifications, expected)
+    }
+  }
+
+  test("Tests tagged with only fail when ran on CI") { blocker =>
+    run(blocker, Meta.OnlyFailsOnCi).map { notifications =>
+      def testFailure(name: String, lineNumber: Int) = {
+        val srcPath  = "modules/framework/cats/test/src-jvm/junit/Meta.scala"
+        val msgLine1 = s"- $name 0ms"
+        val msgLine2 =
+          s"  'Only' tag is not allowed when `isCI=true` ($srcPath:$lineNumber)"
+        TestFailure(
+          name = name + "(weaver.junit.Meta$OnlyFailsOnCi$)",
+          message =
+            s"$msgLine1\n$msgLine2\n\n"
+        )
+      }
+      val expected = List(
+        TestSuiteStarted("weaver.junit.Meta$OnlyFailsOnCi$"),
+        TestIgnored("normal test(weaver.junit.Meta$OnlyFailsOnCi$)"),
+        TestIgnored("not only(weaver.junit.Meta$OnlyFailsOnCi$)"),
+        TestStarted("first only test(weaver.junit.Meta$OnlyFailsOnCi$)"),
+        testFailure("first only test", 46),
+        TestFinished("first only test(weaver.junit.Meta$OnlyFailsOnCi$)"),
+        TestStarted("second only test(weaver.junit.Meta$OnlyFailsOnCi$)"),
+        testFailure("second only test", 50),
+        TestFinished("second only test(weaver.junit.Meta$OnlyFailsOnCi$)"),
+        TestSuiteFinished("weaver.junit.Meta$OnlyFailsOnCi$")
       )
       expect.same(notifications, expected)
     }
@@ -83,6 +112,36 @@ object JUnitRunnerTests extends IOSuite {
       )
       expect.same(notifications, expected)
     }
+  }
+
+  test(
+    "Even if all tests are ignored, will fail if a test is tagged with only") {
+    blocker =>
+      run(blocker, Meta.OnlyFailsOnCiEvenIfIgnored).map { notifications =>
+        def testFailure(name: String, lineNumber: Int) = {
+          val srcPath  = "modules/framework/cats/test/src-jvm/junit/Meta.scala"
+          val msgLine1 = s"- $name 0ms"
+          val msgLine2 =
+            s"  'Only' tag is not allowed when `isCI=true` ($srcPath:$lineNumber)"
+          TestFailure(
+            name = name + "(weaver.junit.Meta$OnlyFailsOnCiEvenIfIgnored$)",
+            message =
+              s"$msgLine1\n$msgLine2\n\n"
+          )
+        }
+        val expected = List(
+          TestSuiteStarted("weaver.junit.Meta$OnlyFailsOnCiEvenIfIgnored$"),
+          TestIgnored(
+            "only and ignored(weaver.junit.Meta$OnlyFailsOnCiEvenIfIgnored$)"),
+          TestStarted(
+            "only and ignored(weaver.junit.Meta$OnlyFailsOnCiEvenIfIgnored$)"),
+          testFailure("only and ignored", 110),
+          TestFinished(
+            "only and ignored(weaver.junit.Meta$OnlyFailsOnCiEvenIfIgnored$)"),
+          TestSuiteFinished("weaver.junit.Meta$OnlyFailsOnCiEvenIfIgnored$")
+        )
+        expect.same(notifications, expected)
+      }
   }
 
   test("Works when suite asks for global resources") {
@@ -140,94 +199,6 @@ object JUnitRunnerTests extends IOSuite {
       queue += TestStarted(description.getDisplayName())
     override def testSuiteFinished(description: Description): Unit =
       queue += TestSuiteFinished(description.getDisplayName())
-  }
-
-}
-
-object Meta {
-
-  object MySuite extends SimpleIOSuite {
-
-    override def maxParallelism: Int = 1
-
-    pureTest("success") {
-      success
-    }
-
-    pureTest("failure") {
-      failure("oops")
-    }
-
-    test("ignore") {
-      ignore("just because")
-    }
-
-  }
-
-  object Only extends SimpleIOSuite {
-
-    override def maxParallelism: Int = 1
-
-    pureTest("only".only) {
-      success
-    }
-
-    pureTest("not only") {
-      failure("foo")
-    }
-
-  }
-
-  object Ignore extends SimpleIOSuite {
-
-    override def maxParallelism: Int = 1
-
-    pureTest("not ignored 1") {
-      success
-    }
-
-    pureTest("not ignored 2") {
-      success
-    }
-
-    pureTest("is ignored".ignore) {
-      failure("foo")
-    }
-
-  }
-
-  object IgnoreAndOnly extends SimpleIOSuite {
-
-    override def maxParallelism: Int = 1
-
-    pureTest("only".only) {
-      success
-    }
-
-    pureTest("not tagged") {
-      failure("foo")
-    }
-
-    pureTest("only and ignored".only.ignore) {
-      failure("foo")
-    }
-
-    pureTest("is ignored".ignore) {
-      failure("foo")
-    }
-
-  }
-
-  class Sharing(global: GlobalRead) extends IOSuite {
-
-    type Res = Unit
-    // Just checking the suite does not crash
-    def sharedResource: Resource[IO, Unit] = global.getR[Int]().map(_ => ())
-
-    pureTest("foo") {
-      success
-    }
-
   }
 
 }
