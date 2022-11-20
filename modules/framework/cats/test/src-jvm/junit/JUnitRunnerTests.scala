@@ -114,6 +114,21 @@ object JUnitRunnerTests extends IOSuite {
     }
   }
 
+  test("Tests tagged with ignore are ignored (FunSuite)") { blocker =>
+    runPure(blocker, Meta.IgnorePure).map { notifications =>
+      val expected = List(
+        TestSuiteStarted("weaver.junit.Meta$IgnorePure$"),
+        TestIgnored("is ignored(weaver.junit.Meta$IgnorePure$)"),
+        TestStarted("not ignored 1(weaver.junit.Meta$IgnorePure$)"),
+        TestFinished("not ignored 1(weaver.junit.Meta$IgnorePure$)"),
+        TestStarted("not ignored 2(weaver.junit.Meta$IgnorePure$)"),
+        TestFinished("not ignored 2(weaver.junit.Meta$IgnorePure$)"),
+        TestSuiteFinished("weaver.junit.Meta$IgnorePure$")
+      )
+      expect.same(notifications, expected)
+    }
+  }
+
   test(
     "Even if all tests are ignored, will fail if a test is tagged with only") {
     blocker =>
@@ -170,6 +185,11 @@ object JUnitRunnerTests extends IOSuite {
   def run(
       blocker: BlockerCompat[IO],
       suite: SimpleIOSuite): IO[List[Notification]] =
+    run(blocker, suite.getClass())
+
+  def runPure(
+      blocker: BlockerCompat[IO],
+      suite: FunSuite): IO[List[Notification]] =
     run(blocker, suite.getClass())
 
   sealed trait Notification

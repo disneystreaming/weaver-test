@@ -113,6 +113,22 @@ object Meta {
 
   }
 
+  object IgnorePure extends FunSuite {
+
+    test("not ignored 1") {
+      success
+    }
+
+    test("not ignored 2") {
+      success
+    }
+
+    test("is ignored".ignore) {
+      failure("foo")
+    }
+
+  }
+
   class Sharing(global: GlobalRead) extends IOSuite {
 
     type Res = Unit
