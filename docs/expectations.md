@@ -21,6 +21,18 @@ The easiest way to construct expectactions is to call the `expect` macro, which 
   (expect(1 == 1) and expect(2 > 1)) or expect(5 == 5)
   ```
 
+- ... or their symbolic aliases `&&`/`||`
+
+  ```scala mdoc:compile-only
+  (expect(1 == 1) && expect(2 > 1)) || expect(5 == 5)
+  ```
+
+- Compose expectations using `xor`
+
+  ```scala mdoc:compile-only
+  expect(1 == 1) xor expect(2 == 2)
+  ```
+
 - Use varargs short form for asserting on all boolean values
 
   ```scala mdoc:compile-only
