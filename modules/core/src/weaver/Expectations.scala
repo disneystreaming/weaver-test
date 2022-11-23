@@ -6,7 +6,7 @@ import cats.data.{ NonEmptyList, Validated, ValidatedNel }
 import cats.effect.Sync
 import cats.syntax.all._
 
-case class Expectations(val run: ValidatedNel[AssertionException, Unit]) {
+case class Expectations(run: ValidatedNel[AssertionException, Unit]) {
   self =>
 
   def and(other: Expectations): Expectations =
