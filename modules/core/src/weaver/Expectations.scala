@@ -6,14 +6,53 @@ import cats.data.{ NonEmptyList, Validated, ValidatedNel }
 import cats.effect.Sync
 import cats.syntax.all._
 
-case class Expectations(val run: ValidatedNel[AssertionException, Unit]) {
+case class Expectations(run: ValidatedNel[AssertionException, Unit]) {
   self =>
 
+  /**
+   * Logical AND combinator for two `Expectations`
+   *
+   * @example
+   *   {{{
+   *     // success
+   *     expect.eql("foo", "foo") and
+   *       expect.eql("bar", "bar")
+   *   }}}
+   *
+   * @param other
+   *   The second operand
+   */
   def and(other: Expectations): Expectations =
     Expectations(self.run.product(other.run).void)
 
+  /**
+   * Symbolic alias for `and`
+   *
+   * @example
+   *   {{{
+   *     // success
+   *     expect.eql("foo", "foo") &&
+   *       expect.eql("bar", "bar")
+   *   }}}
+   *
+   * @param other
+   *   The second operand
+   */
   def &&(other: Expectations): Expectations = and(other)
 
+  /**
+   * Logical OR combinator for two `Expectations`
+   *
+   * @example
+   *   {{{
+   *     // success
+   *     expect.eql("foo", "bar") or
+   *       expect.eql("alpha", "alpha")
+   *   }}}
+   *
+   * @param other
+   *   The second operand
+   */
   def or(other: Expectations): Expectations =
     Expectations(
       self.run
@@ -21,8 +60,34 @@ case class Expectations(val run: ValidatedNel[AssertionException, Unit]) {
         .orElse(self.run.product(other.run).void)
     )
 
+  /**
+   * Symbolic alias for `or`
+   *
+   * @example
+   *   {{{
+   *     // success
+   *     expect.eql("foo", "bar") ||
+   *       expect.eql("alpha", "alpha")
+   *   }}}
+   *
+   * @param other
+   *   The second operand
+   */
   def ||(other: Expectations): Expectations = or(other)
 
+  /**
+   * Logical XOR combinator for two `Expectations`
+   *
+   * @example
+   *   {{{
+   *     // failure
+   *     expect.eql("foo", "foo") xor
+   *       expect.eql("bar", "bar")
+   *   }}}
+   *
+   * @param other
+   *   The second operand
+   */
   def xor(other: Expectations)(implicit loc: SourceLocation): Expectations =
     (run, other.run) match {
       case (Valid(_), Valid(_)) =>
@@ -115,6 +180,15 @@ object Expectations {
     /**
      * Checks that an assertion is true for all elements in a foldable. Succeeds
      * if the foldable is empty.
+     *
+     * @example
+     *   {{{
+     *     val xs =
+     *       List("foo", "bar")
+     *
+     *     // success
+     *     forEach(xs)(s => expect.eql(3, s.length)
+     *   }}}
      */
     def forEach[L[_], A](la: L[A])(f: A => Expectations)(
         implicit L: Foldable[L]): Expectations = la.foldMap(f)
@@ -122,6 +196,15 @@ object Expectations {
     /**
      * Checks that an assertion is true for at least one element in a foldable.
      * Fails if the foldable is empty.
+     *
+     * @example
+     *   {{{
+     *     val xs =
+     *       List("foo", "bar")
+     *
+     *     // success
+     *     exists(xs)(s => expect.eql("foo", s)
+     *   }}}
      */
     def exists[L[_], A](la: L[A])(f: A => Expectations)(
         implicit foldable: Foldable[L],
@@ -129,7 +212,7 @@ object Expectations {
       Expectations.Additive.unwrap(la.foldMap(a => Expectations.Additive(f(a))))
 
     /**
-     * Alias to forall
+     * Alias for `forEach`
      */
     def inEach[L[_], A](la: L[A])(f: A => Expectations)(
         implicit L: Foldable[L]): Expectations = forEach(la)(f)

@@ -39,6 +39,14 @@ object ExpectationsTests extends SimpleIOSuite {
     not(forEach(List(true, false))(value => expect(value == true)))
   }
 
+  pureTest("exists (success)") {
+    exists(List("foo"))(s => expect.eql("foo", s))
+  }
+
+  pureTest("exists (failure)") {
+    not(exists(List("foo"))(s => expect.eql("bar", s)))
+  }
+
   pureTest("equality check") {
     expect.same("foo", "foo") and
       not(expect.same("bar", "foo"))
