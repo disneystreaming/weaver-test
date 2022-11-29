@@ -66,4 +66,15 @@ object ExpectationsTests extends SimpleIOSuite {
     expect.same(0, 1)
   }
 
+  pureTest("exists right") {
+    val good: Either[String, Int] =
+      Right(4)
+
+    val bad: Either[String, Int] =
+      Left("bad")
+
+    existsRight(good)(expect.eql(4, _)) and
+      not(existsRight(bad)(_ => failure("dead code")))
+  }
+
 }

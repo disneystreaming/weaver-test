@@ -238,6 +238,18 @@ object Expectations {
     def inEach[L[_], A](la: L[A])(f: A => Expectations)(
         implicit L: Foldable[L]): Expectations = forEach(la)(f)
 
+    def existsRight[F[_], A, E](fa: F[A])(
+        f: A => Expectations
+    )(
+        implicit pos: SourceLocation,
+        F: ApplicativeError[F, E],
+        G: Foldable[F],
+        E: Show[E] = Show.fromToString[E]): Expectations =
+      fa
+        .map(f)
+        .handleError(e => failure(e.show))
+        .foldLeft(failure("impossible?"))((_, x) => x)
+
     def verify(condition: Boolean, hint: String)(
         implicit pos: SourceLocation): Expectations =
       if (condition) success
