@@ -212,6 +212,27 @@ object Expectations {
       Expectations.Additive.unwrap(la.foldMap(a => Expectations.Additive(f(a))))
 
     /**
+     * Checks that a given expression matches a certain pattern; fails
+     * otherwise.
+     *
+     * @example
+     *   {{{
+     *     matches(Option(4) { case Some(x) =>
+     *       expect.eql(4, x)
+     *     }
+     *   }}}
+     */
+    def matches[A](x: A)(
+        f: PartialFunction[A, Expectations]
+    )(
+        implicit pos: SourceLocation,
+        A: Show[A] = Show.fromToString[A]): Expectations =
+      if (f.isDefinedAt(x))
+        f(x)
+      else
+        failure("Pattern did not match, got: " + A.show(x))
+
+    /**
      * Alias for `forEach`
      */
     def inEach[L[_], A](la: L[A])(f: A => Expectations)(
