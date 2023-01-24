@@ -248,7 +248,9 @@ object Expectations {
       fa
         .map(f)
         .handleError(e => failure("Expected success case, got: " + e.show))
-        .foldLeft(failure("impossible?"))((_, x) => x)
+        .foldLeft(failure(
+          "unexpected error case encountered after error handling"))((z, x) =>
+          z || x)
 
     def verify(condition: Boolean, hint: String)(
         implicit pos: SourceLocation): Expectations =

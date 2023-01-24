@@ -74,7 +74,8 @@ object ExpectationsTests extends SimpleIOSuite {
       Left("bad")
 
     whenSuccess(good)(expect.eql(4, _)) and
-      not(whenSuccess(bad)(_ => failure("dead code")))
+      not(whenSuccess(bad)(_ =>
+        failure("unexpected run of success handler given failure payload")))
   }
 
 }
