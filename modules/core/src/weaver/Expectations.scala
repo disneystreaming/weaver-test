@@ -230,7 +230,7 @@ object Expectations {
       if (f.isDefinedAt(x))
         f(x)
       else
-        failure("Pattern did not match, got: " + A.show(x))
+        failure("Pattern did not match, got: " + x.show)
 
     /**
      * Alias for `forEach`
@@ -238,7 +238,7 @@ object Expectations {
     def inEach[L[_], A](la: L[A])(f: A => Expectations)(
         implicit L: Foldable[L]): Expectations = forEach(la)(f)
 
-    def existsRight[F[_], A, E](fa: F[A])(
+    def whenSuccess[F[_], A, E](fa: F[A])(
         f: A => Expectations
     )(
         implicit pos: SourceLocation,
@@ -247,7 +247,7 @@ object Expectations {
         E: Show[E] = Show.fromToString[E]): Expectations =
       fa
         .map(f)
-        .handleError(e => failure(e.show))
+        .handleError(e => failure("Expected success case, got: " + e.show))
         .foldLeft(failure("impossible?"))((_, x) => x)
 
     def verify(condition: Boolean, hint: String)(
