@@ -53,6 +53,14 @@ The easiest way to construct expectactions is to call the `expect` macro, which 
   exists(Option(5))(n => expect(n > 3))
   ```
 
+- Use `matches` to assert that an expression matches a given pattern
+
+  ```scala mdoc:compile-only
+  matches(Option(4)) { case Some(x) =>
+    expect.eql(4, x)
+  }
+  ```
+
 - Use `expect.eql` for strict equality comparison (types that implement `Eq`
     typeclass) and string representation diffing (using `Show` typeclass, fall
     back to `toString` if no instance found) in

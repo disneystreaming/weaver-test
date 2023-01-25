@@ -217,7 +217,7 @@ object Expectations {
      *
      * @example
      *   {{{
-     *     matches(Option(4) { case Some(x) =>
+     *     matches(Option(4)) { case Some(x) =>
      *       expect.eql(4, x)
      *     }
      *   }}}
