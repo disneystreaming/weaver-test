@@ -61,6 +61,17 @@ The easiest way to construct expectactions is to call the `expect` macro, which 
   }
   ```
 
+- Use `whenSuccess` to assert that a structure with an error channel (like `Either`) is successful
+
+  ```scala mdoc:compile-only
+  val res: Either[String, Int] =
+    Right(4)
+  
+  whenSuccess(res) { n =>
+    expect.eql(4, n)
+  }
+  ```
+
 - Use `expect.eql` for strict equality comparison (types that implement `Eq`
     typeclass) and string representation diffing (using `Show` typeclass, fall
     back to `toString` if no instance found) in

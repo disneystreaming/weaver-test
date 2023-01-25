@@ -238,6 +238,19 @@ object Expectations {
     def inEach[L[_], A](la: L[A])(f: A => Expectations)(
         implicit L: Foldable[L]): Expectations = forEach(la)(f)
 
+    /**
+     * Checks that an `ApplicativeError` (like `Either`) is successful
+     *
+     * @example
+     *   {{{
+     *     val res: Either[String, Int] =
+     *       Right(4)
+     *
+     *     whenSuccess(res) { n =>
+     *       expect.eql(4, n)
+     *     }
+     *   }}}
+     */
     def whenSuccess[F[_], A, E](fa: F[A])(
         f: A => Expectations
     )(
