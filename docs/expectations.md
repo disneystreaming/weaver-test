@@ -50,7 +50,7 @@ The easiest way to construct expectactions is to call the `expect` macro, which 
     expectations:
 
   ```scala mdoc:compile-only
-  exists(Option(5))(n => expect(n > 3)
+  exists(Option(5))(n => expect(n > 3))
   ```
 
 - Use `expect.eql` for strict equality comparison (types that implement `Eq`
