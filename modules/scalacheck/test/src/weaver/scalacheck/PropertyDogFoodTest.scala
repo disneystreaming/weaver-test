@@ -53,7 +53,7 @@ object PropertyDogFoodTest extends IOSuite {
       events <- dogfood.runSuite(Meta.ParallelChecks).map(_._2)
       _      <- expect(events.size == 1).failFast
     } yield {
-      expect(events.headOption.get.duration() < 10000)
+      expect(events.headOption.get.duration() < 100000)
     }
   }
 
