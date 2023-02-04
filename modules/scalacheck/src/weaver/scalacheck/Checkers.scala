@@ -205,7 +205,7 @@ trait Checkers {
     def shouldContinue(config: CheckConfig) = !shouldStop(config)
 
     def endResult(implicit loc: SourceLocation) = failure.getOrElse {
-      if (succeeded < checkConfig.minimumSuccessful)
+      if (succeeded < config.minimumSuccessful)
         Expectations.Helpers.failure(
           s"Discarded more inputs ($discarded) than allowed")
       else Expectations.Helpers.success
