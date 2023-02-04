@@ -57,35 +57,39 @@ object PropertyDogFoodTest extends IOSuite {
     }
   }
 
-  // 5 checks with perPropertyParallelism = 1 sleeping 1 second each should take at least 5 seconds
-  test("Config can be overridden") { dogfood =>
-    for {
-      events <- dogfood.runSuite(Meta.ConfigOverrideChecks).map(_._2)
-      _      <- expect(events.size == 1).failFast
-    } yield {
-      expect(events.headOption.get.duration() >= 5000)
-    }
+  test("Discarded counts should be accurate") { dogfood =>
+    expectErrorMessage(
+      s"Discarded more inputs (${Meta.DiscardedChecks.checkConfig.maximumDiscarded}) than allowed",
+      dogfood.runSuite(Meta.DiscardedChecks))
   }
 
-  test("Discarded counts should be accurate") { dogfood =>
-    dogfood.runSuite(Meta.DiscardedChecks)
-      .map { case (logs, _) =>
-        val errorLogs = logs.collect {
-          case LoggedEvent.Error(msg) => msg
-        }
-        exists(errorLogs) { log =>
-          val expectedMessage =
-            s"Discarded more inputs (${Meta.DiscardedChecks.checkConfig.maximumDiscarded}) than allowed"
-          expect(log.contains(expectedMessage))
-        }
-      }
+  test("Config can be overridden") { dogfood =>
+    expectErrorMessage(
+      s"Discarded more inputs (${Meta.ConfigOverrideChecks.configOverride.maximumDiscarded}) than allowed",
+      dogfood.runSuite(Meta.ConfigOverrideChecks))
   }
+
+  def expectErrorMessage(
+      msg: String,
+      state: IO[DogFood.State]): IO[Expectations] =
+    state.map { case (logs, _) =>
+      val errorLogs = logs.collect {
+        case LoggedEvent.Error(msg) => msg
+      }
+      exists(errorLogs) { log =>
+        expect(log.contains(msg))
+      }
+    }
+
 }
 
 object Meta {
-  trait ParallelChecks extends SimpleIOSuite with Checkers {
 
+  trait MetaSuite extends SimpleIOSuite with Checkers {
     def partiallyAppliedForall: PartiallyAppliedForall
+  }
+
+  trait ParallelChecks extends MetaSuite {
 
     test("sleeping forall") {
       partiallyAppliedForall { (x: Int, y: Int) =>
@@ -115,23 +119,31 @@ object Meta {
     }
   }
 
-  object ConfigOverrideChecks extends ParallelChecks {
+  trait DiscardedChecks extends MetaSuite {
 
-    override def partiallyAppliedForall: PartiallyAppliedForall =
-      forall.withConfig(super.checkConfig.copy(
-        perPropertyParallelism = 1,
-        minimumSuccessful = 5))
+    test("Discards all the time") {
+      partiallyAppliedForall(Gen.posNum[Int].suchThat(_ < 0))(succeed)
+    }
   }
 
-  object DiscardedChecks extends SimpleIOSuite with Checkers {
+  object DiscardedChecks extends DiscardedChecks {
+
+    override def partiallyAppliedForall: PartiallyAppliedForall = forall
 
     override def checkConfig =
       super.checkConfig.copy(minimumSuccessful = 100,
                              // to avoid overcounting of discarded checks
                              perPropertyParallelism = 1)
-
-    test("Discards all the time") {
-      forall(Gen.posNum[Int].suchThat(_ < 0))(succeed)
-    }
   }
+
+  object ConfigOverrideChecks extends DiscardedChecks {
+
+    val configOverride =
+      super.checkConfig.copy(minimumSuccessful = 200,
+                             perPropertyParallelism = 1)
+
+    override def partiallyAppliedForall: PartiallyAppliedForall =
+      forall.withConfig(configOverride)
+  }
+
 }
