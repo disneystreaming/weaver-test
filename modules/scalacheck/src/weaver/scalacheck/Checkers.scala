@@ -126,7 +126,7 @@ trait Checkers {
         .last
         .map { (x: Option[Status[A]]) =>
           x match {
-            case Some(status) => status.endResult
+            case Some(status) => status.endResult(config)
             case None         => Expectations.Helpers.success
           }
         }
@@ -204,12 +204,13 @@ trait Checkers {
 
     def shouldContinue(config: CheckConfig) = !shouldStop(config)
 
-    def endResult(implicit loc: SourceLocation) = failure.getOrElse {
-      if (succeeded < config.minimumSuccessful)
-        Expectations.Helpers.failure(
-          s"Discarded more inputs ($discarded) than allowed")
-      else Expectations.Helpers.success
-    }
+    def endResult(config: CheckConfig)(implicit loc: SourceLocation) =
+      failure.getOrElse {
+        if (succeeded < config.minimumSuccessful)
+          Expectations.Helpers.failure(
+            s"Discarded more inputs ($discarded) than allowed")
+        else Expectations.Helpers.success
+      }
   }
   private object Status {
     def start[T] = Status[T](0, 0, None)
