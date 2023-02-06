@@ -57,16 +57,16 @@ object PropertyDogFoodTest extends IOSuite {
     }
   }
 
-  test("Discarded counts should be accurate") { dogfood =>
-    expectErrorMessage(
-      s"Discarded more inputs (${Meta.DiscardedChecks.checkConfig.maximumDiscarded}) than allowed",
-      dogfood.runSuite(Meta.DiscardedChecks))
-  }
-
   test("Config can be overridden") { dogfood =>
     expectErrorMessage(
       s"Discarded more inputs (${Meta.ConfigOverrideChecks.configOverride.maximumDiscarded}) than allowed",
       dogfood.runSuite(Meta.ConfigOverrideChecks))
+  }
+
+  test("Discarded counts should be accurate") { dogfood =>
+    expectErrorMessage(
+      s"Discarded more inputs (${Meta.DiscardedChecks.checkConfig.maximumDiscarded}) than allowed",
+      dogfood.runSuite(Meta.DiscardedChecks))
   }
 
   def expectErrorMessage(
@@ -80,7 +80,6 @@ object PropertyDogFoodTest extends IOSuite {
         expect(log.contains(msg))
       }
     }
-
 }
 
 object Meta {
@@ -126,16 +125,6 @@ object Meta {
     }
   }
 
-  object DiscardedChecks extends DiscardedChecks {
-
-    override def partiallyAppliedForall: PartiallyAppliedForall = forall
-
-    override def checkConfig =
-      super.checkConfig.copy(minimumSuccessful = 100,
-                             // to avoid overcounting of discarded checks
-                             perPropertyParallelism = 1)
-  }
-
   object ConfigOverrideChecks extends DiscardedChecks {
 
     val configOverride =
@@ -146,4 +135,13 @@ object Meta {
       forall.withConfig(configOverride)
   }
 
+  object DiscardedChecks extends DiscardedChecks {
+
+    override def partiallyAppliedForall: PartiallyAppliedForall = forall
+
+    override def checkConfig =
+      super.checkConfig.copy(minimumSuccessful = 100,
+                             // to avoid overcounting of discarded checks
+                             perPropertyParallelism = 1)
+  }
 }
