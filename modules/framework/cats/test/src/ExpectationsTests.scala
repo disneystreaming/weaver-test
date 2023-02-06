@@ -52,9 +52,30 @@ object ExpectationsTests extends SimpleIOSuite {
       not(expect.same("bar", "foo"))
   }
 
+  pureTest("matches pattern") {
+    matches(Option(4)) { case Some(x) =>
+      expect.eql(4, x)
+    } and
+      not(matches(Option(4)) { case None =>
+        failure("dead code")
+      })
+  }
+
   pureTest("expect.same respects cats.kernel.Eq") {
     implicit val eqInt: Eq[Int] = Eq.allEqual
     expect.same(0, 1)
+  }
+
+  pureTest("when success") {
+    val good: Either[String, Int] =
+      Right(4)
+
+    val bad: Either[String, Int] =
+      Left("bad")
+
+    whenSuccess(good)(expect.eql(4, _)) and
+      not(whenSuccess(bad)(_ =>
+        failure("unexpected run of success handler given failure payload")))
   }
 
 }

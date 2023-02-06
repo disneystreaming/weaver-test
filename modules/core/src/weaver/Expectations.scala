@@ -212,10 +212,58 @@ object Expectations {
       Expectations.Additive.unwrap(la.foldMap(a => Expectations.Additive(f(a))))
 
     /**
+     * Checks that a given expression matches a certain pattern; fails
+     * otherwise.
+     *
+     * @example
+     *   {{{
+     *     matches(Option(4)) { case Some(x) =>
+     *       expect.eql(4, x)
+     *     }
+     *   }}}
+     */
+    def matches[A](x: A)(
+        f: PartialFunction[A, Expectations]
+    )(
+        implicit pos: SourceLocation,
+        A: Show[A] = Show.fromToString[A]): Expectations =
+      if (f.isDefinedAt(x))
+        f(x)
+      else
+        failure("Pattern did not match, got: " + x.show)
+
+    /**
      * Alias for `forEach`
      */
     def inEach[L[_], A](la: L[A])(f: A => Expectations)(
         implicit L: Foldable[L]): Expectations = forEach(la)(f)
+
+    /**
+     * Checks that an `ApplicativeError` (like `Either`) is successful
+     *
+     * @example
+     *   {{{
+     *     val res: Either[String, Int] =
+     *       Right(4)
+     *
+     *     whenSuccess(res) { n =>
+     *       expect.eql(4, n)
+     *     }
+     *   }}}
+     */
+    def whenSuccess[F[_], A, E](fa: F[A])(
+        f: A => Expectations
+    )(
+        implicit pos: SourceLocation,
+        F: ApplicativeError[F, E],
+        G: Foldable[F],
+        E: Show[E] = Show.fromToString[E]): Expectations =
+      fa
+        .map(f)
+        .handleError(e => failure("Expected success case, got: " + e.show))
+        .foldLeft(failure(
+          "unexpected error case encountered after error handling"))((z, x) =>
+          z || x)
 
     def verify(condition: Boolean, hint: String)(
         implicit pos: SourceLocation): Expectations =
