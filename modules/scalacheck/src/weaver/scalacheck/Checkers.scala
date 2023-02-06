@@ -120,13 +120,13 @@ trait Checkers {
           (newStatus, newStatus)
         }
         .map(_._1)
-        .takeWhile(_.shouldContinue, takeFailure = true)
+        .takeWhile(_.shouldContinue(config), takeFailure = true)
         .takeRight(1) // getting the first error (which finishes the stream)
         .compile
         .last
         .map { (x: Option[Status[A]]) =>
           x match {
-            case Some(status) => status.endResult
+            case Some(status) => status.endResult(config)
             case None         => Expectations.Helpers.success
           }
         }
@@ -197,19 +197,20 @@ trait Checkers {
         copy(failure = Some(failure))
       } else this
 
-    def shouldStop =
+    def shouldStop(config: CheckConfig) =
       failure.isDefined ||
-        succeeded >= checkConfig.minimumSuccessful ||
-        discarded >= checkConfig.maximumDiscarded
+        succeeded >= config.minimumSuccessful ||
+        discarded >= config.maximumDiscarded
 
-    def shouldContinue = !shouldStop
+    def shouldContinue(config: CheckConfig) = !shouldStop(config)
 
-    def endResult(implicit loc: SourceLocation) = failure.getOrElse {
-      if (succeeded < checkConfig.minimumSuccessful)
-        Expectations.Helpers.failure(
-          s"Discarded more inputs ($discarded) than allowed")
-      else Expectations.Helpers.success
-    }
+    def endResult(config: CheckConfig)(implicit loc: SourceLocation) =
+      failure.getOrElse {
+        if (succeeded < config.minimumSuccessful)
+          Expectations.Helpers.failure(
+            s"Discarded more inputs ($discarded) than allowed")
+        else Expectations.Helpers.success
+      }
   }
   private object Status {
     def start[T] = Status[T](0, 0, None)
