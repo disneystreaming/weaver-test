@@ -161,7 +161,7 @@ object FailingSharedResources extends GlobalResource {
 
 ### Labelling
 
-On the two sides of (production and consumption) of the global resources, it is possible to label the resources with string values, to discriminate between several resources of the same.
+On the two sides of (production and consumption) of the global resources, it is possible to label the resources with string values, to discriminate between several resources of the same type.
 
 ```scala mdoc
 import cats.syntax.all._
