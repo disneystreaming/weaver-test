@@ -11,7 +11,7 @@ import org.scalacheck.Gen
 object CheckersTest extends SimpleIOSuite with Checkers {
 
   override def checkConfig: CheckConfig =
-    super.checkConfig.copy(perPropertyParallelism = 100)
+    super.checkConfig.withPerPropertyParallelism(100)
 
   test("universal") {
     forall(Gen.posNum[Int]) { a =>
