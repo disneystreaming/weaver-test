@@ -1,0 +1,92 @@
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>ZIO usage · Weaver Test</title><meta name="viewport" content="width=device-width, initial-scale=1.0"/><meta name="generator" content="Docusaurus"/><meta name="description" content="## Installation"/><meta name="docsearch:version" content="0.8.1"/><meta name="docsearch:language" content="en"/><meta property="og:title" content="ZIO usage · Weaver Test"/><meta property="og:type" content="website"/><meta property="og:url" content="http(s)://disneystreaming.github.io//weaver-test/"/><meta property="og:description" content="## Installation"/><meta property="og:image" content="http(s)://disneystreaming.github.io//weaver-test/img/undraw_online.svg"/><meta name="twitter:card" content="summary"/><meta name="twitter:image" content="http(s)://disneystreaming.github.io//weaver-test/img/undraw_tweetstorm.svg"/><link rel="shortcut icon" href="/weaver-test/img/dss-profile-white-transparent.svg"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css"/><script type="text/javascript" src="https: //buttons.github.io/buttons.js"></script><script src="/weaver-test/js/scrollSpy.js"></script><link rel="stylesheet" href="/weaver-test/css/main.css"/><script src="/weaver-test/js/codetabs.js"></script></head><body class="sideNavVisible separateOnPageNav"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/weaver-test/"><img class="logo" src="/weaver-test/img/dss-profile-white-transparent.svg" alt="Weaver Test"/><h2 class="headerTitleWithLogo">Weaver Test</h2></a><a href="/weaver-test/versions"><h3>0.8.1</h3></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class=""><a href="/weaver-test/docs/0.8.1/installation" target="_self">Docs</a></li><li class=""><a href="https://github.com/disneystreaming/weaver-test" target="_blank">GitHub</a></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="container mainContainer docsContainer"><div class="wrapper"><div class="post"><header class="postHeader"><h1 id="__docusaurus" class="postHeaderTitle">ZIO usage</h1></header><article><div><span><h2><a class="anchor" aria-hidden="true" id="installation"></a><a href="#installation" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Installation</h2>
+<p>You'll need to install an additional dependency in order to use weaver to test ZIO programs.</p>
+<h3><a class="anchor" aria-hidden="true" id="sbt"></a><a href="#sbt" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>SBT</h3>
+<pre><code class="hljs css language-scala">libraryDependencies +=  <span class="hljs-string">"com.disneystreaming"</span> %% <span class="hljs-string">"weaver-zio"</span> % <span class="hljs-string">"0.6.15"</span> % <span class="hljs-type">Test</span>
+testFrameworks += <span class="hljs-keyword">new</span> <span class="hljs-type">TestFramework</span>(<span class="hljs-string">"weaver.framework.ZIO"</span>)
+</code></pre>
+<h3><a class="anchor" aria-hidden="true" id="mill"></a><a href="#mill" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Mill</h3>
+<pre><code class="hljs css language-scala"><span class="hljs-class"><span class="hljs-keyword">object</span> <span class="hljs-title">test</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">Tests</span> </span>{
+  <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">ivyDeps</span> </span>= <span class="hljs-type">Agg</span>(
+    <span class="hljs-string">ivy"com.disneystreaming::weaver-zio:0.6.15"</span>
+  )
+  <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">testFramework</span> </span>= <span class="hljs-string">"weaver.framework.ZIO"</span>
+}
+</code></pre>
+<h2><a class="anchor" aria-hidden="true" id="usage"></a><a href="#usage" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Usage</h2>
+<p>Start with the following imports :</p>
+<pre><code class="hljs css language-scala"><span class="hljs-keyword">import</span> weaver.ziocompat._
+</code></pre>
+<p>Weaver tries to respect ZIO's idiomatic usage, and leverages the <a href="https://zio.dev/docs/howto/howto_use_layers">ZLayer</a> construct to provide environment. <code>ZLayer</code> can be trivially constructed from a <code>Managed</code> (the zio counterpart to <code>cats.effect.Resource</code>), and therefore encompasses <code>beforeAndAfterAll</code> semantics.</p>
+<p>Assuming the following module :</p>
+<pre><code class="hljs css language-scala"><span class="hljs-keyword">import</span> zio._
+<span class="hljs-keyword">import</span> org.http4s.client.blaze._
+<span class="hljs-keyword">import</span> org.http4s.client._
+
+<span class="hljs-class"><span class="hljs-keyword">object</span> <span class="hljs-title">modules</span> </span>{
+  <span class="hljs-class"><span class="hljs-keyword">type</span> <span class="hljs-title">Http</span> </span>= <span class="hljs-type">Has</span>[<span class="hljs-type">Client</span>[<span class="hljs-type">Task</span>]]
+  <span class="hljs-class"><span class="hljs-keyword">object</span> <span class="hljs-title">Http</span> </span>{
+    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">get</span></span>(uri : <span class="hljs-type">String</span>) : <span class="hljs-type">RIO</span>[modules.<span class="hljs-type">Http</span>, <span class="hljs-type">Int</span>] =
+      <span class="hljs-type">ZIO</span>.accessM(_.get.get(uri)(response =&gt; <span class="hljs-type">UIO</span>(response.status.code)))
+  }
+}
+<span class="hljs-keyword">import</span> modules._
+</code></pre>
+<p>declare a shared layer as such :</p>
+<pre><code class="hljs css language-scala"><span class="hljs-comment">// Needed to instantiate an http4s client against ZIO</span>
+<span class="hljs-keyword">import</span> zio.interop.catz._
+
+<span class="hljs-comment">// ZIOSuite requires the type of the shared layer to be defined as a type</span>
+<span class="hljs-comment">// parameter. That is because zio needs to implicitly derive some type-tag</span>
+<span class="hljs-comment">// instance for its built-in dependency injection mechanism to work.</span>
+<span class="hljs-comment">//</span>
+<span class="hljs-comment">// NB, the default environment ZEnv is provided by default.</span>
+<span class="hljs-comment">//</span>
+<span class="hljs-class"><span class="hljs-keyword">object</span> <span class="hljs-title">HttpSuite</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">ZIOSuite</span>[<span class="hljs-type">Http</span>] </span>{
+
+  <span class="hljs-comment">// Sharing a single layer across all tests</span>
+  <span class="hljs-keyword">override</span> <span class="hljs-keyword">val</span> sharedLayer : <span class="hljs-type">ZLayer</span>[<span class="hljs-type">ZEnv</span>, <span class="hljs-type">Throwable</span>, <span class="hljs-type">Http</span>] =
+    <span class="hljs-type">ZLayer</span>.fromManaged {
+      <span class="hljs-keyword">val</span> makeHttpClient = <span class="hljs-type">ZIO</span>.runtime[<span class="hljs-type">Any</span>].map { <span class="hljs-keyword">implicit</span> rts =&gt;
+        <span class="hljs-keyword">val</span> exec = rts.platform.executor.asEC
+        <span class="hljs-type">BlazeClientBuilder</span>[<span class="hljs-type">Task</span>](exec).resource.toManagedZIO
+      }
+      <span class="hljs-type">Managed</span>.fromEffect(makeHttpClient).flatten
+    }
+
+  test(<span class="hljs-string">"Standard test"</span>) {
+    <span class="hljs-keyword">for</span> {
+      statusCode &lt;- <span class="hljs-type">Http</span>.get(<span class="hljs-string">"https://httpbin.org/get"</span>)
+    } <span class="hljs-keyword">yield</span> expect(statusCode == <span class="hljs-number">200</span>)
+  }
+
+  test(<span class="hljs-string">"A log module is available"</span>) {
+    <span class="hljs-keyword">for</span> {
+      _          &lt;- log.info(<span class="hljs-string">"Calling https://httpbin.org/oops"</span>)
+      statusCode &lt;- <span class="hljs-type">Http</span>.get(<span class="hljs-string">"https://httpbin.org/oops"</span>)
+    } <span class="hljs-keyword">yield</span> expect(statusCode == <span class="hljs-number">404</span>)
+  }
+
+}
+</code></pre>
+<h2><a class="anchor" aria-hidden="true" id="usage-without-shared-layer"></a><a href="#usage-without-shared-layer" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Usage without shared layer</h2>
+<p>If you have no need for a shared layer, you can simply use the following.
+Note that you can still use side effects provided by the default environment <code>ZEnv</code></p>
+<pre><code class="hljs css language-scala"><span class="hljs-keyword">import</span> zio.duration._
+
+<span class="hljs-class"><span class="hljs-keyword">object</span> <span class="hljs-title">SimpleExample</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">SimpleZIOSuite</span> </span>{
+
+  pureTest(<span class="hljs-string">"no side effect"</span>){
+    expect(<span class="hljs-string">"hello"</span>.size == <span class="hljs-number">5</span>)
+  }
+
+  test(<span class="hljs-string">"with side effects"</span>){
+    <span class="hljs-keyword">for</span> {
+      before &lt;- zio.clock.currentDateTime
+      _     &lt;- zio.clock.sleep(<span class="hljs-number">2.</span>second)
+      after &lt;- zio.clock.currentDateTime
+    } <span class="hljs-keyword">yield</span> expect(before != after)
+  }
+
+}
+</code></pre>
+</span></div></article></div><div class="docs-prevnext"></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#installation">Installation</a><ul class="toc-headings"><li><a href="#sbt">SBT</a></li><li><a href="#mill">Mill</a></li></ul></li><li><a href="#usage">Usage</a></li><li><a href="#usage-without-shared-layer">Usage without shared layer</a></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/weaver-test/" class="nav-home"></a><div><h5>Community</h5><a href="https://twitter.com/disneystreaming" target="_blank" rel="noreferrer noopener">Twitter</a></div><div><h5>More</h5><a href="https://github.com/disneystreaming/weaver-test">GitHub</a><a class="github-button" href="https://github.com/disneystreaming/weaver-test" data-icon="octicon-star" data-count-href="/facebook/docusaurus/stargazers" data-show-count="true" data-count-aria-label="# stargazers on GitHub" aria-label="Star this project on GitHub">Star</a><div class="social"><a href="https://twitter.com/disneystreaming" class="twitter-follow-button">Follow @disneystreaming</a></div></div></section><a href="https://github.com/disneystreaming" target="_blank" rel="noreferrer noopener" class="dssOpenSource"><img src="/weaver-test/img/dss-white-transparent.svg" alt="Disney Streaming Services Open Source" width="204" height="54"/></a><section class="copyright">Copyright © 2023 Disney Streaming Services</section></footer></div><script>window.twttr=(function(d,s, id){var js,fjs=d.getElementsByTagName(s)[0],t=window.twttr||{};if(d.getElementById(id))return t;js=d.createElement(s);js.id=id;js.src='https://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js, fjs);t._e = [];t.ready = function(f) {t._e.push(f);};return t;}(document, 'script', 'twitter-wjs'));</script></body></html>
