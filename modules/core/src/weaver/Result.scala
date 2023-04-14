@@ -1,5 +1,7 @@
 package weaver
 
+import scala.util.Try
+
 import cats.data.NonEmptyList
 import cats.data.Validated.{ Invalid, Valid }
 
@@ -83,7 +85,11 @@ object Result {
           .fold(className)(m => s"$className: $m")
       }
 
-      val stackTraceLimit = if (location.isDefined) Some(10) else None
+      val maxStackFrames = sys.props.get("WEAVER_MAX_STACKFRAMES").flatMap(s =>
+        Try(s.trim.toInt).toOption).getOrElse(50)
+
+      val stackTraceLimit =
+        if (location.isDefined) Some(maxStackFrames) else None
 
       Some(formatError(description,
                        Some(source),
