@@ -22,6 +22,54 @@ trait Checkers {
   // Configuration for property-based tests
   def checkConfig: CheckConfig = CheckConfig.default
 
+  // Implicit defs for ioPropF
+  implicit def ioPropF[A]: PropF[F[A]] = new Prop[F, F[A]] {
+    def lift(fa: F[A]): F[Expectations] = {
+      attemptExpectation(fa.void)
+    }
+  }
+
+  // Add a new function to attempt the expectations
+  def attemptExpectation(fa: F[Unit]): F[Expectations] =
+    fa.attempt.map {
+      case Left(e)  => Expectations.Helpers.failure(e.getMessage)
+      case Right(_) => Expectations.Helpers.success
+    }
+
+// Implicit defs for Show
+  implicit def autoShowTuple[A: Show, B: Show]: Show[(A, B)] = {
+    case (a, b) => s"(${a.show}, ${b.show})"
+  }
+
+  implicit def autoShowTuple3[A: Show, B: Show, C: Show]: Show[(A, B, C)] = {
+    case (a, b, c) => s"(${a.show}, ${b.show}, ${c.show})"
+  }
+
+  implicit def autoShowTuple4[A: Show, B: Show, C: Show, D: Show]: Show[(A, B, C, D)] = {
+    case (a, b, c, d) => s"(${a.show}, ${b.show}, ${c.show}, ${d.show})"
+  }
+
+  implicit def autoShowTuple5[
+      A: Show,
+      B: Show,
+      C: Show,
+      D: Show,
+      E: Show]: Show[(A, B, C, D, E)] = {
+    case (a, b, c, d, e) =>
+      s"(${a.show}, ${b.show}, ${c.show}, ${d.show}, ${e.show})"
+  }
+
+  implicit def autoShowTuple6[
+      A: Show,
+      B: Show,
+      C: Show,
+      D: Show,
+      E: Show,
+      T: Show]: Show[(A, B, C, D, E, T)] = {
+    case (a, b, c, d, e, f) =>
+      s"(${a.show}, ${b.show}, ${c.show}, ${d.show}, ${e.show}, ${f.show})"
+  }
+
   class PartiallyAppliedForall(config: CheckConfig) {
 
     def apply[A1: Arbitrary: Show, B: PropF](f: A1 => B)(
