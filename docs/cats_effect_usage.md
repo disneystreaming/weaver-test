@@ -25,7 +25,7 @@ object test extends Tests {
 
 ### scala-cli
 ```scala
-//> using lib "com.disneystreaming::weaver-cats:0.8.1"
+//> using lib "com.disneystreaming::weaver-cats:@VERSION@"
 //> using testFramework "weaver.framework.CatsEffect" // this may neccessary if you have other TestFramework on your dependencies
 ```
 
