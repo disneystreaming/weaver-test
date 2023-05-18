@@ -1,6 +1,7 @@
 package weaver
 
 import scala.concurrent.duration.FiniteDuration
+import scala.util.Try
 
 import cats.data.Chain
 import cats.syntax.show._
@@ -58,6 +59,9 @@ object Formatter {
     import outcome._
     import TestOutcome.{ Verbose, Summary }
 
+    val maxStackFrames = sys.props.get("WEAVER_MAX_STACKFRAMES").flatMap(s =>
+      Try(s.trim.toInt).toOption).getOrElse(50)
+
     val builder = new StringBuilder()
     val newLine = '\n'
     builder.append(formatResultStatus(name, result, outcome.duration))
@@ -99,6 +103,15 @@ object Formatter {
             builder.append(v)
         }
         builder.append(newLine)
+
+        entry.cause.map { t =>
+          TestErrorFormatter.formatStackTrace(t, Some(maxStackFrames)).map{line =>
+            builder.append(TAB4)
+            builder.append(line)
+            builder.append(newLine)
+          }
+        }
+
 
         ()
       }
