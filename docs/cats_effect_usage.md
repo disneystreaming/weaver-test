@@ -5,9 +5,20 @@ title: Cats-effect usage
 
 ## Installation
 
-You'll need to install the following depending to test your programs against `cats.effect.IO`
+You'll need to install the following dependencies to test your programs against `cats.effect.IO`
 
-### SBT
+### SBT (1.9.0+)
+
+Newer versions of SBT have [`weaver` automatically integrated](https://github.com/sbt/sbt/pull/7263).
+
+```scala
+libraryDependencies +=  "com.disneystreaming" %% "weaver-cats" % "@VERSION@" % Test
+```
+
+### SBT (older versions)
+
+Internally, SBT has a hardcoded list of test frameworks it integrates with. `weaver` must be manually added to this list.
+
 ```scala
 libraryDependencies +=  "com.disneystreaming" %% "weaver-cats" % "@VERSION@" % Test
 testFrameworks += new TestFramework("weaver.framework.CatsEffect")
