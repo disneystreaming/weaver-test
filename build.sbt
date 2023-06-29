@@ -228,7 +228,7 @@ lazy val scalacheck = projectMatrix
 
 lazy val discipline = projectMatrix
   .in(file("modules/discipline"))
-  .sparse(withJS = true, withScala3 = true)
+  .full
   .dependsOn(core, cats)
   .settings(
     name           := "discipline",
