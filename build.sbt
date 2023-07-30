@@ -39,7 +39,8 @@ sonatypeCredentialHost := "s01.oss.sonatype.org"
 val Version = new {
   object CE3 {
     val fs2 = "3.7.0"
-    val ce  = "3.4.6"
+    
+    val ce  = "3.4.11"
   }
 
   val expecty          = "0.16.0"
@@ -228,7 +229,7 @@ lazy val scalacheck = projectMatrix
 
 lazy val discipline = projectMatrix
   .in(file("modules/discipline"))
-  .sparse(withJS = true, withScala3 = true)
+  .full
   .dependsOn(core, cats)
   .settings(
     name           := "discipline",
