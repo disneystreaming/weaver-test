@@ -4,6 +4,7 @@ package weaver
 // format: off
 
 import scala.quoted._
+import java.nio.file.Paths
 
 trait SourceLocationMacro {
   trait Here {
@@ -25,7 +26,7 @@ object macros {
 
     val position = Position.ofMacroExpansion
 
-    val psj = position.sourceFile.getJPath.get
+    val psj = position.sourceFile.getJPath.getOrElse(Paths.get(position.sourceFile.path))
     // Comparing roots to workaround a Windows-specific behaviour
     // https://github.com/disneystreaming/weaver-test/issues/364
     val rp = if(pwd.getRoot == psj.getRoot) Expr(pwd.relativize(psj).toString) else Expr(psj.toString)
