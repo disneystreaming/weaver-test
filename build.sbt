@@ -39,7 +39,7 @@ sonatypeCredentialHost := "s01.oss.sonatype.org"
 val Version = new {
   object CE3 {
     val fs2 = "3.5.0"
-    val ce  = "3.5.1"
+    val ce  = "3.5.2"
   }
 
   val expecty          = "0.16.0"
