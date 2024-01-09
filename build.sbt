@@ -64,7 +64,6 @@ lazy val allModules = Seq(
   framework.projectRefs,
   scalacheck.projectRefs,
   discipline.projectRefs,
-  intellijRunner.projectRefs,
   effectCores,
   effectFrameworks
 ).flatten
@@ -269,19 +268,6 @@ lazy val cats = projectMatrix
   .settings(
     name           := "cats",
     testFrameworks := Seq(new TestFramework("weaver.framework.CatsEffect"))
-  )
-
-// #################################################################################################
-// Intellij
-// #################################################################################################
-
-lazy val intellijRunner = projectMatrix
-  .sparse(withJS = false, withScala3 = false)
-  .in(file("modules/intellij-runner"))
-  .dependsOn(core, framework, framework % "test->compile")
-  .settings(WeaverPlugin.simpleLayout)
-  .settings(
-    name := "intellij-runner"
   )
 
 // #################################################################################################
