@@ -24,9 +24,6 @@
       "multiple_suites_success",
       "multiple_suites_failures",
       "multiple_suites_logging"
-    ],
-    "IDE integrations": [
-      "intellij"
     ]
   }
 }
