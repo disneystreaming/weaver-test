@@ -1,14 +1,14 @@
 // https://typelevel.org/sbt-typelevel/faq.html#what-is-a-base-version-anyway
 ThisBuild / tlBaseVersion := "0.0" // your current series x.y
 
-ThisBuild / organization := "weaver"
+ThisBuild / organization     := "weaver"
 ThisBuild / organizationName := "Typelevel"
-ThisBuild / startYear := Some(2019)
-ThisBuild / licenses := Seq(License.Apache2)
+ThisBuild / startYear        := Some(2019)
+ThisBuild / licenses         := Seq(License.Apache2)
 ThisBuild / developers := List(
   tlGitHubDev("baccata", "Olivier Mélois"),
   tlGitHubDev("keynmol", "Anton Sviridov"),
-  tlGitHubDev("valencik", "Andrew Valencik"),
+  tlGitHubDev("valencik", "Andrew Valencik")
 )
 
 // publish to s01.oss.sonatype.org (set to true to publish to oss.sonatype.org instead)
@@ -20,7 +20,7 @@ ThisBuild / githubWorkflowJavaVersions := Seq(JavaSpec.temurin("11"))
 val scala212 = "2.12.17"
 val scala213 = "2.13.10"
 ThisBuild / crossScalaVersions := Seq(scala212, scala213, "3.3.1")
-ThisBuild / scalaVersion := scala213 // the default Scala
+ThisBuild / scalaVersion       := scala213 // the default Scala
 
 val Version = new {
   val catsEffect       = "3.5.2"
@@ -37,19 +37,24 @@ val Version = new {
   val testInterface    = "1.0"
 }
 
-lazy val root = tlCrossRootProject.aggregate(core, framework, coreCats, cats, scalacheck, discipline)
+lazy val root = tlCrossRootProject.aggregate(core,
+                                             framework,
+                                             coreCats,
+                                             cats,
+                                             scalacheck,
+                                             discipline)
 
 lazy val core = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   .in(file("modules/core"))
   .settings(
     name := "core",
     libraryDependencies ++= Seq(
-      "co.fs2"        %%% "fs2-core"    % Version.fs2,
-      "org.typelevel" %%% "cats-effect" % Version.catsEffect,
-      "com.eed3si9n.expecty" %%% "expecty" % Version.expecty,
+      "co.fs2"               %%% "fs2-core"    % Version.fs2,
+      "org.typelevel"        %%% "cats-effect" % Version.catsEffect,
+      "com.eed3si9n.expecty" %%% "expecty"     % Version.expecty,
       // https://github.com/portable-scala/portable-scala-reflect/issues/23
-      "org.portable-scala" %%% "portable-scala-reflect" % Version.portableReflect cross CrossVersion.for3Use2_13,
-    ),
+      "org.portable-scala" %%% "portable-scala-reflect" % Version.portableReflect cross CrossVersion.for3Use2_13
+    )
   )
 
 lazy val coreJVM = core.jvm
@@ -103,9 +108,9 @@ lazy val coreCats = crossProject(JVMPlatform, JSPlatform, NativePlatform)
 
 lazy val coreCatsJS = coreCats.js
   .settings(
-    libraryDependencies ++= Seq("org.scala-js" %%% "scala-js-macrotask-executor" % Version.scalajsMacroTask)
+    libraryDependencies ++= Seq(
+      "org.scala-js" %%% "scala-js-macrotask-executor" % Version.scalajsMacroTask)
   )
-
 
 lazy val cats = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   .in(file("modules/framework-cats"))
