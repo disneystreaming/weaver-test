@@ -37,9 +37,9 @@ val Version = new {
   val testInterface    = "1.0"
 }
 
-lazy val root = tlCrossRootProject.aggregate(core)
+lazy val root = tlCrossRootProject.aggregate(core, framework)
 
-lazy val core = crossProject(JVMPlatform)
+lazy val core = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   .in(file("modules/core"))
   .settings(
     name := "core",
@@ -49,11 +49,49 @@ lazy val core = crossProject(JVMPlatform)
       "com.eed3si9n.expecty" %%% "expecty" % Version.expecty,
       // https://github.com/portable-scala/portable-scala-reflect/issues/23
       "org.portable-scala" %%% "portable-scala-reflect" % Version.portableReflect cross CrossVersion.for3Use2_13,
+    ),
+  )
+
+lazy val coreJVM = core.jvm
+  .settings(
+    libraryDependencies ++= Seq(
       "org.scala-js" %%% "scalajs-stubs" % Version.scalajsStubs % "provided" cross CrossVersion.for3Use2_13,
       "junit" % "junit" % Version.junit % Optional,
       if (scalaVersion.value.startsWith("3."))
         "org.scala-lang" % "scala-reflect" % scala213
       else
         "org.scala-lang" % "scala-reflect" % scalaVersion.value
-    ),
+    )
+  )
+
+lazy val framework = crossProject(JVMPlatform, JSPlatform, NativePlatform)
+  .in(file("modules/framework"))
+  .dependsOn(core)
+  .settings(
+    name := "framework",
+    libraryDependencies ++= Seq(
+      "junit" % "junit" % Version.junit
+    )
+  )
+
+lazy val frameworkJVM = framework.jvm
+  .settings(
+    libraryDependencies ++= Seq(
+      "org.scala-sbt" % "test-interface" % Version.testInterface,
+      "org.scala-js" %%% "scalajs-stubs" % Version.scalajsStubs % "provided" cross CrossVersion.for3Use2_13
+    )
+  )
+
+lazy val frameworkJS = framework.js
+  .settings(
+    libraryDependencies ++= Seq(
+      "org.scala-js" %% "scalajs-test-interface" % scalaJSVersion cross CrossVersion.for3Use2_13
+    )
+  )
+
+lazy val frameworkNative = framework.native
+  .settings(
+    libraryDependencies ++= Seq(
+      "org.scala-native" %%% "test-interface" % nativeVersion
+    )
   )
