@@ -37,7 +37,7 @@ val Version = new {
   val testInterface    = "1.0"
 }
 
-lazy val root = tlCrossRootProject.aggregate(core, framework)
+lazy val root = tlCrossRootProject.aggregate(core, framework, coreCats, cats, scalacheck, discipline)
 
 lazy val core = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   .in(file("modules/core"))
@@ -93,5 +93,46 @@ lazy val frameworkNative = framework.native
   .settings(
     libraryDependencies ++= Seq(
       "org.scala-native" %%% "test-interface" % nativeVersion
+    )
+  )
+
+lazy val coreCats = crossProject(JVMPlatform, JSPlatform, NativePlatform)
+  .in(file("modules/core-cats"))
+  .dependsOn(core)
+  .settings(name := "cats-core")
+
+lazy val coreCatsJS = coreCats.js
+  .settings(
+    libraryDependencies ++= Seq("org.scala-js" %%% "scala-js-macrotask-executor" % Version.scalajsMacroTask)
+  )
+
+
+lazy val cats = crossProject(JVMPlatform, JSPlatform, NativePlatform)
+  .in(file("modules/framework-cats"))
+  .dependsOn(framework, coreCats)
+  .settings(
+    name           := "cats",
+    testFrameworks := Seq(new TestFramework("weaver.framework.CatsEffect"))
+  )
+
+lazy val scalacheck = crossProject(JVMPlatform, JSPlatform, NativePlatform)
+  .in(file("modules/scalacheck"))
+  .dependsOn(core, cats % "test->compile")
+  .settings(
+    testFrameworks := Seq(new TestFramework("weaver.framework.CatsEffect")),
+    libraryDependencies ++= Seq(
+      "org.scalacheck" %%% "scalacheck"          % Version.scalacheck,
+      "org.typelevel"  %%% "cats-effect-testkit" % Version.catsEffect % Test)
+  )
+
+lazy val discipline = crossProject(JVMPlatform, JSPlatform, NativePlatform)
+  .in(file("modules/discipline"))
+  .dependsOn(core, cats)
+  .settings(
+    name           := "discipline",
+    testFrameworks := Seq(new TestFramework("weaver.framework.CatsEffect")),
+    libraryDependencies ++= Seq(
+      "org.typelevel" %%% "discipline-core" % Version.discipline,
+      "org.typelevel" %%% "cats-laws"       % Version.catsLaws % Test
     )
   )
