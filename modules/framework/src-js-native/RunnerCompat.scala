@@ -13,6 +13,8 @@ import cats.effect.{ Ref, Sync }
 import cats.syntax.all._
 
 import sbt.testing.{ EventHandler, Logger, Task, TaskDef }
+import java.io.ByteArrayOutputStream
+import java.io.DataOutputStream
 
 trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
   protected val args: Array[String]
@@ -189,14 +191,14 @@ private[weaver] object ReadWriter {
     def readDouble() = bytes.getDouble
   }
 
-  class Writer(bb: ByteBuffer) {
+  class Writer(bb: DataOutputStream) {
 
     def writeString(s: String) = {
-      bb.putInt(s.getBytes.size)
-      bb.put(s.getBytes())
+      bb.writeInt(s.getBytes.size)
+      bb.writeBytes(s)
     }
 
-    def writeDouble(d: Double) = bb.putDouble(d)
+    def writeDouble(d: Double) = bb.writeDouble(d)
   }
 
   def reader[A](s: String)(f: Reader => A) = {
@@ -205,12 +207,17 @@ private[weaver] object ReadWriter {
   }
 
   def writer(f: Writer => Unit): String = {
-    val buf = ByteBuffer.allocate(2048)
+    val baos = new ByteArrayOutputStream(2048)
+    val dos  = new DataOutputStream(baos)
 
-    f(new Writer(buf))
+    try {
+      f(new Writer(dos))
 
-    new String(buf.array())
-
+      baos.toString()
+    } finally {
+      dos.close()
+      baos.close()
+    }
   }
 }
 
