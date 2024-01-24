@@ -86,6 +86,29 @@ object DogFoodTests extends IOSuite {
     }
   }
 
+  // https://github.com/disneystreaming/weaver-test/issues/724
+  test("test suite outputs stack traces even if the output is very long") {
+    _.runSuite(Meta.ErroringWithLongPayload).map {
+      case (logs, _) =>
+        val actual = extractLogEventAfterFailures(logs) {
+          case LoggedEvent.Error(msg) => msg
+        }.get
+
+        val expected =
+          s"""
+            |- erroring with a long message: ${Meta.ErroringWithLongPayload.smiles} 0ms
+            |  Meta$$CustomException: surfaced error
+            |
+            |  DogFoodTests.scala:15    my.package.MyClass#MyMethod
+            |  DogFoodTests.scala:20    my.package.ClassOfDifferentLength#method$$new$$1
+            |  <snipped>                cats.effect.internals.<...>
+            |  <snipped>                java.util.concurrent.<...>
+            |""".stripMargin.trim
+
+        expect.same(actual, expected)
+    }
+  }
+
   test("test suite outputs stack traces of exception causes") {
     _.runSuite(Meta.ErroringWithCauses).map {
       case (logs, _) =>
@@ -208,7 +231,7 @@ object DogFoodTests extends IOSuite {
   }
 
   test(
-    "expect.same delegates to show when an insteance is found") {
+    "expect.same delegates to show when an instance is found") {
     _.runSuite(Meta.Rendering).map {
       case (logs, _) =>
         val actual =
