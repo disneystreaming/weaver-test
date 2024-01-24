@@ -15,6 +15,7 @@ import cats.syntax.all._
 import sbt.testing.{ EventHandler, Logger, Task, TaskDef }
 import java.io.ByteArrayOutputStream
 import java.io.DataOutputStream
+import java.util.Base64
 
 trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
   protected val args: Array[String]
@@ -27,15 +28,8 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
   private[weaver] val failedTests = ListBuffer.empty[(SuiteName, TestOutcome)]
 
   def reportDone(out: TestOutcomeNative): Unit = {
-    val serialised = ReadWriter.writer { p =>
-      p.writeString(out.suiteName)
-      p.writeString(out.testName)
-      p.writeDouble(out.durationMs)
-      p.writeString(out.verboseFormatting)
-      ()
-    }
     channel match {
-      case Some(send) => send(serialised)
+      case Some(send) => send(TestOutcomeNative.encode(out))
       case None       => failedTests.append(TestOutcomeNative.rehydrate(out))
     }
   }
@@ -74,17 +68,7 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
   }
 
   override def receiveMessage(msg: String): Option[String] = {
-    val outcome = ReadWriter.reader(msg) { p =>
-      val suite = p.readString()
-      val test  = p.readString()
-      val dur   = p.readDouble()
-      val verb  = p.readString()
-
-      new TestOutcomeNative(suiteName = suite,
-                            testName = test,
-                            durationMs = dur,
-                            verboseFormatting = verb)
-    }
+    val outcome = TestOutcomeNative.decode(msg)
     reportDone(outcome)
     None
   }
@@ -202,7 +186,7 @@ private[weaver] object ReadWriter {
   }
 
   def reader[A](s: String)(f: Reader => A) = {
-    val buf = ByteBuffer.wrap(s.getBytes)
+    val buf = ByteBuffer.wrap(Base64.getDecoder().decode(s.getBytes()))
     f(new Reader(buf, 0))
   }
 
@@ -213,7 +197,7 @@ private[weaver] object ReadWriter {
     try {
       f(new Writer(dos))
 
-      baos.toString()
+      Base64.getEncoder().encodeToString(baos.toByteArray())
     } finally {
       dos.close()
       baos.close()
@@ -243,6 +227,24 @@ object TestOutcomeNative {
       t.durationMs.millis,
       t.verboseFormatting
     )
+  }
+
+  def encode(to: TestOutcomeNative): String = ReadWriter.writer { p =>
+    p.writeString(to.suiteName)
+    p.writeString(to.testName)
+    p.writeDouble(to.durationMs)
+    p.writeString(to.verboseFormatting)
+  }
+  def decode(s: String): TestOutcomeNative = ReadWriter.reader(s) { p =>
+    val suite = p.readString()
+    val test  = p.readString()
+    val dur   = p.readDouble()
+    val verb  = p.readString()
+
+    new TestOutcomeNative(suiteName = suite,
+                          testName = test,
+                          durationMs = dur,
+                          verboseFormatting = verb)
   }
 
   private case class DecodedOutcome(
