@@ -13,6 +13,9 @@ import cats.effect.{ Ref, Sync }
 import cats.syntax.all._
 
 import sbt.testing.{ EventHandler, Logger, Task, TaskDef }
+import java.io.ByteArrayOutputStream
+import java.io.DataOutputStream
+import java.util.Base64
 
 trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
   protected val args: Array[String]
@@ -25,15 +28,8 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
   private[weaver] val failedTests = ListBuffer.empty[(SuiteName, TestOutcome)]
 
   def reportDone(out: TestOutcomeNative): Unit = {
-    val serialised = ReadWriter.writer { p =>
-      p.writeString(out.suiteName)
-      p.writeString(out.testName)
-      p.writeDouble(out.durationMs)
-      p.writeString(out.verboseFormatting)
-      ()
-    }
     channel match {
-      case Some(send) => send(serialised)
+      case Some(send) => send(TestOutcomeNative.encode(out))
       case None       => failedTests.append(TestOutcomeNative.rehydrate(out))
     }
   }
@@ -72,17 +68,7 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
   }
 
   override def receiveMessage(msg: String): Option[String] = {
-    val outcome = ReadWriter.reader(msg) { p =>
-      val suite = p.readString()
-      val test  = p.readString()
-      val dur   = p.readDouble()
-      val verb  = p.readString()
-
-      new TestOutcomeNative(suiteName = suite,
-                            testName = test,
-                            durationMs = dur,
-                            verboseFormatting = verb)
-    }
+    val outcome = TestOutcomeNative.decode(msg)
     reportDone(outcome)
     None
   }
@@ -189,28 +175,33 @@ private[weaver] object ReadWriter {
     def readDouble() = bytes.getDouble
   }
 
-  class Writer(bb: ByteBuffer) {
+  class Writer(bb: DataOutputStream) {
 
     def writeString(s: String) = {
-      bb.putInt(s.getBytes.size)
-      bb.put(s.getBytes())
+      bb.writeInt(s.getBytes.size)
+      bb.writeBytes(s)
     }
 
-    def writeDouble(d: Double) = bb.putDouble(d)
+    def writeDouble(d: Double) = bb.writeDouble(d)
   }
 
   def reader[A](s: String)(f: Reader => A) = {
-    val buf = ByteBuffer.wrap(s.getBytes)
+    val buf = ByteBuffer.wrap(Base64.getDecoder().decode(s.getBytes()))
     f(new Reader(buf, 0))
   }
 
   def writer(f: Writer => Unit): String = {
-    val buf = ByteBuffer.allocate(2048)
+    val baos = new ByteArrayOutputStream(2048)
+    val dos  = new DataOutputStream(baos)
 
-    f(new Writer(buf))
+    try {
+      f(new Writer(dos))
 
-    new String(buf.array())
-
+      Base64.getEncoder().encodeToString(baos.toByteArray())
+    } finally {
+      dos.close()
+      baos.close()
+    }
   }
 }
 
@@ -236,6 +227,24 @@ object TestOutcomeNative {
       t.durationMs.millis,
       t.verboseFormatting
     )
+  }
+
+  def encode(to: TestOutcomeNative): String = ReadWriter.writer { p =>
+    p.writeString(to.suiteName)
+    p.writeString(to.testName)
+    p.writeDouble(to.durationMs)
+    p.writeString(to.verboseFormatting)
+  }
+  def decode(s: String): TestOutcomeNative = ReadWriter.reader(s) { p =>
+    val suite = p.readString()
+    val test  = p.readString()
+    val dur   = p.readDouble()
+    val verb  = p.readString()
+
+    new TestOutcomeNative(suiteName = suite,
+                          testName = test,
+                          durationMs = dur,
+                          verboseFormatting = verb)
   }
 
   private case class DecodedOutcome(

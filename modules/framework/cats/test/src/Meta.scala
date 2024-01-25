@@ -111,6 +111,22 @@ object Meta {
     }
   }
 
+  object ErroringWithLongPayload extends SimpleIOSuite {
+    override implicit protected def effectCompat: UnsafeRun[IO] =
+      SetTimeUnsafeRun
+
+    val smiles = ":)" * 1024
+
+    test("erroring with a long message: " + smiles) {
+      IO.raiseError(
+        CustomException(
+          "surfaced error",
+          withSnips = true
+        )
+      ).as(success)
+    }
+  }
+
   case class CustomException(
       str: String,
       causedBy: Exception = null,
