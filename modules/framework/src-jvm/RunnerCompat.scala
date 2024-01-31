@@ -47,10 +47,9 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
       waitForResourcesShutdown: java.util.concurrent.Semaphore,
       tasks: List[IOTask],
       gate: Promise[Unit]): Unit = {
-    cancelToken = Some(unsafeRun.background(run(globalResources,
-                                                waitForResourcesShutdown,
-                                                tasks,
-                                                gate)))
+    cancelToken = Some(unsafeRun.background(
+      run(globalResources, waitForResourcesShutdown, tasks, gate),
+      isDone))
   }
 
   def tasks(taskDefs: Array[TaskDef]): Array[Task] = {
