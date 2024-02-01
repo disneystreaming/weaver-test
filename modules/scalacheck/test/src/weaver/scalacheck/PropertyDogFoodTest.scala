@@ -9,6 +9,7 @@ import cats.syntax.all._
 import weaver.framework._
 
 import org.scalacheck.Gen
+import org.scalacheck.rng.Seed
 
 object PropertyDogFoodTest extends IOSuite {
 
@@ -103,13 +104,16 @@ object Meta {
 
     override def checkConfig: CheckConfig =
       super.checkConfig
-        .copy(perPropertyParallelism = 100, minimumSuccessful = 100)
+        .withPerPropertyParallelism(100)
+        .withMinimumSuccessful(100)
   }
 
   object FailedChecks extends SimpleIOSuite with Checkers {
 
     override def checkConfig: CheckConfig =
-      super.checkConfig.copy(perPropertyParallelism = 1, initialSeed = Some(5L))
+      super.checkConfig
+        .withPerPropertyParallelism(1)
+        .withInitialSeed(Some(Seed(5L)))
 
     test("foobar") {
       forall { (x: Int) =>
@@ -128,8 +132,9 @@ object Meta {
   object ConfigOverrideChecks extends DiscardedChecks {
 
     val configOverride =
-      super.checkConfig.copy(minimumSuccessful = 200,
-                             perPropertyParallelism = 1)
+      super.checkConfig
+        .withMinimumSuccessful(200)
+        .withPerPropertyParallelism(1)
 
     override def partiallyAppliedForall: PartiallyAppliedForall =
       forall.withConfig(configOverride)
@@ -140,8 +145,10 @@ object Meta {
     override def partiallyAppliedForall: PartiallyAppliedForall = forall
 
     override def checkConfig =
-      super.checkConfig.copy(minimumSuccessful = 100,
-                             // to avoid overcounting of discarded checks
-                             perPropertyParallelism = 1)
+      super.checkConfig
+        .withMinimumSuccessful(100)
+        .withPerPropertyParallelism(
+          1
+        ) // to avoid overcounting of discarded checks
   }
 }
