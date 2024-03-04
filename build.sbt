@@ -11,6 +11,8 @@ ThisBuild / developers := List(
   tlGitHubDev("valencik", "Andrew Valencik")
 )
 
+ThisBuild / tlCiHeaderCheck := false
+
 // publish to s01.oss.sonatype.org (set to true to publish to oss.sonatype.org instead)
 ThisBuild / tlSonatypeUseLegacyHost := false
 
