@@ -57,7 +57,7 @@ object JUnitRunnerTests extends IOSuite {
   test("Tests tagged with only fail when ran on CI") { blocker =>
     run(blocker, Meta.OnlyFailsOnCi).map { notifications =>
       def testFailure(name: String, lineNumber: Int) = {
-        val srcPath  = "modules/framework/cats/test/src-jvm/junit/Meta.scala"
+        val srcPath  = "modules/framework-cats/jvm/src/test/scala/junit/Meta.scala"
         val msgLine1 = s"- $name 0ms"
         val msgLine2 =
           s"  'Only' tag is not allowed when `isCI=true` ($srcPath:$lineNumber)"
@@ -134,7 +134,7 @@ object JUnitRunnerTests extends IOSuite {
     blocker =>
       run(blocker, Meta.OnlyFailsOnCiEvenIfIgnored).map { notifications =>
         def testFailure(name: String, lineNumber: Int) = {
-          val srcPath  = "modules/framework/cats/test/src-jvm/junit/Meta.scala"
+          val srcPath  = "modules/framework-cats/jvm/src/test/scala/junit/Meta.scala"
           val msgLine1 = s"- $name 0ms"
           val msgLine2 =
             s"  'Only' tag is not allowed when `isCI=true` ($srcPath:$lineNumber)"
