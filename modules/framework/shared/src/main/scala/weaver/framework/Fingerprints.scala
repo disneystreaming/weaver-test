@@ -58,6 +58,7 @@ abstract class WeaverFingerprints[F[_]](implicit F: Sync[F]) {
               loadModule(taskDef.fullyQualifiedName(), classLoader)
             val init = cast(module)(GlobalResourcesInitClass)
             Some(GlobalResourcesRef(init))
+          case _ => None
         }
 
     }
