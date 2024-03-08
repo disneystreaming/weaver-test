@@ -17,7 +17,7 @@ private[weaver] trait DogFoodCompat[F[_]] { self: DogFood[F] =>
       eventHandler: EventHandler,
       logger: Logger,
       maxParallelism: Int)(tasks: List[sbt.testing.Task]): F[Unit] = {
-
+    val _ = runner
     effect.void {
       @scala.annotation.nowarn("msg=implicit numeric widening")
       val r = tasks.toVector.parTraverseN[F, Unit](maxParallelism) { task =>
