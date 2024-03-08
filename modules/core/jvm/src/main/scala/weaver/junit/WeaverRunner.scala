@@ -7,12 +7,10 @@ import weaver.internals.Reflection
 import org.junit.runner.Description
 import org.junit.runner.notification.RunNotifier
 
-class WeaverRunner(cls: Class[_], dummy: Boolean)
+class WeaverRunner(cls: Class[_])
     extends org.junit.runner.Runner {
 
   type F[A] = Any
-
-  def this(cls: Class[_]) = this(cls, true)
 
   lazy val suite: RunnableSuite[F] = {
     Reflection.loadRunnableSuite(cls.getName(), getClass().getClassLoader())
