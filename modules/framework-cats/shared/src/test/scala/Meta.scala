@@ -14,7 +14,7 @@ object Meta {
 
   object Boom extends Error("Boom") with scala.util.control.NoStackTrace
 
-  @nowarn("cat=w-flag-dead-code")
+  @nowarn("msg=dead code following this construct")
   object CrashingSuite extends SimpleIOSuite {
     throw Boom
   }
