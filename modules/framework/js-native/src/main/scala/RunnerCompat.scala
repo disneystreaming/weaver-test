@@ -177,7 +177,7 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
 }
 
 private[weaver] object ReadWriter {
-  class Reader(bytes: ByteBuffer, private var pt: Int) {
+  class Reader(bytes: ByteBuffer) {
     def readString() = {
       val stringSize = bytes.getInt()
       val ar         = new Array[Byte](stringSize)
@@ -201,7 +201,7 @@ private[weaver] object ReadWriter {
 
   def reader[A](s: String)(f: Reader => A) = {
     val buf = ByteBuffer.wrap(s.getBytes)
-    f(new Reader(buf, 0))
+    f(new Reader(buf))
   }
 
   def writer(f: Writer => Unit): String = {
