@@ -240,7 +240,7 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
                                .productR(broker.send(TestFinished(outcome))),
                              finalizer)
         }
-      )).handleErrorWith { case scala.util.control.NonFatal(_) =>
+      )).recoverWith { case scala.util.control.NonFatal(_) =>
         effect.unit // avoid non-fatal errors propagating up
       }
     }
