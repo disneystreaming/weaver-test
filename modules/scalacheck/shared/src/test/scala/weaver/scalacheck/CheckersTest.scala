@@ -4,7 +4,6 @@ package scalacheck
 import scala.concurrent.duration._
 
 import cats.effect.IO
-import cats.syntax.all._
 
 import org.scalacheck.Gen
 

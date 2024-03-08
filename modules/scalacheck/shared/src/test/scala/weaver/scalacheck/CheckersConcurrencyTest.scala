@@ -9,9 +9,6 @@ import scala.concurrent.duration._
 import cats.effect.Outcome._
 import cats.effect.testkit.TestControl
 import cats.effect.{ IO, Ref }
-import cats.syntax.all._
-
-import weaver.TestStatus
 
 import org.scalacheck.Gen
 

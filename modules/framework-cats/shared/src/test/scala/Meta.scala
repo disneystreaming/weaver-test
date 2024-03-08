@@ -102,7 +102,7 @@ object Meta {
     override implicit protected def effectCompat: UnsafeRun[IO] =
       SetTimeUnsafeRun
 
-    loggedTest("erroring with causes") { log =>
+    loggedTest("erroring with causes") { _ =>
       throw CustomException(
         "surfaced error",
         CustomException("first cause",
