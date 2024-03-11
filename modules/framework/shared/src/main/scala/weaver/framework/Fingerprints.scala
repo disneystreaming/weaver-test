@@ -76,7 +76,7 @@ abstract class WeaverFingerprints[F[_]](implicit F: Sync[F]) {
   /**
    * A fingerprint that searches only for classes extending
    * [[weaver.EffectSuite]]. that have a constructor that takes a single
-   * [[weaver.GlobalResources.Read]] parameter.
+   * `weaver.GlobalResources.Read` parameter.
    */
   object ResourceSharingSuiteFingerprint extends WeaverFingerprint {
     def isModule()                         = false
