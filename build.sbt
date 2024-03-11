@@ -25,18 +25,19 @@ ThisBuild / crossScalaVersions := Seq(scala212, scala213, "3.3.1")
 ThisBuild / scalaVersion       := scala213 // the default Scala
 
 val Version = new {
-  val catsEffect       = "3.5.2"
-  val catsLaws         = "2.9.0"
-  val discipline       = "1.5.1"
-  val expecty          = "0.16.0"
-  val fs2              = "3.5.0"
-  val junit            = "4.13.2"
-  val portableReflect  = "1.1.2"
-  val scalaJavaTime    = "2.4.0"
-  val scalacheck       = "1.17.0"
-  val scalajsMacroTask = "1.1.1"
-  val scalajsStubs     = "1.1.0"
-  val testInterface    = "1.0"
+  val catsEffect             = "3.5.2"
+  val catsLaws               = "2.9.0"
+  val discipline             = "1.5.1"
+  val expecty                = "0.16.0"
+  val fs2                    = "3.5.0"
+  val junit                  = "4.13.2"
+  val portableReflect        = "1.1.2"
+  val scalaJavaTime          = "2.4.0"
+  val scalacheck             = "1.17.0"
+  val scalajsMacroTask       = "1.1.1"
+  val scalajsStubs           = "1.1.0"
+  val testInterface          = "1.0"
+  val scalacCompatAnnotation = "0.1.4"
 }
 
 lazy val root = tlCrossRootProject.aggregate(core,
@@ -55,7 +56,8 @@ lazy val core = crossProject(JVMPlatform, JSPlatform, NativePlatform)
       "org.typelevel"        %%% "cats-effect" % Version.catsEffect,
       "com.eed3si9n.expecty" %%% "expecty"     % Version.expecty,
       // https://github.com/portable-scala/portable-scala-reflect/issues/23
-      "org.portable-scala" %%% "portable-scala-reflect" % Version.portableReflect cross CrossVersion.for3Use2_13
+      "org.portable-scala" %%% "portable-scala-reflect" % Version.portableReflect cross CrossVersion.for3Use2_13,
+      "org.typelevel" %% "scalac-compat-annotation" % Version.scalacCompatAnnotation
     )
   )
 

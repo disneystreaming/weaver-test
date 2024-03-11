@@ -2,6 +2,7 @@ package weaver
 package framework
 
 import java.nio.ByteBuffer
+import org.typelevel.scalaccompat.annotation.unused
 
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.Future
@@ -138,7 +139,7 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
         }
       }
 
-      def finaliseError(outcomes: Ref[
+      def finaliseError(@unused outcomes: Ref[
         F,
         Chain[TestOutcome]]): Throwable => F[Unit] = { error =>
         val outcome =

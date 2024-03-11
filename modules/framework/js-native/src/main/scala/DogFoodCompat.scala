@@ -4,6 +4,7 @@ package framework
 import cats.data.Chain
 import cats.effect.Resource
 import cats.syntax.all._
+import org.typelevel.scalaccompat.annotation.unused
 
 private[weaver] trait DogFoodCompat[F[_]] { self: DogFood[F] =>
 
@@ -15,7 +16,7 @@ private[weaver] trait DogFoodCompat[F[_]] { self: DogFood[F] =>
       runner: WeaverRunner[F],
       eventHandler: sbt.testing.EventHandler,
       logger: sbt.testing.Logger,
-      maxParallelism: Int)(tasks: List[sbt.testing.Task]): F[Unit] = {
+      @unused maxParallelism: Int)(tasks: List[sbt.testing.Task]): F[Unit] = {
     tasks.traverse { task =>
       self.framework.unsafeRun.fromFuture {
         task.asInstanceOf[AsyncTask].executeFuture(eventHandler, Array(logger))

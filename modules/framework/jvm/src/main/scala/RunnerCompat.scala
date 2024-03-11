@@ -1,5 +1,6 @@
 package weaver
 package framework
+import org.typelevel.scalaccompat.annotation.unused
 
 import java.io.PrintStream
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -37,7 +38,7 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
   }
 
   // Required on js
-  def receiveMessage(msg: String): Option[String] = None
+  def receiveMessage(@unused msg: String): Option[String] = None
 
   // Flag meant to be raised if build-tool call `done`
   protected val isDone: AtomicBoolean = new AtomicBoolean(false)
