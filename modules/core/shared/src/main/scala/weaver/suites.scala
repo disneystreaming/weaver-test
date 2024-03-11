@@ -131,13 +131,13 @@ abstract class MutableFSuite[F[_]] extends RunnableSuite[F]  {
     }
 
   def pureTest(name: TestName)(run : => Expectations) :  Unit = registerTest(name)(_ => Test(name.name, effectCompat.effect.delay(run)))
-  def loggedTest(name: TestName)(run: Log[F] => F[Expectations]) : Unit = registerTest(name)(_ => Test(name.name, log => run(log)))
+  def loggedTest(name: TestName)(run: Log[F] => F[Expectations]) : Unit = registerTest(name)(_ => Test[F](name.name, log => run(log)))
   def test(name: TestName) : PartiallyAppliedTest = new PartiallyAppliedTest(name)
 
   class PartiallyAppliedTest(name : TestName) {
     def apply(run: => F[Expectations]) : Unit = registerTest(name)(_ => Test(name.name, run))
     def apply(run : Res => F[Expectations]) : Unit = registerTest(name)(res => Test(name.name, run(res)))
-    def apply(run : (Res, Log[F]) => F[Expectations]) : Unit = registerTest(name)(res => Test(name.name, log => run(res, log)))
+    def apply(run : (Res, Log[F]) => F[Expectations]) : Unit = registerTest(name)(res => Test[F](name.name, log => run(res, log)))
 
     // this alias helps using pattern matching on `Res`
     def usingRes(run : Res => F[Expectations]) : Unit = apply(run)
