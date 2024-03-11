@@ -7,7 +7,6 @@ import cats.effect.{ Async, Resource }
 import cats.syntax.all._
 
 import fs2.Stream
-import org.junit.runner.RunWith
 import org.portablescala.reflect.annotation.EnableReflectiveInstantiation
 
 // Just a non-parameterized marker trait to help SBT's test detection logic.
@@ -60,7 +59,6 @@ object EffectSuite {
 
 }
 
-@RunWith(classOf[weaver.junit.WeaverRunner])
 abstract class RunnableSuite[F[_]] extends EffectSuite[F] {
   implicit protected def effectCompat: UnsafeRun[EffectType]
   private[weaver] def getEffectCompat: UnsafeRun[EffectType] = effectCompat
