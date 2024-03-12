@@ -5,6 +5,7 @@ import cats.effect.Resource
 import cats.effect.implicits._
 
 import sbt.testing._
+import org.typelevel.scalaccompat.annotation.unused
 
 private[weaver] trait DogFoodCompat[F[_]] { self: DogFood[F] =>
 
@@ -13,11 +14,10 @@ private[weaver] trait DogFoodCompat[F[_]] { self: DogFood[F] =>
   def blocker: BlockerCompat[F]
 
   def runTasksCompat(
-      runner: WeaverRunner[F],
+      @unused runner: WeaverRunner[F],
       eventHandler: EventHandler,
       logger: Logger,
       maxParallelism: Int)(tasks: List[sbt.testing.Task]): F[Unit] = {
-    val _ = runner
     effect.void {
       val r = tasks.toVector.parTraverseN[F, Unit](maxParallelism) { task =>
         blocker.block(discard[Array[Task]](task.execute(eventHandler,
