@@ -14,6 +14,8 @@ class WeaverRunner(cls: Class[_], @unused dummy: Boolean)
 
   type F[A] = Any
 
+  def this(cls: Class[_]) = this(cls, true)
+
   lazy val suite: RunnableSuite[F] = {
     Reflection.loadRunnableSuite(cls.getName(), getClass().getClassLoader())
   }
