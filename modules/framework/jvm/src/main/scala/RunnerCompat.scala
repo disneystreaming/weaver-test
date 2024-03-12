@@ -59,7 +59,7 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
     val waitForResourcesShutdown = new java.util.concurrent.Semaphore(0)
 
     val tasksAndSuites = (taskDefs.toList.mapFilter { taskDef =>
-      suiteLoader(taskDef).map(loader => (taskDef, loader))
+      suiteLoader(taskDef).tupleLeft(taskDef)
     })
 
     def makeTasks(
