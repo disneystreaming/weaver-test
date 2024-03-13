@@ -108,6 +108,11 @@ lazy val frameworkNative = framework.native
 lazy val coreCats = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   .in(file("modules/core-cats"))
   .dependsOn(core)
+  .settings(
+    libraryDependencies ++= Seq(
+      "junit" % "junit" % Version.junit % Optional
+    )
+  )
   .settings(name := "cats-core")
 
 lazy val coreCatsJS = coreCats.js
