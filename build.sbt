@@ -1,3 +1,5 @@
+import sbt.librarymanagement.Configurations.ScalaDocTool
+
 // https://typelevel.org/sbt-typelevel/faq.html#what-is-a-base-version-anyway
 ThisBuild / tlBaseVersion := "0.0" // your current series x.y
 
@@ -110,7 +112,7 @@ lazy val coreCats = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   .dependsOn(core)
   .settings(
     libraryDependencies ++= Seq(
-      "junit" % "junit" % Version.junit % Optional
+      "junit" % "junit" % Version.junit % ScalaDocTool
     )
   )
   .settings(name := "cats-core")
