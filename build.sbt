@@ -3,8 +3,6 @@ import sbt.librarymanagement.Configurations.ScalaDocTool
 // https://typelevel.org/sbt-typelevel/faq.html#what-is-a-base-version-anyway
 ThisBuild / tlBaseVersion := "0.0" // your current series x.y
 
-ThisBuild / organization     := "weaver"
-ThisBuild / organizationName := "Typelevel"
 ThisBuild / startYear        := Some(2019)
 ThisBuild / licenses         := Seq(License.Apache2)
 ThisBuild / developers := List(
