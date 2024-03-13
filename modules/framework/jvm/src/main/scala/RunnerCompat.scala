@@ -1,5 +1,6 @@
 package weaver
 package framework
+import org.typelevel.scalaccompat.annotation.unused
 
 import java.io.PrintStream
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -37,7 +38,7 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
   }
 
   // Required on js
-  def receiveMessage(msg: String): Option[String] = None
+  def receiveMessage(@unused msg: String): Option[String] = None
 
   // Flag meant to be raised if build-tool call `done`
   protected val isDone: AtomicBoolean = new AtomicBoolean(false)
@@ -57,9 +58,9 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
     val stillRunning             = new AtomicInteger(0)
     val waitForResourcesShutdown = new java.util.concurrent.Semaphore(0)
 
-    val tasksAndSuites = taskDefs.toList.map { taskDef =>
-      taskDef -> suiteLoader(taskDef)
-    }.collect { case (taskDef, Some(suite)) => (taskDef, suite) }
+    val tasksAndSuites = (taskDefs.toList.mapFilter { taskDef =>
+      suiteLoader(taskDef).tupleLeft(taskDef)
+    })
 
     def makeTasks(
         taskDef: TaskDef,
@@ -240,7 +241,7 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
                                .productR(broker.send(TestFinished(outcome))),
                              finalizer)
         }
-      )).handleErrorWith { case scala.util.control.NonFatal(_) =>
+      )).recoverWith { case scala.util.control.NonFatal(_) =>
         effect.unit // avoid non-fatal errors propagating up
       }
     }

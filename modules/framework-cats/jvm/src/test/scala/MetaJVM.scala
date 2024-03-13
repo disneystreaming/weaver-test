@@ -132,7 +132,7 @@ object MetaJVM {
     }
   }
 
-  abstract class LazyAccessSequential(global: GlobalRead, index: Int)
+  abstract class LazyAccessSequential(global: GlobalRead)
       extends IOSuite {
     type Res = LazyState
     def sharedResource: Resource[IO, Res] = {
@@ -157,10 +157,10 @@ object MetaJVM {
 
   // Using sleeps to force sequential runs of suites
   class LazyAccessSequential0(global: GlobalRead)
-      extends LazyAccessSequential(global, 0)
+      extends LazyAccessSequential(global)
   class LazyAccessSequential1(global: GlobalRead)
-      extends LazyAccessSequential(global, 1)
+      extends LazyAccessSequential(global)
   class LazyAccessSequential2(global: GlobalRead)
-      extends LazyAccessSequential(global, 2)
+      extends LazyAccessSequential(global)
 
 }

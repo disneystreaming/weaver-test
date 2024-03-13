@@ -3,8 +3,6 @@ package framework
 
 import java.io.PrintStream
 
-import weaver.{ Platform, discard }
-
 import sbt.testing.{ Framework => BaseFramework, Runner => BaseRunner, _ }
 
 class WeaverFramework[F[_]](

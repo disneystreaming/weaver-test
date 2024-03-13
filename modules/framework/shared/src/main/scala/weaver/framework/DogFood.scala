@@ -38,7 +38,7 @@ abstract class DogFood[F[_]](
     for {
       eventHandler <- effect.delay(new MemoryEventHandler())
       logger       <- effect.delay(new MemoryLogger())
-      _ <- getTasks(suites, logger).use { case (runner, tasks) =>
+      _ <- getTasks(suites).use { case (runner, tasks) =>
         runTasks(runner, eventHandler, logger, maxParallelism)(tasks.toList)
       }
       _      <- patience.fold(effect.unit)(framework.unsafeRun.sleep)
@@ -71,8 +71,8 @@ abstract class DogFood[F[_]](
   }
 
   private def getTasks(
-      suites: Seq[Fingerprinted],
-      logger: Logger): Resource[F, (WeaverRunner[F], Array[sbt.testing.Task])] = {
+      suites: Seq[Fingerprinted]
+  ): Resource[F, (WeaverRunner[F], Array[sbt.testing.Task])] = {
     val acquire = Sync[F].delay {
       val cl = PlatformCompat.getClassLoader(this.getClass())
       framework.weaverRunner(Array(), Array(), cl, None)

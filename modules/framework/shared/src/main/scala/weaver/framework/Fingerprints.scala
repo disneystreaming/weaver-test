@@ -6,7 +6,6 @@ import scala.reflect.ClassTag
 import cats.effect.Sync
 
 import weaver.internals.Reflection._
-import weaver.{ EffectSuite, GlobalResourceF }
 
 import sbt.testing.{ Fingerprint, SubclassFingerprint, TaskDef }
 
@@ -59,6 +58,7 @@ abstract class WeaverFingerprints[F[_]](implicit F: Sync[F]) {
               loadModule(taskDef.fullyQualifiedName(), classLoader)
             val init = cast(module)(GlobalResourcesInitClass)
             Some(GlobalResourcesRef(init))
+          case _ => None
         }
 
     }
@@ -76,7 +76,7 @@ abstract class WeaverFingerprints[F[_]](implicit F: Sync[F]) {
   /**
    * A fingerprint that searches only for classes extending
    * [[weaver.EffectSuite]]. that have a constructor that takes a single
-   * [[weaver.GlobalResources.Read]] parameter.
+   * [[weaver.GlobalResourceF.Read]] parameter.
    */
   object ResourceSharingSuiteFingerprint extends WeaverFingerprint {
     def isModule()                         = false

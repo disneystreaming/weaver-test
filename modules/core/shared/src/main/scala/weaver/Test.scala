@@ -40,6 +40,6 @@ object Test {
 
   def apply[F[_]](name: String, f: F[Expectations])(
       implicit F: EffectCompat[F]
-  ): F[TestOutcome] = apply(name, (_: Log[F]) => f)
+  ): F[TestOutcome] = apply[F](name, (_: Log[F]) => f)
 
 }

@@ -2,6 +2,7 @@ package weaver
 package framework
 
 import java.nio.ByteBuffer
+import org.typelevel.scalaccompat.annotation.unused
 
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.Future
@@ -138,7 +139,7 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
         }
       }
 
-      def finaliseError(outcomes: Ref[
+      def finaliseError(@unused outcomes: Ref[
         F,
         Chain[TestOutcome]]): Throwable => F[Unit] = { error =>
         val outcome =
@@ -177,7 +178,7 @@ trait RunnerCompat[F[_]] { self: sbt.testing.Runner =>
 }
 
 private[weaver] object ReadWriter {
-  class Reader(bytes: ByteBuffer, private var pt: Int) {
+  class Reader(bytes: ByteBuffer, @unused private var pt: Int) {
     def readString() = {
       val stringSize = bytes.getInt()
       val ar         = new Array[Byte](stringSize)

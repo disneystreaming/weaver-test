@@ -1,13 +1,15 @@
 package weaver
 package junit
 
+import org.typelevel.scalaccompat.annotation.unused
+
 import weaver.TestStatus._
 import weaver.internals.Reflection
 
 import org.junit.runner.Description
 import org.junit.runner.notification.RunNotifier
 
-class WeaverRunner(cls: Class[_], dummy: Boolean)
+class WeaverRunner(cls: Class[_], @unused dummy: Boolean)
     extends org.junit.runner.Runner {
 
   type F[A] = Any

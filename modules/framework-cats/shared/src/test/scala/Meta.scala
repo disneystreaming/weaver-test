@@ -2,7 +2,7 @@ package weaver
 package framework
 package test
 
-import scala.annotation.nowarn
+import org.typelevel.scalaccompat.annotation._
 
 import cats.effect._
 
@@ -14,7 +14,7 @@ object Meta {
 
   object Boom extends Error("Boom") with scala.util.control.NoStackTrace
 
-  @nowarn("cat=w-flag-dead-code")
+  @nowarn2("cat=w-flag-dead-code")
   object CrashingSuite extends SimpleIOSuite {
     throw Boom
   }
@@ -102,7 +102,7 @@ object Meta {
     override implicit protected def effectCompat: UnsafeRun[IO] =
       SetTimeUnsafeRun
 
-    loggedTest("erroring with causes") { log =>
+    loggedTest("erroring with causes") { _ =>
       throw CustomException(
         "surfaced error",
         CustomException("first cause",
