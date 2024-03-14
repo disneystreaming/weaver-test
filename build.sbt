@@ -3,8 +3,8 @@ import sbt.librarymanagement.Configurations.ScalaDocTool
 // https://typelevel.org/sbt-typelevel/faq.html#what-is-a-base-version-anyway
 ThisBuild / tlBaseVersion := "0.0" // your current series x.y
 
-ThisBuild / startYear        := Some(2019)
-ThisBuild / licenses         := Seq(License.Apache2)
+ThisBuild / startYear := Some(2019)
+ThisBuild / licenses  := Seq(License.Apache2)
 ThisBuild / developers := List(
   tlGitHubDev("baccata", "Olivier Mélois"),
   tlGitHubDev("keynmol", "Anton Sviridov"),
@@ -50,7 +50,7 @@ lazy val root = tlCrossRootProject.aggregate(core,
 lazy val core = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   .in(file("modules/core"))
   .settings(
-    name := "core",
+    name := "weaver-core",
     libraryDependencies ++= Seq(
       "co.fs2"               %%% "fs2-core"    % Version.fs2,
       "org.typelevel"        %%% "cats-effect" % Version.catsEffect,
@@ -77,7 +77,7 @@ lazy val framework = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   .in(file("modules/framework"))
   .dependsOn(core)
   .settings(
-    name := "framework",
+    name := "weaver-framework",
     libraryDependencies ++= Seq(
       "junit" % "junit" % Version.junit
     )
@@ -113,7 +113,7 @@ lazy val coreCats = crossProject(JVMPlatform, JSPlatform, NativePlatform)
       "junit" % "junit" % Version.junit % ScalaDocTool
     )
   )
-  .settings(name := "cats-core")
+  .settings(name := "weaver-cats-core")
 
 lazy val coreCatsJS = coreCats.js
   .settings(
@@ -125,7 +125,7 @@ lazy val cats = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   .in(file("modules/framework-cats"))
   .dependsOn(framework, coreCats)
   .settings(
-    name           := "cats",
+    name           := "weaver-cats",
     testFrameworks := Seq(new TestFramework("weaver.framework.CatsEffect"))
   )
 
@@ -133,6 +133,7 @@ lazy val scalacheck = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   .in(file("modules/scalacheck"))
   .dependsOn(core, cats % "test->compile")
   .settings(
+    name           := "weaver-scalacheck",
     testFrameworks := Seq(new TestFramework("weaver.framework.CatsEffect")),
     libraryDependencies ++= Seq(
       "org.scalacheck" %%% "scalacheck"          % Version.scalacheck,
@@ -143,7 +144,7 @@ lazy val discipline = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   .in(file("modules/discipline"))
   .dependsOn(core, cats)
   .settings(
-    name           := "discipline",
+    name           := "weaver-discipline",
     testFrameworks := Seq(new TestFramework("weaver.framework.CatsEffect")),
     libraryDependencies ++= Seq(
       "org.typelevel" %%% "discipline-core" % Version.discipline,
