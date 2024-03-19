@@ -105,13 +105,17 @@ object Formatter {
         builder.append(newLine)
 
         entry.cause.map { t =>
-          TestErrorFormatter.formatStackTrace(t, Some(maxStackFrames)).map{line =>
-            builder.append(TAB4)
-            builder.append(line)
-            builder.append(newLine)
+          builder.append(TAB4)
+          builder.append(t.toString)
+          builder.append(newLine)
+
+          TestErrorFormatter.formatStackTrace(t, Some(maxStackFrames)).map {
+            line =>
+              builder.append(TAB4.prefix * 2)
+              builder.append(line)
+              builder.append(newLine)
           }
         }
-
 
         ()
       }

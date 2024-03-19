@@ -111,6 +111,24 @@ object Meta {
     }
   }
 
+  object SucceedsWithErrorInLogs extends SimpleIOSuite {
+    override implicit protected def effectCompat: UnsafeRun[IO] =
+      SetTimeUnsafeRun
+    implicit val sourceLocation: SourceLocation = TimeCop.sourceLocation
+
+    loggedTest("failure") { log =>
+      for {
+        _ <- log.error(
+          "error",
+          cause = CustomException(
+            "surfaced error",
+            withSnips = true
+          )
+        )
+      } yield failure("expected")
+    }
+  }
+
   case class CustomException(
       str: String,
       causedBy: Exception = null,

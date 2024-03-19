@@ -121,6 +121,30 @@ object DogFoodTests extends IOSuite {
     }
   }
 
+  test("failures with exceptions in logs display them correctly") {
+    _.runSuite(Meta.SucceedsWithErrorInLogs).map {
+      case (logs, _) =>
+        val expected =
+          """
+             |- failure 0ms
+             |  expected (src/main/DogFoodTests.scala:5)
+             |
+             |    [ERROR] 12:54:35 [DogFoodTests.scala:5] error
+             |    weaver.framework.test.Meta$CustomException: surfaced error
+             |        DogFoodTests.scala:15    my.package.MyClass#MyMethod
+             |        DogFoodTests.scala:20    my.package.ClassOfDifferentLength#method$new$1
+             |        <snipped>                cats.effect.internals.<...>
+             |        <snipped>                java.util.concurrent.<...>
+             |""".stripMargin.trim
+
+        exists(extractLogEventAfterFailures(logs) {
+          case LoggedEvent.Error(msg) => msg
+        }) { actual =>
+          expect.same(actual, expected)
+        }
+    }
+  }
+
   test("failures with multi-line test name are rendered correctly") {
     _.runSuite(Meta.Rendering).map {
       case (logs, _) =>
