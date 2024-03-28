@@ -18,7 +18,8 @@
       "discipline",
       "parallelism",
       "funsuite",
-      "filtering"
+      "filtering",
+      "ignoring"
     ],
     "Sample reports": [
       "multiple_suites_success",
