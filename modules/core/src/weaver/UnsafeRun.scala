@@ -6,6 +6,7 @@ import scala.concurrent.duration.FiniteDuration
 import cats.Parallel
 import cats.effect.{ Async, Resource }
 import cats.syntax.all._
+import java.util.concurrent.atomic.AtomicBoolean
 
 trait EffectCompat[F[_]] {
   implicit def parallel: Parallel[F]
@@ -35,7 +36,7 @@ trait UnsafeRun[F[_]] extends EffectCompat[F] {
 
   type CancelToken
 
-  def background(task: F[Unit]): CancelToken
+  def background(task: F[Unit], isDone: AtomicBoolean): CancelToken
   def cancel(token: CancelToken): Unit
 
   def unsafeRunSync(task: F[Unit]): Unit
