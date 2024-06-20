@@ -168,7 +168,7 @@ object WeaverPlugin extends AutoPlugin {
       else Seq(
         compilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1"),
         compilerPlugin(
-          "org.typelevel" %% "kind-projector" % "0.13.2" cross CrossVersion.full
+          "org.typelevel" %% "kind-projector" % "0.13.3" cross CrossVersion.full
         )
       )
     },
