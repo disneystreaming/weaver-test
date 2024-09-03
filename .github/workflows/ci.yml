@@ -101,7 +101,7 @@ jobs:
           cache: 'sbt'
 
       - name: Download compilation cache
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4.1.7
         with:
           path: /tmp/remote-cache
 
