@@ -1,7 +1,8 @@
-# THIS PROJECT IS NO LONGER MAINTAINED
+# THIS PROJECT HAS BEEN MOVED
 
-However, [Typelevel](https://github.com/typelevel/weaver-test/) is keeping Weaver alive in their fork.
+[Typelevel](https://typelevel.org/about/) is keeping Weaver alive: https://github.com/typelevel/weaver-test/
 
-The latest code of the original Weaver project is still accessible in the [main branch](https://github.com/disneystreaming/weaver-test/tree/main/)
+### Where can I find the old code?
+The last code of the **original Weaver project** is still accessible [here in the main branch](https://github.com/disneystreaming/weaver-test/tree/main/)
 
-Kind regards, and good luck in your endeavours !
+Kind regards, and good luck in your endeavours!
